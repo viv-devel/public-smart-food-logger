@@ -7,7 +7,7 @@
   "scripts": {
     "start": "functions-framework --target=fitbitWebhookHandler",
     "gcp-build": "node -e \"console.log('Skipping build on GCP')\"",
-    "build": "tsup src/index.ts --format esm --clean --target node20 --no-splitting --no-external @smart-food-logger/shared",
+    "build": "tsup",
     "build:watch": "tsup src/index.ts --format esm --clean --target node20 --watch",
     "test": "vitest run",
     "test:watch": "vitest",
