@@ -42,6 +42,33 @@ jobs:
               - '.github/**'
             shared:
               - 'shared/**'
+              - '.github/**'
+
+  test-shared:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.shared == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint Shared
+        run: pnpm exec eslint shared
+
+      - name: Test Shared
+        run: pnpm --filter shared run test
 
   test-backend:
     needs: check-changes
