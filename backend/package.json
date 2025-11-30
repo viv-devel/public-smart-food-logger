@@ -1,0 +1,40 @@
+{
+  "name": "@smart-food-logger/backend",
+  "version": "1.0.0",
+  "description": "Fitbit food logging logic for Gemini custom Gem.",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "functions-framework --target=fitbitWebhookHandler",
+    "gcp-build": "node -e \"console.log('Skipping build on GCP')\"",
+    "build": "tsup src/index.ts --format esm --clean --target node20 --no-splitting",
+    "build:watch": "tsup src/index.ts --format esm --clean --target node20 --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.0.0",
+    "firebase-admin": "^13.6.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@smart-food-logger/shared": "workspace:*",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/parser": "^8.47.0",
+    "@vitest/coverage-v8": "^4.0.14",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-vitest": "^0.5.4",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.47.0",
+    "vitest": "^4.0.14"
+  }
+}

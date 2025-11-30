@@ -1,0 +1,38 @@
+{
+  // --- 1. ESLint (Linting/コード品質) 設定 ---
+
+  // フラットコンフィグ形式 (eslint.config.mjs) の使用を有効化
+  "eslint.useFlatConfig": true,
+
+  // ESLint CLIに渡すオプションを指定し、設定ファイルを明示的に指定
+  "eslint.options": {
+    "overrideConfigFile": "eslint.config.mjs"
+  },
+
+  // Lintの対象とするファイルの種類（言語ID）を指定
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // ESLintの実行コンテキスト（ワーキングディレクトリ）を指定
+  "eslint.workingDirectories": [
+    {
+      "directory": "./frontend",
+      "mode": "auto"
+    },
+    {
+      "directory": "./backend",
+      "mode": "auto"
+    },
+    {
+      "directory": "./shared",
+      "mode": "auto"
+    }
+  ],
+
+  // --- 2. Formatter (Prettier) 設定 ---
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
