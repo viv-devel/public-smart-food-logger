@@ -61,7 +61,7 @@ jobs:
 
       # Optional: Notify Discord on Success/Failure
       - name: Discord Notification
-        if: always() && secrets.DISCORD_WEBHOOK_ID != ''
+        if: always() && env.DISCORD_WEBHOOK_ID != ''
         uses: appleboy/discord-action@v1.2.0
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
@@ -70,3 +70,5 @@ jobs:
             ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} @ ${{ github.ref_name }}
             Workflow: ${{ github.workflow }}
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
