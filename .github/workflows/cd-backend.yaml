@@ -1,0 +1,72 @@
+name: CD - Backend
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - "shared/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FUNCTION_NAME: fitbitwebhookhandler
+  SOURCE_DIR: backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Backend
+        run: pnpm --filter backend run build
+
+      # Authenticate with Google Cloud
+      - name: Authorize GCP
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      # Deploy to Cloud Functions
+      - name: Deploy Cloud Function
+        run: |
+          gcloud functions deploy ${{ env.FUNCTION_NAME }} \
+            --gen2 \
+            --region=${{ secrets.FUNCTION_REGION }} \
+            --runtime=nodejs20 \
+            --source=${{ env.SOURCE_DIR }} \
+            --entry-point=fitbitWebhookHandler \
+            --trigger-http \
+            --allow-unauthenticated \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --project=${{ secrets.PROJECT_ID }}
+
+      # Optional: Notify Discord on Success/Failure
+      - name: Discord Notification
+        if: always() && secrets.DISCORD_WEBHOOK_ID != ''
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: |
+            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} @ ${{ github.ref_name }}
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
