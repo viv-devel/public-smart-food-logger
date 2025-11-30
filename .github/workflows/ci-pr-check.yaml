@@ -62,6 +62,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Shared
+        run: pnpm --filter shared run build
+
       - name: Lint Backend
         run: pnpm --filter backend run lint
 
@@ -98,6 +101,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build Shared
+        run: pnpm --filter shared run build
 
       - name: Lint Frontend
         run: pnpm --filter frontend run lint

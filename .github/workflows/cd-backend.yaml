@@ -38,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Shared
+        run: pnpm --filter shared run build
+
       - name: Build Backend
         run: pnpm --filter backend run build
 
