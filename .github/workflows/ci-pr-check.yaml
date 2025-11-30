@@ -72,7 +72,7 @@ jobs:
         run: pnpm --filter shared run build
 
       - name: Lint Backend
-        run: pnpm --filter backend run lint
+        run: pnpm exec eslint backend
 
       - name: Test Backend with Coverage
         run: pnpm --filter backend run test:coverage
@@ -112,7 +112,7 @@ jobs:
         run: pnpm --filter shared run build
 
       - name: Lint Frontend
-        run: pnpm --filter frontend run lint
+        run: pnpm exec eslint frontend
 
       # Note: Running E2E tests in CI might require more setup (e.g. installing browsers)
       # For PR checks, we usually run unit/integration tests.
