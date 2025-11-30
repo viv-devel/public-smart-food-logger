@@ -18,6 +18,10 @@ concurrency:
 jobs:
   check-changes:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+      statuses: write
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}

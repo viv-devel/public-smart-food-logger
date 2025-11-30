@@ -21,6 +21,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
     steps:
       - uses: actions/checkout@v4
 
@@ -43,6 +47,11 @@ jobs:
 
       - name: Build Backend
         run: pnpm --filter backend run build
+
+      - name: Remove devDependencies for Deployment
+        run: |
+          cd backend
+          npm pkg delete devDependencies
 
       # Authenticate with Google Cloud
       - name: Authorize GCP
