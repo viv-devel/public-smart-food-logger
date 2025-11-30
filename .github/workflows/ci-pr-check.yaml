@@ -31,9 +31,11 @@ jobs:
             backend:
               - 'backend/**'
               - 'shared/**'
+              - '.github/**'
             frontend:
               - 'frontend/**'
               - 'shared/**'
+              - '.github/**'
             shared:
               - 'shared/**'
 
