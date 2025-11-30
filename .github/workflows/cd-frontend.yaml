@@ -1,11 +1,13 @@
 name: CD - Frontend
 
 on:
+  workflow_dispatch:
   push:
     branches: [main, develop]
     paths:
       - "frontend/**"
       - "shared/**"
+      - ".github/workflows/cd-frontend.yaml"
   pull_request:
     paths:
       - "frontend/**"

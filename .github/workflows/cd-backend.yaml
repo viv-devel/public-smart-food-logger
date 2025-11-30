@@ -1,11 +1,13 @@
 name: CD - Backend
 
 on:
+  workflow_dispatch:
   push:
     branches: [main, develop]
     paths:
       - "backend/**"
       - "shared/**"
+      - ".github/workflows/cd-backend.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
