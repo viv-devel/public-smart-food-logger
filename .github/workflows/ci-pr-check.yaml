@@ -1,0 +1,156 @@
+name: CI - PR Check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "shared/**"
+      - ".github/workflows/ci-pr-check.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+      statuses: write
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'shared/**'
+              - '.github/**'
+            frontend:
+              - 'frontend/**'
+              - 'shared/**'
+              - '.github/**'
+            shared:
+              - 'shared/**'
+              - '.github/**'
+
+  test-shared:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.shared == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint Shared
+        run: pnpm exec eslint shared
+
+      - name: Test Shared
+        run: pnpm --filter shared run test
+
+  test-backend:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ci
+    env:
+      FITBIT_CLIENT_ID: ${{ secrets.FITBIT_CLIENT_ID }}
+      FITBIT_CLIENT_SECRET: ${{ secrets.FITBIT_CLIENT_SECRET }}
+      FITBIT_REDIRECT_URI: ${{ vars.FITBIT_REDIRECT_URI }}
+      ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Shared
+        run: pnpm --filter shared run build
+
+      - name: Lint Backend
+        run: pnpm exec eslint backend
+
+      - name: Test Backend with Coverage
+        run: pnpm --filter backend run test:coverage
+
+      - name: Upload Backend Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage
+
+  test-frontend:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ci
+    env:
+      NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI }}
+      NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI }}
+      NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
+      ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Shared
+        run: pnpm --filter shared run build
+
+      - name: Lint Frontend
+        run: pnpm exec eslint frontend
+
+      # Note: Running E2E tests in CI might require more setup (e.g. installing browsers)
+      # For PR checks, we usually run unit/integration tests.
+      - name: Test Frontend (Unit)
+        run: pnpm --filter frontend run test
+
+      - name: Test Frontend with Coverage
+        run: pnpm --filter frontend run test:coverage
+
+      - name: Upload Frontend Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage

@@ -7,12 +7,12 @@
   "scripts": {
     "start": "functions-framework --target=fitbitWebhookHandler",
     "gcp-build": "node -e \"console.log('Skipping build on GCP')\"",
-    "build": "tsup src/index.ts --format esm --clean --target node20 --no-splitting",
+    "build": "tsup",
     "build:watch": "tsup src/index.ts --format esm --clean --target node20 --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint ."
+    "lint": "pnpm -w exec eslint backend"
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.0.0",
