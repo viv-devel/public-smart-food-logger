@@ -80,13 +80,13 @@ jobs:
           CONTEXT_MSG=""
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            COMMAND="netlify deploy --dir=$DEPLOY_DIR --context deploy-preview --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            COMMAND="netlify deploy --dir=$DEPLOY_DIR --alias pr-${{ github.event.number }} --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
             CONTEXT_MSG="PR #${{ github.event.number }} (${{ github.head_ref }})"
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             COMMAND="netlify deploy --dir=$DEPLOY_DIR --prod --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
             CONTEXT_MSG="Production (main)"
           elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            COMMAND="netlify deploy --dir=$DEPLOY_DIR --context branch-deploy --alias develop --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            COMMAND="netlify deploy --dir=$DEPLOY_DIR --alias develop --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
             CONTEXT_MSG="Staging (develop)"
           fi
 
