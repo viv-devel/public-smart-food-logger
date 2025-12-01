@@ -51,7 +51,16 @@ jobs:
           NEXT_PUBLIC_FITBIT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FITBIT_CLIENT_ID }}
           NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI }}
           NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
-          ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+
+      - name: Set Environment Variable
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "ENVIRONMENT=PROD" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "ENVIRONMENT=preview" >> $GITHUB_ENV
+          fi
 
       - name: Install Netlify CLI
         run: pnpm install -g netlify-cli
