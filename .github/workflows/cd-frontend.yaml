@@ -68,7 +68,10 @@ jobs:
       - name: Deploy to Netlify
         id: netlify_deploy
         run: |
-          DEPLOY_DIR="./frontend/out"
+          # Move to frontend directory to avoid monorepo issues
+          cd frontend
+
+          DEPLOY_DIR="./out"
           SITE_ID="${{ secrets.NETLIFY_SITE_ID }}"
           AUTH_TOKEN="${{ secrets.NETLIFY_AUTH_TOKEN }}"
 
