@@ -71,7 +71,7 @@ jobs:
           DEPLOY_DIR="./frontend/out"
           SITE_ID="${{ secrets.NETLIFY_SITE_ID }}"
           AUTH_TOKEN="${{ secrets.NETLIFY_AUTH_TOKEN }}"
-          
+
           # Initialize variables
           COMMAND=""
           CONTEXT_MSG=""
@@ -90,11 +90,11 @@ jobs:
           # Execute command and capture output
           OUTPUT=$($COMMAND)
           echo "$OUTPUT"
-          
+
           # Parse JSON output
           DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url')
           LOGS_URL=$(echo "$OUTPUT" | jq -r '.logs_url')
-          
+
           echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
           echo "LOGS_URL=$LOGS_URL" >> $GITHUB_ENV
           echo "CONTEXT_MSG=$CONTEXT_MSG" >> $GITHUB_ENV
@@ -105,9 +105,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr comment ${{ github.event.number }} --body "🚀 Deploy Preview ready!
-          
+
           Built with commit ${{ github.sha }}
-          
+
           ✅ Preview: $DEPLOY_URL
           📄 Logs: $LOGS_URL"
 
@@ -117,7 +117,6 @@ jobs:
         with:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
           webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: |
           message: |
             ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
             Workflow: ${{ github.workflow }}
