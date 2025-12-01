@@ -28,19 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Environment
+        uses: ./.github/actions/setup
 
       - name: Build Shared
         run: pnpm --filter shared run build
@@ -74,6 +63,15 @@ jobs:
             --project=${{ secrets.PROJECT_ID }}
 
       # Optional: Notify Discord on Success/Failure
+      - name: Define Context
+        if: always()
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "CONTEXT_MSG=Production (main)" >> $GITHUB_ENV
+          else
+            echo "CONTEXT_MSG=Staging (develop)" >> $GITHUB_ENV
+          fi
+
       - name: Discord Notification
         if: always() && env.DISCORD_WEBHOOK_ID != ''
         uses: appleboy/discord-action@v1.2.0
@@ -81,8 +79,9 @@ jobs:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
           webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           message: |
-            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} @ ${{ github.ref_name }}
+            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
             Workflow: ${{ github.workflow }}
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
         env:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
