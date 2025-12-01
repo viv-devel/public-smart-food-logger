@@ -29,19 +29,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
+      - name: Setup Environment
+        uses: ./.github/actions/setup
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Set Environment Variable
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "NEXT_PUBLIC_ENVIRONMENT=PROD" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "NEXT_PUBLIC_ENVIRONMENT=staging" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "NEXT_PUBLIC_ENVIRONMENT=preview" >> $GITHUB_ENV
+          fi
 
       - name: Build Shared
         run: pnpm --filter shared run build
@@ -61,23 +60,65 @@ jobs:
           NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI }}
           NEXT_PUBLIC_FITBIT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FITBIT_CLIENT_ID }}
           NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI }}
+          NEXT_PUBLIC_PORTAL_URL: ${{ vars.NEXT_PUBLIC_PORTAL_URL }}
           NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
-          ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+          NEXT_PUBLIC_ENVIRONMENT: ${{ env.NEXT_PUBLIC_ENVIRONMENT }}
+
+      - name: Install Netlify CLI
+        run: pnpm install -g netlify-cli
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: "./frontend/out"
-          production-branch: main
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: true
-          enable-commit-comment: false
-          overwrites-pull-request-comment: true
+        id: netlify_deploy
+        run: |
+          # Move to frontend directory to avoid monorepo issues
+          cd frontend
+
+          # Use absolute path to avoid confusion with root directory
+          DEPLOY_DIR="$(pwd)/out"
+          echo "Deploying from: $DEPLOY_DIR"
+          ls -la "$DEPLOY_DIR" || echo "Directory not found!"
+
+          SITE_ID="${{ secrets.NETLIFY_SITE_ID }}"
+          AUTH_TOKEN="${{ secrets.NETLIFY_AUTH_TOKEN }}"
+
+          # Initialize variables
+          COMMAND=""
+          CONTEXT_MSG=""
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            COMMAND="netlify deploy --dir=$DEPLOY_DIR --alias pr-${{ github.event.number }} --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            CONTEXT_MSG="PR #${{ github.event.number }} (${{ github.head_ref }})"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            COMMAND="netlify deploy --dir=$DEPLOY_DIR --prod --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            CONTEXT_MSG="Production (main)"
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            COMMAND="netlify deploy --dir=$DEPLOY_DIR --alias develop --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            CONTEXT_MSG="Staging (develop)"
+          fi
+
+          # Execute command and capture output
+          OUTPUT=$($COMMAND)
+          echo "$OUTPUT"
+
+          # Parse JSON output
+          DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url')
+          LOGS_URL=$(echo "$OUTPUT" | jq -r '.logs_url')
+
+          echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
+          echo "LOGS_URL=$LOGS_URL" >> $GITHUB_ENV
+          echo "CONTEXT_MSG=$CONTEXT_MSG" >> $GITHUB_ENV
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        timeout-minutes: 5
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.number }} --body "🚀 Deploy Preview ready!
+
+          Built with commit ${{ github.sha }}
+
+          ✅ Preview: $DEPLOY_URL
+          📄 Logs: $LOGS_URL"
 
       - name: Discord Notification
         if: always() && env.DISCORD_WEBHOOK_ID != ''
@@ -86,8 +127,9 @@ jobs:
           webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
           webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           message: |
-            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} @ ${{ github.ref_name }}
+            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
             Workflow: ${{ github.workflow }}
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Deploy URL: ${{ env.DEPLOY_URL }}
         env:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
