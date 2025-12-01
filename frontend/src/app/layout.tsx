@@ -16,7 +16,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const environment = process.env.ENVIRONMENT;
+  const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
   const headerBgClass = getHeaderColor(environment);
 
   return (
