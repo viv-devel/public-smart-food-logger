@@ -76,7 +76,6 @@ jobs:
           # Use absolute path to avoid confusion with root directory
           DEPLOY_DIR="$(pwd)/out"
           echo "Deploying from: $DEPLOY_DIR"
-          ls -la "$DEPLOY_DIR" || echo "Directory not found!"
 
           SITE_ID="${{ secrets.NETLIFY_SITE_ID }}"
           AUTH_TOKEN="${{ secrets.NETLIFY_AUTH_TOKEN }}"
@@ -103,6 +102,11 @@ jobs:
           # Parse JSON output
           DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.deploy_url')
           LOGS_URL=$(echo "$OUTPUT" | jq -r '.logs_url')
+
+          # Use main URL for Production
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            DEPLOY_URL=$(echo "$OUTPUT" | jq -r '.url')
+          fi
 
           echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
           echo "LOGS_URL=$LOGS_URL" >> $GITHUB_ENV
