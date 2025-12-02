@@ -1,0 +1,13 @@
+[build]
+  base = "frontend"
+  publish = ".next"
+  command = "npm run build"
+
+[context.production.environment]
+  APP_ENVIRONMENT = "PROD"
+
+[context.deploy-preview.environment]
+  APP_ENVIRONMENT = "preview"
+
+[context.branch-deploy.environment]
+  APP_ENVIRONMENT = "staging"

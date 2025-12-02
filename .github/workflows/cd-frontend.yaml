@@ -47,22 +47,6 @@ jobs:
 
       - name: Build Frontend
         run: pnpm --filter frontend run build
-        env:
-          # Add any build-time env vars here if needed
-          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
-          NEXT_PUBLIC_FITBIT_API_ENDPOINT: ${{ vars.NEXT_PUBLIC_FITBIT_API_ENDPOINT }}
-          NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI }}
-          NEXT_PUBLIC_FITBIT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FITBIT_CLIENT_ID }}
-          NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI }}
-          NEXT_PUBLIC_PORTAL_URL: ${{ vars.NEXT_PUBLIC_PORTAL_URL }}
-          NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
-          NEXT_PUBLIC_ENVIRONMENT: ${{ env.NEXT_PUBLIC_ENVIRONMENT }}
 
       - name: Install Netlify CLI
         run: pnpm install -g netlify-cli
@@ -70,13 +54,6 @@ jobs:
       - name: Deploy to Netlify
         id: netlify_deploy
         run: |
-          # Move to frontend directory to avoid monorepo issues
-          cd frontend
-
-          # Use absolute path to avoid confusion with root directory
-          DEPLOY_DIR="$(pwd)/out"
-          echo "Deploying from: $DEPLOY_DIR"
-
           SITE_ID="${{ secrets.NETLIFY_SITE_ID }}"
           AUTH_TOKEN="${{ secrets.NETLIFY_AUTH_TOKEN }}"
 
@@ -84,14 +61,31 @@ jobs:
           COMMAND=""
           CONTEXT_MSG=""
 
+          # Default Redirect URI (will be overwritten for PRs)
+          export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI="${{ vars.NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI }}"
+
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            COMMAND="netlify deploy --dir=$DEPLOY_DIR --alias pr-${{ github.event.number }} --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            # Construct dynamic Redirect URI for Deploy Preview
+            # Assumes NEXT_PUBLIC_PORTAL_URL is set to the production URL (e.g., https://smart-food-logger.netlify.app)
+            # Extracts 'smart-food-logger' from 'https://smart-food-logger.netlify.app'
+            SITE_NAME=$(echo "${{ vars.NEXT_PUBLIC_PORTAL_URL }}" | sed -E 's/https?:\/\/(.*)\.netlify\.app/\1/')
+            
+            # Fallback if extraction fails or URL is custom domain
+            if [[ -z "$SITE_NAME" || "$SITE_NAME" == "${{ vars.NEXT_PUBLIC_PORTAL_URL }}" ]]; then
+               SITE_NAME="smart-food-logger" # Fallback to known site name if parsing fails
+            fi
+
+            DYNAMIC_REDIRECT_URI="https://deploy-preview-${{ github.event.number }}--${SITE_NAME}.netlify.app/oauth"
+            echo "Setting dynamic Redirect URI: $DYNAMIC_REDIRECT_URI"
+            export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI="$DYNAMIC_REDIRECT_URI"
+
+            COMMAND="netlify deploy --context deploy-preview --alias pr-${{ github.event.number }} --site=$SITE_ID --auth=$AUTH_TOKEN --json"
             CONTEXT_MSG="PR #${{ github.event.number }} (${{ github.head_ref }})"
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            COMMAND="netlify deploy --dir=$DEPLOY_DIR --prod --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            COMMAND="netlify deploy --prod --site=$SITE_ID --auth=$AUTH_TOKEN --json"
             CONTEXT_MSG="Production (main)"
           elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            COMMAND="netlify deploy --dir=$DEPLOY_DIR --alias develop --no-build --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            COMMAND="netlify deploy --context branch-deploy --alias develop --site=$SITE_ID --auth=$AUTH_TOKEN --json"
             CONTEXT_MSG="Staging (develop)"
           fi
 

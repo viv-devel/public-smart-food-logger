@@ -16,7 +16,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const environment = process.env.NEXT_PUBLIC_ENVIRONMENT;
+  const environment = process.env.APP_ENVIRONMENT;
   const headerBgClass = getHeaderColor(environment);
 
   return (
@@ -43,10 +43,7 @@ export default function RootLayout({
                     プライバシーポリシー
                   </Link>
                   <Link
-                    href={
-                      process.env.NEXT_PUBLIC_PORTAL_URL ||
-                      "http://localhost:3000"
-                    }
+                    href={process.env.PORTAL_URL || "http://localhost:3000"}
                     className="text-sm text-gray-400 hover:text-gray-200"
                   >
                     ↑ Hubへ戻る
