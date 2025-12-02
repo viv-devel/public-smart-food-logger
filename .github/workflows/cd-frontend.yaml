@@ -75,7 +75,7 @@ jobs:
                SITE_NAME="smart-food-logger" # Fallback to known site name if parsing fails
             fi
 
-            DYNAMIC_REDIRECT_URI="https://deploy-preview-${{ github.event.number }}--${SITE_NAME}.netlify.app/oauth"
+            DYNAMIC_REDIRECT_URI="https://pr-${{ github.event.number }}--${SITE_NAME}.netlify.app/oauth"
             echo "Setting dynamic Redirect URI: $DYNAMIC_REDIRECT_URI"
             export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI="$DYNAMIC_REDIRECT_URI"
 
