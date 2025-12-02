@@ -1,6 +1,10 @@
 "use server";
 
-import { CreateFoodLogRequest, ErrorDetail } from "@smart-food-logger/shared";
+import {
+  CreateFoodLogRequest,
+  CreateFoodLogRequestSchema,
+  ErrorDetail,
+} from "@smart-food-logger/shared";
 
 export async function logToFitbit(
   data: Partial<CreateFoodLogRequest>,
@@ -17,35 +21,25 @@ export async function logToFitbit(
   }
 
   try {
-    // バリデーション (簡易チェック - 詳細なバリデーションはバックエンドで行うが、最低限のチェックはここでも)
-    if (!data.foods || !Array.isArray(data.foods) || data.foods.length === 0) {
+    // バリデーション (Zodスキーマを使用)
+    const validationResult = CreateFoodLogRequestSchema.safeParse(data);
+
+    if (!validationResult.success) {
+      const errorMessages = (validationResult.error as any).errors
+        .map((err: any) => `${err.path.join(".")}: ${err.message}`)
+        .join("\n");
       return {
         success: false,
-        message: "必須項目 `foods` 配列がJSONに含まれていないか、空です。",
-      };
-    }
-    if (!data.log_date || typeof data.log_date !== "string") {
-      return {
-        success: false,
-        message: "必須項目 `log_date` (YYYY-MM-DD) がJSONに含まれていません。",
-      };
-    }
-    if (!data.log_time || typeof data.log_time !== "string") {
-      return {
-        success: false,
-        message: "必須項目 `log_time` (HH:MM:SS) がJSONに含まれていません。",
-      };
-    }
-    if (!data.meal_type || typeof data.meal_type !== "string") {
-      return {
-        success: false,
-        message: "必須項目 `meal_type` がJSONに含まれていません。",
+        message: `入力データに誤りがあります:\n${errorMessages}`,
       };
     }
 
-    // userIdはCreateFoodLogRequestでは不要なため除外
+    // バリデーション済みのデータを使用
+    // userIdはCreateFoodLogRequestでは不要なため除外 (スキーマ定義に含まれているがAPI送信時には除外したい場合)
+    // ただし、CreateFoodLogRequestSchemaはuserIdをoptionalとして持っている。
+    // ここでは validationResult.data を使うのが安全。
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { userId: _userId, ...dataToSend } = data;
+    const { userId: _userId, ...dataToSend } = validationResult.data;
 
     const response = await fetch(API_ENDPOINT, {
       method: "POST",
