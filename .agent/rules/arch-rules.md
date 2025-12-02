@@ -20,7 +20,7 @@ trigger: always_on
 | :-------------- | :----------------------------------------------------- | :--------------- | :------------------------ |
 | **Production**  | 安定版。ユーザー利用の最終環境。                       | `main`           | Netlify, Cloud Run        |
 | **Staging**     | リリース候補版 (RC)。統合テスト・最終検証用。          | `develop`        | Netlify, Cloud Run        |
-| **Preview**     | 個別機能検証用。PR作成時に一時的に生成される。         | Feature ブランチ | Netlify, backendはなし    |
+| **Preview**     | 個別機能検証用。PR作成時に一時的に生成される。         | Feature ブランチ | Netlify, backendはなし (予定)    |
 | **CI**          | 継続的インテグレーション専用。テスト・ビルドチェック。 | PR チェック      | GitHub Actions (ランナー) |
 | **Development** | 開発者のローカル環境。                                 | Local Machine    | Local Server              |
 
