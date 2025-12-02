@@ -44,7 +44,7 @@ test.describe("食事ログ記録フロー", () => {
 
     // エラーメッセージの内容を確認 (部分一致)
     const text = await errorContainer.textContent();
-    console.log("Invalid JSON Error Message:", text);
+
     expect(text).toBeTruthy();
     // expect(text).toContain("入力データに誤りがあります"); // メッセージが変動する可能性があるため、エラーが表示されたことだけ確認
   });
@@ -69,7 +69,7 @@ test.describe("食事ログ記録フロー", () => {
 
     // エラーメッセージの内容を確認
     const text = await errorContainer.textContent();
-    console.log("Valid JSON Error Message:", text);
+
     // どのようなエラーでも良いので、エラーが表示されたことを確認
     expect(text).not.toBeNull();
   });

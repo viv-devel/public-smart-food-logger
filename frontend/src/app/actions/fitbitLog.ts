@@ -6,10 +6,7 @@ import {
   ErrorDetail,
 } from "@smart-food-logger/shared";
 
-export async function logToFitbit(
-  data: Partial<CreateFoodLogRequest>,
-  idToken: string,
-) {
+export async function logToFitbit(data: unknown, idToken: string) {
   const API_ENDPOINT = process.env.FITBIT_API_ENDPOINT;
 
   if (!API_ENDPOINT) {
