@@ -79,13 +79,13 @@ jobs:
             echo "Setting dynamic Redirect URI: $DYNAMIC_REDIRECT_URI"
             export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI="$DYNAMIC_REDIRECT_URI"
 
-            COMMAND="netlify deploy --context deploy-preview --alias pr-${{ github.event.number }} --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            COMMAND="netlify deploy --context deploy-preview --alias pr-${{ github.event.number }} --site=$SITE_ID --auth=$AUTH_TOKEN --filter @smart-food-logger/frontend --json"
             CONTEXT_MSG="PR #${{ github.event.number }} (${{ github.head_ref }})"
           elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            COMMAND="netlify deploy --prod --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            COMMAND="netlify deploy --prod --site=$SITE_ID --auth=$AUTH_TOKEN --filter @smart-food-logger/frontend --json"
             CONTEXT_MSG="Production (main)"
           elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            COMMAND="netlify deploy --context branch-deploy --alias develop --site=$SITE_ID --auth=$AUTH_TOKEN --json"
+            COMMAND="netlify deploy --context branch-deploy --alias develop --site=$SITE_ID --auth=$AUTH_TOKEN --filter @smart-food-logger/frontend --json"
             CONTEXT_MSG="Staging (develop)"
           fi
 
