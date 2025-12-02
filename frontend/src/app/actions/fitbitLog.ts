@@ -25,8 +25,8 @@ export async function logToFitbit(
     const validationResult = CreateFoodLogRequestSchema.safeParse(data);
 
     if (!validationResult.success) {
-      const errorMessages = (validationResult.error as any).errors
-        .map((err: any) => `${err.path.join(".")}: ${err.message}`)
+      const errorMessages = validationResult.error.issues
+        .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
         .join("\n");
       return {
         success: false,
