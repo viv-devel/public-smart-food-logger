@@ -42,10 +42,11 @@ export const useFitbitLogger = () => {
       if (result.success) {
         setStatusMessage(result.message);
         setIsError(false);
-        return result;
       } else {
-        throw new Error(result.message);
+        setStatusMessage(result.message);
+        setIsError(true);
       }
+      return result;
     } catch (error) {
       console.error("Fitbit連携またはデータ処理エラー:", error);
       const errorMessage =
