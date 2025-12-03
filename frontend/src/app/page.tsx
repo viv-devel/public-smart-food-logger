@@ -2,7 +2,6 @@
 
 import { getAuth, signInAnonymously, signOut } from "firebase/auth";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,6 +13,8 @@ const ReCAPTCHA = dynamic<ReCAPTCHAProps>(
     ssr: false,
   },
 );
+
+import HowItWorksCarousel from "@/components/HowItWorksCarousel";
 
 import { useFirebaseAuth } from "./auth/FirebaseAuthProvider";
 import { app } from "./auth/firebaseConfig";
@@ -154,58 +155,8 @@ export default function FitbitLandingPage() {
           </div>
         </div>
 
-        <div className="mt-20 max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-10">How It Works</h2>
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div className="bg-gray-800 p-6 rounded-lg flex flex-col">
-              <div className="text-3xl mb-4">1.</div>
-              <h3 className="text-xl font-semibold mb-2">食事の写真を送る</h3>
-              <p className="text-gray-400 grow">
-                専用のカスタムGeminiに食事の写真を送ると、AIが自動で栄養情報を分析します。
-              </p>
-              <div className="mt-4 relative w-full h-40">
-                <Image
-                  src="/images/smart-food-logger-step1.png"
-                  alt="Step 1: 食事の写真を送る"
-                  fill
-                  style={{ objectFit: "cover" }}
-                  className="rounded-lg"
-                />
-              </div>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-lg flex flex-col">
-              <div className="text-3xl mb-4">2.</div>
-              <h3 className="text-xl font-semibold mb-2">JSONをコピー</h3>
-              <p className="text-gray-400 grow">
-                Geminiが出力した栄養情報（JSON形式）をクリップボードにコピーします。
-              </p>
-              <div className="mt-4 relative w-full h-40">
-                <Image
-                  src="/images/smart-food-logger-step2.png"
-                  alt="Step 2: JSONをコピー"
-                  fill
-                  style={{ objectFit: "cover" }}
-                  className="rounded-lg"
-                />
-              </div>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-lg flex flex-col">
-              <div className="text-3xl mb-4">3.</div>
-              <h3 className="text-xl font-semibold mb-2">貼り付けて記録</h3>
-              <p className="text-gray-400 grow">
-                このサイトの記録ページにJSONを貼り付け、ボタンを押すだけでFitbitに記録が完了します。
-              </p>
-              <div className="mt-4 relative w-full h-40">
-                <Image
-                  src="/images/smart-food-logger-step3.png"
-                  alt="Step 3: 貼り付けて記録"
-                  fill
-                  style={{ objectFit: "cover" }}
-                  className="rounded-lg"
-                />
-              </div>
-            </div>
-          </div>
+        <div className="mt-20">
+          <HowItWorksCarousel />
         </div>
       </main>
     </div>
