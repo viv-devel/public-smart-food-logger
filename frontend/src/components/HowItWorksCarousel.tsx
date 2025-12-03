@@ -145,23 +145,8 @@ export default function HowItWorksCarousel() {
           <button
             key={step.id}
             onClick={() => {
-              // Calculate direction based on index difference
               const diff = index - imageIndex;
               if (diff !== 0) {
-                 // To handle the infinite pagination logic correctly with specific index jumps is complex
-                 // Simpler approach: just set the page to the target index if we weren't using infinite `page` state.
-                 // But since we use `page` which grows indefinitely, we need to find the closest `page` that matches `index`.
-                 // However, for simplicity in this interaction, we can just reset?
-                 // Or easier: Iterate until we match.
-                 // Actually, a simpler way for 3 items is just to use state index 0-2 directly and handle wrap around in logic,
-                 // but framer motion slide animation works better with unique keys (page count).
-
-                 // Let's just allow clicking to "reset" the view to that specific step?
-                 // Or finding the closest equivalent page number.
-                 // Current page is `page`. Current index is `imageIndex`.
-                 // Target index is `index`.
-                 // We want `newPage % 3 === index`.
-                 // newPage = page + (index - imageIndex)
                  setPage([page + (index - imageIndex), index > imageIndex ? 1 : -1]);
               }
             }}
