@@ -1,7 +1,6 @@
 "use server";
 
 import {
-  CreateFoodLogRequest,
   CreateFoodLogRequestSchema,
   ErrorDetail,
 } from "@smart-food-logger/shared";
