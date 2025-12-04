@@ -11,6 +11,7 @@ const steps = [
     description:
       "専用のカスタムGeminiに食事の写真を送ると、AIが自動で栄養情報を分析します。",
     image: "/images/1-photo-analysis.webp",
+    position: "object-top", // Gemini: Burger photo at top
   },
   {
     id: 2,
@@ -18,6 +19,7 @@ const steps = [
     description:
       "Geminiが出力した栄養情報（JSON形式）をクリップボードにコピーします。",
     image: "/images/2-json-copy.webp",
+    position: "object-bottom", // App: Button at bottom
   },
   {
     id: 3,
@@ -25,6 +27,7 @@ const steps = [
     description:
       "このサイトの記録ページにJSONを貼り付け、ボタンを押すだけでFitbitに記録が完了します。",
     image: "/images/3-fitbit-log.webp",
+    position: "object-bottom", // Fitbit: Logged text at bottom
   },
 ];
 
@@ -108,14 +111,16 @@ export default function HowItWorksCarousel() {
             className="absolute w-full h-full flex flex-col md:flex-row items-center justify-center bg-gray-800 rounded-2xl overflow-hidden shadow-2xl cursor-grab active:cursor-grabbing"
           >
             {/* Image Section */}
-            <div className="relative w-full md:w-1/2 h-1/2 md:h-full bg-gray-900">
-              <Image
-                src={steps[imageIndex].image}
-                alt={steps[imageIndex].title}
-                fill
-                className="object-contain p-4"
-                draggable={false}
-              />
+            <div className="relative w-full md:w-1/2 h-1/2 md:h-full bg-gray-900 p-4 md:p-8 flex items-center justify-center">
+              <div className="relative w-full h-full max-w-[300px] md:max-w-full aspect-[9/19] md:aspect-auto shadow-[0_0_15px_rgba(0,0,0,0.5)] border-4 border-gray-700 rounded-3xl overflow-hidden">
+                <Image
+                  src={steps[imageIndex].image}
+                  alt={steps[imageIndex].title}
+                  fill
+                  className={`object-cover ${steps[imageIndex].position}`}
+                  draggable={false}
+                />
+              </div>
             </div>
 
             {/* Content Section */}
