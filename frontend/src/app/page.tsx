@@ -96,8 +96,10 @@ export default function FitbitLandingPage() {
             </span>
           </p>
 
-          <div className="mb-12">
+          <div className="my-12 relative py-8">
+            <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-gray-700 to-transparent"></div>
             <HowItWorksCarousel />
+            <div className="absolute bottom-0 left-0 w-full h-px bg-linear-to-r from-transparent via-gray-700 to-transparent"></div>
           </div>
 
           <div className="flex flex-col items-center gap-6 min-h-[300px]">
