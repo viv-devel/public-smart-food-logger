@@ -27,11 +27,12 @@ describe('HowItWorksCarousel', () => {
     render(<HowItWorksCarousel />);
 
     // Check Title
-    expect(screen.getByText('食事の写真を送る')).toBeDefined();
+    expect(screen.getByText('AIに食事を伝える')).toBeDefined();
     // Check Description
-    expect(screen.getByText(/専用のカスタムGeminiに食事の写真を送ると/)).toBeDefined();
+    expect(screen.getByText(/写真を渡すだけでなく、「今日のお昼はペペロンチーノとサラダ」のように/)).toBeDefined();
+    expect(screen.getByText('文章で伝えても')).toBeDefined();
     // Check Image
-    const img = screen.getByAltText('食事の写真を送る');
+    const img = screen.getByAltText('AIに食事を伝える');
     expect(img).toBeDefined();
     expect(img.getAttribute('src')).toBe('/images/1-photo-analysis.webp');
   });
@@ -51,23 +52,26 @@ describe('HowItWorksCarousel', () => {
     fireEvent.click(buttons[1]);
 
     // Should now show 2nd step
-    expect(screen.getByText('JSONをコピー')).toBeDefined();
-    expect(screen.getByText(/Geminiが出力した栄養情報/)).toBeDefined();
-    const img = screen.getByAltText('JSONをコピー');
+    expect(screen.getByText('JSONを貼り付けて記録')).toBeDefined();
+    expect(screen.getByText(/カスタムGeminiが生成した栄養情報（JSON）をフォームに貼り付け、/)).toBeDefined();
+    expect(screen.getByText('ボタンを押すだけ')).toBeDefined();
+    const img = screen.getByAltText('JSONを貼り付けて記録');
     expect(img.getAttribute('src')).toBe('/images/2-json-copy.webp');
   });
 
-    it('cycles through steps', () => {
+  it('cycles through steps', () => {
     render(<HowItWorksCarousel />);
 
     const buttons = screen.getAllByRole('button');
 
     // Step 1 -> Step 3
     fireEvent.click(buttons[2]);
-    expect(screen.getByText('貼り付けて記録')).toBeDefined();
+    expect(screen.getByText('Fitbitで栄養をチェック')).toBeDefined();
+    expect(screen.getByText(/記録された食事はFitbitアプリで/)).toBeDefined();
+    expect(screen.getByText('消費カロリーと比較')).toBeDefined();
 
     // Step 3 -> Step 1
     fireEvent.click(buttons[0]);
-    expect(screen.getByText('食事の写真を送る')).toBeDefined();
+    expect(screen.getByText('AIに食事を伝える')).toBeDefined();
   });
 });
