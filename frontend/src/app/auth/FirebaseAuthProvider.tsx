@@ -1,7 +1,7 @@
 // src/app/fitbit-via-gemini/auth/FirebaseAuthProvider.tsx
 "use client";
 
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import type { User } from "firebase/auth";
 import {
   createContext,
   ReactNode,
@@ -73,37 +73,59 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
       return; // 実際のFirebaseリスナーを登録しない
     }
 
-    const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true);
-      if (currentUser) {
-        setUser(currentUser);
-        const token = await currentUser.getIdToken();
-        setIdToken(token);
-      } else {
-        // ユーザーがいない場合は匿名でサインインするロジックは削除されました。
-        // 匿名認証はユーザーの明示的なアクションによってのみ行われます。
-        setUser(null);
-        setIdToken(null);
-      }
-      setLoading(false);
-    });
+    let unsubscribe: () => void;
+    let isMounted = true;
 
-    return () => unsubscribe();
+    const initAuth = async () => {
+      const { getAuth, onAuthStateChanged } = await import("firebase/auth");
+
+      // If component unmounted while importing, stop.
+      if (!isMounted) return;
+
+      const auth = getAuth(app);
+      unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        if (!isMounted) return;
+        setLoading(true);
+        if (currentUser) {
+          setUser(currentUser);
+          const token = await currentUser.getIdToken();
+          // Double check if mounted after async call
+          if (isMounted) setIdToken(token);
+        } else {
+          // ユーザーがいない場合は匿名でサインインするロジックは削除されました。
+          // 匿名認証はユーザーの明示的なアクションによってのみ行われます。
+          setUser(null);
+          setIdToken(null);
+        }
+        if (isMounted) setLoading(false);
+      });
+    };
+
+    initAuth();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribe) unsubscribe();
+    };
   }, [isMockAuth]);
 
   // トークンを定期的にリフレッシュするためのタイマー
   useEffect(() => {
     const interval = setInterval(
       async () => {
-        const auth = getAuth(app);
-        if (auth.currentUser) {
-          try {
-            const token = await auth.currentUser.getIdToken(true); // trueで強制リフレッシュ
-            setIdToken(token);
-          } catch (error) {
-            console.error("Error refreshing ID token:", error);
+        try {
+          const { getAuth } = await import("firebase/auth");
+          const auth = getAuth(app);
+          if (auth.currentUser) {
+            try {
+              const token = await auth.currentUser.getIdToken(true); // trueで強制リフレッシュ
+              setIdToken(token);
+            } catch (error) {
+              console.error("Error refreshing ID token:", error);
+            }
           }
+        } catch {
+          // import error or other
         }
       },
       30 * 60 * 1000,
