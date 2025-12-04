@@ -60,7 +60,7 @@ export default function FitbitLandingPage() {
       router.push("/oauth");
     } catch (error) {
       console.error("匿名認証エラー:", error);
-      // TODO: Implement toast notification for user feedback
+      console.log("TODO: Implement toast notification for user feedback");
       alert("匿名認証に失敗しました。再度お試しください。");
     }
   };
