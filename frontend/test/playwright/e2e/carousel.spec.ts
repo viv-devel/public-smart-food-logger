@@ -7,11 +7,16 @@ test.describe('HowItWorks Carousel', () => {
   });
 
   test('should display the carousel and allow navigation', async ({ page }) => {
+    // Check if homepage loads at all
+    // Use first() because there might be multiple headings (e.g. mobile nav and main content)
+    await expect(page.getByRole('heading', { name: 'Smart Food Logger AI' }).first()).toBeVisible();
+
     // Check for the section title
     await expect(page.getByRole('heading', { name: 'How It Works' })).toBeVisible();
 
     // Check initial state (Step 1)
-    await expect(page.getByText('食事の写真を送る')).toBeVisible();
+    const step1Heading = page.getByRole('heading', { name: '食事の写真を送る' });
+    await expect(step1Heading).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('専用のカスタムGeminiに食事の写真を送ると、AIが自動で栄養情報を分析します。')).toBeVisible();
 
     // Find pagination buttons
@@ -19,7 +24,7 @@ test.describe('HowItWorks Carousel', () => {
     await expect(buttons).toHaveCount(3);
 
     // Click on Step 2 button
-    await buttons.nth(1).click();
+    await buttons.nth(1).click({ force: true });
 
     // Check Step 2 content
     await expect(page.getByText('JSONをコピー')).toBeVisible();

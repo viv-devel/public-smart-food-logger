@@ -22,11 +22,17 @@ export default defineConfig({
   /* CIではテストファイルの並列実行を無効にする */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["html", { outputFolder: "./test/results/playwright-report" }]],
+  reporter: [
+    ["list"],
+    ["html", { outputFolder: "./test/results/playwright-report" }],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: "http://localhost:3000",
+
+    /* Ensure headless mode is used */
+    headless: true,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",

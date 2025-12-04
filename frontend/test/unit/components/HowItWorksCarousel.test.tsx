@@ -1,11 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import HowItWorksCarousel from '../HowItWorksCarousel';
+import HowItWorksCarousel from '@/components/HowItWorksCarousel';
 
 // Mock framer-motion components since they use animation logic that is hard to test in jsdom
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, className, onDragEnd, ...props }: any) => {
+    div: ({ children, className, onDragEnd, drag, dragConstraints, dragElastic, ...props }: any) => {
         // Mock drag handling if needed
         return (
             <div className={className} data-testid="motion-div" {...props}>
@@ -19,7 +19,7 @@ vi.mock('framer-motion', () => ({
 
 // Mock Next.js Image
 vi.mock('next/image', () => ({
-  default: (props: any) => <img {...props} alt={props.alt} />,
+  default: ({ fill, ...props }: any) => <img {...props} alt={props.alt} />,
 }));
 
 describe('HowItWorksCarousel', () => {
