@@ -10,7 +10,7 @@
     "test:coverage": "vitest run --coverage",
     "cypress:run": "cypress run",
     "test:e2e": "playwright test --reporter=list --max-failures=1",
-    "test:e2e:ci": "playwright test",
+    "test:e2e:ci": "playwright test --max-failures=1",
     "test:e2e:ui": "playwright test --ui",
     "lint": "pnpm -w exec eslint frontend"
   },
