@@ -51,6 +51,13 @@ jobs:
     environment: ci
     steps:
       - uses: actions/checkout@v4
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: "**/node_modules"
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
       - name: Setup Environment
         uses: ./.github/actions/setup
 
@@ -72,6 +79,13 @@ jobs:
       ENVIRONMENT: ${{ vars.ENVIRONMENT }}
     steps:
       - uses: actions/checkout@v4
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: "**/node_modules"
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
       - name: Setup Environment
         uses: ./.github/actions/setup
 
@@ -105,6 +119,13 @@ jobs:
       NEXT_PUBLIC_FITBIT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FITBIT_CLIENT_ID }}
     steps:
       - uses: actions/checkout@v4
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: "**/node_modules"
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
       - name: Setup Environment
         uses: ./.github/actions/setup
 
@@ -121,6 +142,13 @@ jobs:
 
       - name: Test Frontend with Coverage
         run: pnpm --filter frontend run test:coverage
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package.json') }}
+          restore-keys: playwright-${{ runner.os }}-
 
       - name: Install Playwright Browsers
         run: pnpm dlx playwright install --with-deps chromium
