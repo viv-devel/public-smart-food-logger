@@ -28,9 +28,10 @@ describe('HowItWorksCarousel', () => {
 
     // Check Title
     expect(screen.getByText('AIに食事を伝える')).toBeDefined();
-    // Check Description
-    expect(screen.getByText(/写真を渡すだけでなく、「今日のお昼はペペロンチーノとサラダ」のように/)).toBeDefined();
-    expect(screen.getByText('文章で伝えても')).toBeDefined();
+    // Check Description - Match full text content to ensure readability and structure
+    const descElement = screen.getByText(/写真を渡すだけでなく/).closest('p');
+    expect(descElement?.textContent).toBe('写真を渡すだけでなく、「今日のお昼はペペロンチーノとサラダ」のように文章で伝えてもAIが栄養素を推定します。');
+
     // Check Image
     const img = screen.getByAltText('AIに食事を伝える');
     expect(img).toBeDefined();
@@ -53,8 +54,10 @@ describe('HowItWorksCarousel', () => {
 
     // Should now show 2nd step
     expect(screen.getByText('JSONを貼り付けて記録')).toBeDefined();
-    expect(screen.getByText(/カスタムGeminiが生成した栄養情報（JSON）をフォームに貼り付け、/)).toBeDefined();
-    expect(screen.getByText('ボタンを押すだけ')).toBeDefined();
+
+    const descElement = screen.getByText(/カスタムGeminiが生成した栄養情報/).closest('p');
+    expect(descElement?.textContent).toBe('カスタムGeminiが生成した栄養情報（JSON）をフォームに貼り付け、ボタンを押すだけ。手間なく正確な記録が可能です。');
+
     const img = screen.getByAltText('JSONを貼り付けて記録');
     expect(img.getAttribute('src')).toBe('/images/2-json-copy.webp');
   });
@@ -67,8 +70,9 @@ describe('HowItWorksCarousel', () => {
     // Step 1 -> Step 3
     fireEvent.click(buttons[2]);
     expect(screen.getByText('Fitbitで栄養をチェック')).toBeDefined();
-    expect(screen.getByText(/記録された食事はFitbitアプリで/)).toBeDefined();
-    expect(screen.getByText('消費カロリーと比較')).toBeDefined();
+
+    const descElement = screen.getByText(/記録された食事はFitbitアプリで/).closest('p');
+    expect(descElement?.textContent).toBe('記録された食事はFitbitアプリで消費カロリーと比較して確認できます。Fitbit WatchやPixel Watchユーザーに最適です。');
 
     // Step 3 -> Step 1
     fireEvent.click(buttons[0]);
