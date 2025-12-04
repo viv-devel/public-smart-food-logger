@@ -175,7 +175,7 @@ export default function FitbitLandingPage() {
                 )}
                </>
              ) : (
-               <div className="h-20" /> /* プレースホルダー */
+               <div className="min-h-[300px]" /> /* プレースホルダー */
              )}
           </div>
         </div>
