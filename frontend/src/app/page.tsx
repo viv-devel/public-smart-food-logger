@@ -1,6 +1,5 @@
 "use client";
 
-import { getAuth, signInAnonymously, signOut } from "firebase/auth";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,7 +24,16 @@ export default function FitbitLandingPage() {
   const [recaptchaStatus, setRecaptchaStatus] = useState<
     "idle" | "success" | "collapsing"
   >("idle");
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    // ページロード後に認証コンポーネントを表示（LCP優先のため）
+    const timer = setTimeout(() => {
+      setIsAuthReady(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (recaptchaToken) {
@@ -45,6 +53,7 @@ export default function FitbitLandingPage() {
       return;
     }
     try {
+      const { getAuth, signInAnonymously } = await import("firebase/auth");
       const auth = getAuth(app);
       await signInAnonymously(auth);
       // 匿名認証成功後、Fitbit認証フローを開始するためにoauthページへ遷移
@@ -59,6 +68,7 @@ export default function FitbitLandingPage() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("fitbitAuthCompleted");
     }
+    const { getAuth, signOut } = await import("firebase/auth");
     const auth = getAuth();
     await signOut(auth);
     // You might want to reload the page or push to a logged-out state
@@ -85,78 +95,86 @@ export default function FitbitLandingPage() {
               食事データはFitbitにのみ記録され、このサイトには残りません。
             </span>
           </p>
-          <div className="flex flex-col items-center gap-6">
-            <Link href="/instructions" passHref>
-              <button className="bg-transparent hover:bg-gray-800 text-gray-300 font-bold py-3 px-6 rounded-lg border border-gray-600 transition-colors duration-300">
-                設定手順を見る
-              </button>
-            </Link>
 
-            {/* Conditional rendering for auth buttons */}
-            {loading ? (
-              <p>認証状態を確認中...</p>
-            ) : isAuthenticated ? (
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex gap-4">
-                  <Link href="/register" passHref>
-                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                      食事の記録を登録する
-                    </button>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-                  >
-                    Fitbit連携を解除
-                  </button>
-                </div>
-                <p className="text-green-400 text-sm">Fitbit連携済み</p>
-              </div>
-            ) : (
-              <>
-                <div
-                  data-testid="recaptcha-container"
-                  className={`flex justify-center items-center transition-all duration-500 ease-in-out ${
-                    recaptchaStatus === "collapsing" ? "h-0" : "h-[78px]"
-                  }`}
-                >
-                  {recaptchaStatus === "idle" && (
-                    <ReCAPTCHA
-                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
-                      onChange={(token: string | null) =>
-                        setRecaptchaToken(token)
-                      }
-                      theme="dark"
-                    />
-                  )}
-                  {(recaptchaStatus === "success" ||
-                    recaptchaStatus === "collapsing") && (
-                    <p className="text-green-400">
-                      ✓ reCAPTCHA認証が完了しました
-                    </p>
-                  )}
-                </div>
-                <p className="text-xs text-gray-400 max-w-xs text-center">
-                  ボタンを押すと、サービス利用のための一時的なIDが発行され、Fitbitの連携ページに移動します。
-                </p>
-                <button
-                  onClick={handleAnonymousSignIn}
-                  disabled={!recaptchaToken}
-                  className={`font-bold py-3 px-6 rounded-lg transition-colors ${
-                    recaptchaToken
-                      ? "bg-green-500 hover:bg-green-700 text-white"
-                      : "bg-gray-400 text-gray-700 cursor-not-allowed"
-                  }`}
-                >
-                  利用を開始する
-                </button>
-              </>
-            )}
+          <div className="mb-12">
+            <HowItWorksCarousel />
           </div>
-        </div>
 
-        <div className="mt-20">
-          <HowItWorksCarousel />
+          <div className="flex flex-col items-center gap-6 min-h-[300px]">
+             {/* 認証関連コンポーネントの遅延ロード */}
+             {isAuthReady ? (
+               <>
+                <Link href="/instructions" passHref>
+                  <button className="bg-transparent hover:bg-gray-800 text-gray-300 font-bold py-3 px-6 rounded-lg border border-gray-600 transition-colors duration-300">
+                    設定手順を見る
+                  </button>
+                </Link>
+
+                {/* Conditional rendering for auth buttons */}
+                {loading ? (
+                  <p>認証状態を確認中...</p>
+                ) : isAuthenticated ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="flex gap-4">
+                      <Link href="/register" passHref>
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                          食事の記録を登録する
+                        </button>
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        Fitbit連携を解除
+                      </button>
+                    </div>
+                    <p className="text-green-400 text-sm">Fitbit連携済み</p>
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      data-testid="recaptcha-container"
+                      className={`flex justify-center items-center transition-all duration-500 ease-in-out ${
+                        recaptchaStatus === "collapsing" ? "h-0" : "h-[78px]"
+                      }`}
+                    >
+                      {recaptchaStatus === "idle" && (
+                        <ReCAPTCHA
+                          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                          onChange={(token: string | null) =>
+                            setRecaptchaToken(token)
+                          }
+                          theme="dark"
+                        />
+                      )}
+                      {(recaptchaStatus === "success" ||
+                        recaptchaStatus === "collapsing") && (
+                        <p className="text-green-400">
+                          ✓ reCAPTCHA認証が完了しました
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 max-w-xs text-center">
+                      ボタンを押すと、サービス利用のための一時的なIDが発行され、Fitbitの連携ページに移動します。
+                    </p>
+                    <button
+                      onClick={handleAnonymousSignIn}
+                      disabled={!recaptchaToken}
+                      className={`font-bold py-3 px-6 rounded-lg transition-colors ${
+                        recaptchaToken
+                          ? "bg-green-500 hover:bg-green-700 text-white"
+                          : "bg-gray-400 text-gray-700 cursor-not-allowed"
+                      }`}
+                    >
+                      利用を開始する
+                    </button>
+                  </>
+                )}
+               </>
+             ) : (
+               <div className="h-20" /> /* プレースホルダー */
+             )}
+          </div>
         </div>
       </main>
     </div>
