@@ -126,7 +126,7 @@ jobs:
         run: pnpm dlx playwright install --with-deps chromium
 
       - name: Test Frontend (E2E)
-        run: pnpm --filter frontend run test:e2e
+        run: pnpm --filter frontend run test:e2e:ci
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
