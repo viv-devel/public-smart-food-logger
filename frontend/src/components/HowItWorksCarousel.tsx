@@ -1,8 +1,8 @@
 "use client";
 
-import { AnimatePresence,motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
-import { useEffect, useRef,useState } from "react";
+import { useEffect, useState } from "react";
 
 const steps = [
   {
@@ -56,7 +56,6 @@ const swipePower = (offset: number, velocity: number) => {
 
 export default function HowItWorksCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // We only have 3 steps, so we mod the page to get the index
   const imageIndex = ((page % steps.length) + steps.length) % steps.length;
@@ -65,17 +64,13 @@ export default function HowItWorksCarousel() {
     setPage([page + newDirection, newDirection]);
   };
 
-  const resetTimer = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
+  useEffect(() => {
+    const timer = setInterval(() => {
       paginate(1);
     }, 5000);
-  };
 
-  useEffect(() => {
-    resetTimer();
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      clearInterval(timer);
     };
   }, [page]);
 

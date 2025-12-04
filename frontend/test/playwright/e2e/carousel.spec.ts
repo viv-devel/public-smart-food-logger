@@ -24,7 +24,7 @@ test.describe('HowItWorks Carousel', () => {
     await expect(buttons).toHaveCount(3);
 
     // Click on Step 2 button
-    await buttons.nth(1).click({ force: true });
+    await buttons.nth(1).click();
 
     // Check Step 2 content
     await expect(page.getByText('JSONをコピー')).toBeVisible();
