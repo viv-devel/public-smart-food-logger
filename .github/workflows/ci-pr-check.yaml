@@ -122,6 +122,13 @@ jobs:
       - name: Test Frontend with Coverage
         run: pnpm --filter frontend run test:coverage
 
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
       - name: Install Playwright Browsers
         run: pnpm dlx playwright install --with-deps chromium
 
