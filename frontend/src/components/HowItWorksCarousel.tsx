@@ -7,25 +7,40 @@ import { useEffect, useState } from "react";
 const steps = [
   {
     id: 1,
-    title: "食事の写真を送る",
-    description:
-      "専用のカスタムGeminiに食事の写真を送ると、AIが自動で栄養情報を分析します。",
+    title: "AIに食事を伝える",
+    description: (
+      <>
+        写真を渡すだけでなく、「今日のお昼はペペロンチーノとサラダ」のように
+        <strong className="text-white">文章で伝えても</strong>
+        AIが栄養素を推定します。
+      </>
+    ),
     image: "/images/1-photo-analysis.webp",
     position: "object-top", // Gemini: Burger photo at top
   },
   {
     id: 2,
-    title: "JSONをコピー",
-    description:
-      "Geminiが出力した栄養情報（JSON形式）をクリップボードにコピーします。",
+    title: "JSONを貼り付けて記録",
+    description: (
+      <>
+        カスタムGeminiが生成した栄養情報（JSON）をフォームに貼り付け、
+        <strong className="text-white">ボタンを押すだけ</strong>
+        。手間なく正確な記録が可能です。
+      </>
+    ),
     image: "/images/2-json-copy.webp",
     position: "object-bottom", // App: Button at bottom
   },
   {
     id: 3,
-    title: "貼り付けて記録",
-    description:
-      "このサイトの記録ページにJSONを貼り付け、ボタンを押すだけでFitbitに記録が完了します。",
+    title: "Fitbitで栄養をチェック",
+    description: (
+      <>
+        記録された食事はFitbitアプリで
+        <strong className="text-white">消費カロリーと比較</strong>
+        して確認できます。Fitbit WatchやPixel Watchユーザーに最適です。
+      </>
+    ),
     image: "/images/3-fitbit-log.webp",
     position: "object-center", // Fitbit: Logged text in middle
   },
