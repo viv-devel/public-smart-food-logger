@@ -27,7 +27,7 @@ const steps = [
     description:
       "このサイトの記録ページにJSONを貼り付け、ボタンを押すだけでFitbitに記録が完了します。",
     image: "/images/3-fitbit-log.webp",
-    position: "object-bottom", // Fitbit: Logged text at bottom
+    position: "object-center", // Fitbit: Logged text in middle
   },
 ];
 
