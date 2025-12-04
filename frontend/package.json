@@ -17,6 +17,7 @@
   "dependencies": {
     "@smart-food-logger/shared": "workspace:*",
     "firebase": "^12.5.0",
+    "framer-motion": "^12.23.25",
     "next": "16.0.1",
     "node-fetch": "^2.7.0",
     "react": "19.2.0",
