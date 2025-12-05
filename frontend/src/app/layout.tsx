@@ -25,11 +25,9 @@ export default function RootLayout({
         <FirebaseAuthProvider>
           <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
             <header className={`p-4 border-b border-gray-700 ${headerBgClass}`}>
-              <div className="container mx-auto flex justify-center items-center">
+              <div className="container mx-auto flex justify-between items-center">
                 <Link href="/">
-                  <h1 className="text-lg md:text-xl font-bold whitespace-nowrap">
-                    Smart Food Logger AI
-                  </h1>
+                  <h1 className="text-xl font-bold">Smart Food Logger AI</h1>
                 </Link>
               </div>
             </header>
