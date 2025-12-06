@@ -1,0 +1,35 @@
+name: Setup Playwright
+description: Setup Playwright with caching
+inputs:
+  playwright-browsers-path:
+    description: "Path to store Playwright browsers"
+    required: true
+  node-version:
+    description: "Node version used for cache key"
+    required: false
+    default: "20"
+
+runs:
+  using: composite
+  steps:
+    - name: Get Playwright Version
+      shell: bash
+      run: |
+        PLAYWRIGHT_VERSION=$(pnpm --filter frontend exec playwright --version | awk '{print $2}')
+        echo "PLAYWRIGHT_VERSION=$PLAYWRIGHT_VERSION" >> "$GITHUB_ENV"
+
+    - name: Cache Playwright Browsers
+      uses: actions/cache@v4
+      id: cache-playwright-browsers
+      with:
+        path: ${{ inputs.playwright-browsers-path }}
+        key: ${{ runner.os }}-node-${{ inputs.node-version }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ inputs.node-version }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-
+
+    - name: Install Playwright Browsers
+      if: steps.cache-playwright-browsers.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        PLAYWRIGHT_BROWSERS_PATH: ${{ inputs.playwright-browsers-path }}
+      run: pnpm --filter frontend exec playwright install --with-deps chromium
