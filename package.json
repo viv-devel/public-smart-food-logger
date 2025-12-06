@@ -7,7 +7,9 @@
     "test": "pnpm -r run test",
     "test:all": "pnpm run test && pnpm --filter frontend run test:e2e",
     "test:coverage": "pnpm -r run test:coverage",
-    "clean:all": "rimraf frontend/.next frontend/out frontend/coverage frontend/test/results backend/dist backend/coverage shared/dist shared/coverage"
+    "clean:all": "rimraf frontend/.next frontend/out frontend/coverage frontend/test/results backend/dist backend/coverage shared/dist shared/coverage",
+    "lint": "eslint .",
+    "format:check": "prettier --check ."
   },
   "workspaces": [
     "frontend",
