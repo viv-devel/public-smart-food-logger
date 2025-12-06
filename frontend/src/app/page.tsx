@@ -69,9 +69,13 @@ export default function FitbitLandingPage() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("fitbitAuthCompleted");
     }
-    const { getAuth, signOut } = await import("firebase/auth");
-    const auth = getAuth();
-    await signOut(auth);
+    try {
+      const { getAuth, signOut } = await import("firebase/auth");
+      const auth = getAuth();
+      await signOut(auth);
+    } catch (error) {
+      console.error("ログアウトエラー:", error);
+    }
     // You might want to reload the page or push to a logged-out state
     window.location.reload(); // Easiest way to reset state
   };
