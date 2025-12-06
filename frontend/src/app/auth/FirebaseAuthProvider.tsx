@@ -111,6 +111,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
 
   // トークンを定期的にリフレッシュするためのタイマー
   useEffect(() => {
+    let isMounted = true;
     const interval = setInterval(
       async () => {
         try {
@@ -119,7 +120,7 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
           if (auth.currentUser) {
             try {
               const token = await auth.currentUser.getIdToken(true); // trueで強制リフレッシュ
-              setIdToken(token);
+              if (isMounted) setIdToken(token);
             } catch (error) {
               console.error("Error refreshing ID token:", error);
             }
@@ -131,7 +132,10 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
       30 * 60 * 1000,
     ); // 30分ごとにリフレッシュ
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (

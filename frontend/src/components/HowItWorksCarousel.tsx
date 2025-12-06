@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, PanInfo } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -79,7 +79,7 @@ export default function HowItWorksCarousel() {
   const imageIndex = ((page % steps.length) + steps.length) % steps.length;
 
   const paginate = (newDirection: number) => {
-    setPage([page + newDirection, newDirection]);
+    setPage(([prevPage]) => [prevPage + newDirection, newDirection]);
   };
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function HowItWorksCarousel() {
     return () => {
       clearInterval(timer);
     };
-  }, [page]);
+  }, []);
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4">
@@ -114,7 +114,7 @@ export default function HowItWorksCarousel() {
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={1}
-            onDragEnd={(_e, { offset, velocity }) => {
+            onDragEnd={(_e: unknown, { offset, velocity }: PanInfo) => {
               const swipe = swipePower(offset.x, velocity.x);
 
               if (swipe < -swipeConfidenceThreshold) {
@@ -127,7 +127,7 @@ export default function HowItWorksCarousel() {
           >
             {/* Image Section */}
             <div className="relative w-full md:w-1/2 h-1/2 md:h-full bg-gray-900 p-4 md:p-8 flex items-center justify-center">
-              <div className="relative w-full h-full max-w-[300px] md:max-w-full aspect-[9/19] md:aspect-auto shadow-[0_0_15px_rgba(0,0,0,0.5)] border-4 border-gray-700 rounded-3xl overflow-hidden">
+              <div className="relative w-full h-full max-w-[300px] md:max-w-full aspect-9/19 md:aspect-auto shadow-[0_0_15px_rgba(0,0,0,0.5)] border-4 border-gray-700 rounded-3xl overflow-hidden">
                 <Image
                   src={steps[imageIndex].image}
                   alt={steps[imageIndex].title}
@@ -162,7 +162,10 @@ export default function HowItWorksCarousel() {
             onClick={() => {
               const diff = index - imageIndex;
               if (diff !== 0) {
-                 setPage([page + (index - imageIndex), index > imageIndex ? 1 : -1]);
+                setPage([
+                  page + (index - imageIndex),
+                  index > imageIndex ? 1 : -1,
+                ]);
               }
             }}
             className={`h-3 rounded-full transition-all duration-300 ${
