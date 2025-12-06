@@ -32,4 +32,4 @@ runs:
       shell: bash
       env:
         PLAYWRIGHT_BROWSERS_PATH: ${{ inputs.playwright-browsers-path }}
-      run: pnpm --filter frontend exec playwright install --with-deps chromium
+      run: pnpm --filter frontend exec playwright install chromium --only-shell
