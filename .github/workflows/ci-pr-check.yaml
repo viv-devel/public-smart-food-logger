@@ -5,11 +5,7 @@ on:
   pull_request:
     branches: [main, develop]
     types: [opened, synchronize, reopened]
-    paths:
-      - "backend/**"
-      - "frontend/**"
-      - "shared/**"
-      - ".github/workflows/ci-pr-check.yaml"
+    # Removed paths filter to ensure lint/format runs on all PRs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -44,8 +40,23 @@ jobs:
               - 'shared/**'
               - '.github/**'
 
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+
+      - name: Run ESLint Check (No Fix)
+        run: pnpm run lint
+
+      - name: Run Prettier Check (No Write)
+        run: pnpm run format:check
+
   test-shared:
-    needs: check-changes
+    needs: [check-changes, code-quality]
     if: ${{ needs.check-changes.outputs.shared == 'true' }}
     runs-on: ubuntu-latest
     environment: ci
@@ -54,14 +65,11 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/setup
 
-      - name: Lint Shared
-        run: pnpm exec eslint shared
-
       - name: Test Shared
         run: pnpm --filter shared run test
 
   test-backend:
-    needs: check-changes
+    needs: [check-changes, code-quality]
     if: ${{ needs.check-changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     environment: ci
@@ -78,9 +86,6 @@ jobs:
       - name: Build Shared
         run: pnpm --filter shared run build
 
-      - name: Lint Backend
-        run: pnpm exec eslint backend
-
       - name: Test Backend with Coverage
         run: pnpm --filter backend run test:coverage
 
@@ -91,7 +96,7 @@ jobs:
           path: backend/coverage
 
   test-frontend:
-    needs: check-changes
+    needs: [check-changes, code-quality]
     if: ${{ needs.check-changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     environment: ci
@@ -110,9 +115,6 @@ jobs:
 
       - name: Build Shared
         run: pnpm --filter shared run build
-
-      - name: Lint Frontend
-        run: pnpm exec eslint frontend
 
       # Note: Running E2E tests in CI might require more setup (e.g. installing browsers)
       # For PR checks, we usually run unit/integration tests.
