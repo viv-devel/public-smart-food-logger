@@ -10,17 +10,20 @@
     "test:coverage": "vitest run --coverage",
     "cypress:run": "cypress run",
     "test:e2e": "playwright test --reporter=list --max-failures=1",
+    "test:e2e:ci": "playwright test --max-failures=1",
     "test:e2e:ui": "playwright test --ui",
     "lint": "pnpm -w exec eslint frontend"
   },
   "dependencies": {
     "@smart-food-logger/shared": "workspace:*",
     "firebase": "^12.5.0",
+    "framer-motion": "^12.23.25",
     "next": "16.0.1",
     "node-fetch": "^2.7.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-google-recaptcha": "^3.1.0"
+    "react-google-recaptcha": "^3.1.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

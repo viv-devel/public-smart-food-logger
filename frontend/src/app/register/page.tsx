@@ -91,7 +91,7 @@ export default function FitbitViaGeminiRegisterPage() {
 
       {statusMessage && (
         <div
-          className={`mt-4 p-3 rounded-lg text-center font-semibold ${isError ? "bg-red-900/50 text-red-200" : "bg-green-900/50 text-green-200"}`}
+          className={`mt-4 p-3 rounded-lg text-center font-semibold whitespace-pre-wrap ${isError ? "bg-red-900/50 text-red-200" : "bg-green-900/50 text-green-200"}`}
         >
           <p>{statusMessage}</p>
         </div>

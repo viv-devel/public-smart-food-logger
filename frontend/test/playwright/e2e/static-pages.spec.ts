@@ -73,4 +73,14 @@ test.describe("静的ページ", () => {
       }),
     ).toBeVisible();
   });
+
+  test("フッターに重要なリンクが表示されていること", async ({ page }) => {
+    await page.goto("/");
+    // フッター内のリンクを確認
+    const footer = page.locator("footer");
+    await expect(footer.getByRole("link", { name: "利用規約" })).toBeVisible();
+    await expect(
+      footer.getByRole("link", { name: "プライバシーポリシー" }),
+    ).toBeVisible();
+  });
 });
