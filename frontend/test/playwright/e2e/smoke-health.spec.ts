@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("バックエンドヘルスチェック", () => {
   test("GCPバックエンドが正常に応答すること", async ({ request }) => {
-    const apiEndpoint = process.env.NEXT_PUBLIC_FITBIT_API_ENDPOINT;
+    const apiEndpoint = process.env.BACKEND_FITBIT_WEBHOOK_URL;
 
     if (!apiEndpoint || apiEndpoint.startsWith("http://localhost")) {
       test.skip();
