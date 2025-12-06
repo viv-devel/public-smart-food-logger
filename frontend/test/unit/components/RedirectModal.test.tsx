@@ -17,9 +17,9 @@ describe('RedirectModal', () => {
     const onConfirm = vi.fn();
     render(<RedirectModal isOpen={true} onClose={onClose} onConfirm={onConfirm} />);
 
-    expect(screen.getByText('食事の記録を登録する')).toBeDefined();
-    expect(screen.getByText('次回以降もこの設定を記憶する')).toBeDefined();
-    expect(screen.getByText('閉じる')).toBeDefined();
+    expect(screen.getByRole('button', { name: '食事の記録を登録する' })).toBeDefined();
+    expect(screen.getByLabelText('次回以降もこの設定を記憶する')).toBeDefined();
+    expect(screen.getByRole('button', { name: '閉じる' })).toBeDefined();
   });
 
   it('calls onConfirm with false when checkbox is not checked', () => {
