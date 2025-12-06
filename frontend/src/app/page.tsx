@@ -14,6 +14,7 @@ const ReCAPTCHA = dynamic<ReCAPTCHAProps>(
 );
 
 import HowItWorksCarousel from "@/components/HowItWorksCarousel";
+import RedirectModal from "@/components/RedirectModal";
 
 import { useFirebaseAuth } from "./auth/FirebaseAuthProvider";
 import { app } from "./auth/firebaseConfig";
@@ -25,7 +26,14 @@ export default function FitbitLandingPage() {
     "idle" | "success" | "collapsing"
   >("idle");
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [showRedirectModal, setShowRedirectModal] = useState(false);
   const router = useRouter();
+
+  const isAuthenticated =
+    !loading &&
+    user &&
+    typeof window !== "undefined" &&
+    localStorage.getItem("fitbitAuthCompleted") === "true";
 
   useEffect(() => {
     // ページロード後に認証コンポーネントを表示（LCP優先のため）
@@ -34,6 +42,24 @@ export default function FitbitLandingPage() {
     }, 0);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const autoRedirect = localStorage.getItem("autoRedirectToRegister");
+      if (autoRedirect === "true") {
+        router.push("/register");
+      } else {
+        setShowRedirectModal(true);
+      }
+    }
+  }, [isAuthenticated, router]);
+
+  const handleRedirectConfirm = (remember: boolean) => {
+    if (remember) {
+      localStorage.setItem("autoRedirectToRegister", "true");
+    }
+    router.push("/register");
+  };
 
   useEffect(() => {
     if (recaptchaToken) {
@@ -80,14 +106,13 @@ export default function FitbitLandingPage() {
     window.location.reload(); // Easiest way to reset state
   };
 
-  const isAuthenticated =
-    !loading &&
-    user &&
-    typeof window !== "undefined" &&
-    localStorage.getItem("fitbitAuthCompleted") === "true";
-
   return (
     <div className="bg-gray-900 text-white min-h-screen">
+      <RedirectModal
+        isOpen={showRedirectModal}
+        onClose={() => setShowRedirectModal(false)}
+        onConfirm={handleRedirectConfirm}
+      />
       <main className="container mx-auto px-4 py-12">
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-teal-500">
