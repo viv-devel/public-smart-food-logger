@@ -6,10 +6,10 @@ import {
 } from "@smart-food-logger/shared";
 
 export async function logToFitbit(data: unknown, idToken: string) {
-  const API_ENDPOINT = process.env.FITBIT_API_ENDPOINT;
+  const API_ENDPOINT = process.env.BACKEND_FITBIT_WEBHOOK_URL;
 
   if (!API_ENDPOINT) {
-    console.error("FITBIT_API_ENDPOINT is not defined");
+    console.error("BACKEND_FITBIT_WEBHOOK_URL is not defined");
     return {
       success: false,
       message: "サーバー設定エラー: APIエンドポイントが設定されていません。",
