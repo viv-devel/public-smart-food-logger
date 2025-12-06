@@ -134,6 +134,7 @@ export default function HowItWorksCarousel() {
                   fill
                   className={`object-cover ${steps[imageIndex].position}`}
                   draggable={false}
+                  priority={imageIndex === 0}
                 />
               </div>
             </div>
@@ -172,7 +173,7 @@ export default function HowItWorksCarousel() {
               index === imageIndex
                 ? "w-8 bg-blue-500"
                 : "w-3 bg-gray-600 hover:bg-gray-500"
-            }`}
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900`}
             aria-label={`Go to step ${step.id}`}
           />
         ))}

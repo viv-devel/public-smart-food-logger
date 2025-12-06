@@ -52,7 +52,10 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
         delete: async () => {},
         toJSON: () => ({}),
         providerId: "firebase",
-        metadata: {} as never,
+        metadata: {
+          creationTime: undefined,
+          lastSignInTime: undefined,
+        },
         refreshToken: "",
       };
     }
@@ -125,8 +128,9 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
               console.error("Error refreshing ID token:", error);
             }
           }
-        } catch {
           // import error or other
+        } catch (err) {
+          console.warn("Token refresh failed:", err);
         }
       },
       30 * 60 * 1000,
