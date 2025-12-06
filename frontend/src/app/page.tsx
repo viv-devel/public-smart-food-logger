@@ -27,13 +27,16 @@ export default function FitbitLandingPage() {
   >("idle");
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showRedirectModal, setShowRedirectModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
-  const isAuthenticated =
-    !loading &&
-    user &&
-    typeof window !== "undefined" &&
-    localStorage.getItem("fitbitAuthCompleted") === "true";
+  useEffect(() => {
+    const isAuth =
+      !loading &&
+      user &&
+      localStorage.getItem("fitbitAuthCompleted") === "true";
+    setIsAuthenticated(!!isAuth);
+  }, [loading, user]);
 
   useEffect(() => {
     // ページロード後に認証コンポーネントを表示（LCP優先のため）
