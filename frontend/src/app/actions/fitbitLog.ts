@@ -5,7 +5,15 @@ import {
   ErrorDetail,
 } from "@smart-food-logger/shared";
 
-export async function logToFitbit(data: unknown, idToken: string) {
+type LogToFitbitResult = {
+  success: boolean;
+  message: string;
+};
+
+export async function logToFitbit(
+  data: unknown,
+  idToken: string,
+): Promise<LogToFitbitResult> {
   const API_ENDPOINT = process.env.BACKEND_FITBIT_WEBHOOK_URL;
 
   if (!API_ENDPOINT) {
@@ -47,8 +55,11 @@ export async function logToFitbit(data: unknown, idToken: string) {
     });
 
     if (response.ok) {
-      const result = await response.json();
-      return { success: true, message: result.message };
+      const result: { message?: string } = await response.json();
+      return {
+        success: true,
+        message: result.message ?? "Fitbitに記録しました。",
+      };
     } else {
       const errorResult: ErrorDetail = await response.json();
       let errorMessage = "記録に失敗しました。";
@@ -64,8 +75,7 @@ export async function logToFitbit(data: unknown, idToken: string) {
     console.error("Fitbit連携またはデータ処理エラー:", error);
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "不明なエラーが発生しました。",
+      message: "Fitbit連携に失敗しました。時間をおいて再度お試しください。",
     };
   }
 }

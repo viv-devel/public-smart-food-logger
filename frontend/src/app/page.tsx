@@ -104,9 +104,9 @@ export default function FitbitLandingPage() {
           </div>
 
           <div className="flex flex-col items-center gap-6 min-h-[300px]">
-             {/* 認証関連コンポーネントの遅延ロード */}
-             {isAuthReady ? (
-               <>
+            {/* 認証関連コンポーネントの遅延ロード */}
+            {isAuthReady ? (
+              <>
                 <Link href="/instructions" passHref>
                   <button className="bg-transparent hover:bg-gray-800 text-gray-300 font-bold py-3 px-6 rounded-lg border border-gray-600 transition-colors duration-300">
                     設定手順を見る
@@ -143,7 +143,9 @@ export default function FitbitLandingPage() {
                     >
                       {recaptchaStatus === "idle" && (
                         <ReCAPTCHA
-                          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                          sitekey={
+                            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""
+                          }
                           onChange={(token: string | null) =>
                             setRecaptchaToken(token)
                           }
@@ -173,10 +175,10 @@ export default function FitbitLandingPage() {
                     </button>
                   </>
                 )}
-               </>
-             ) : (
-               <div className="min-h-[300px]" /> /* プレースホルダー */
-             )}
+              </>
+            ) : (
+              <div className="min-h-[300px]" /> /* プレースホルダー */
+            )}
           </div>
         </div>
       </main>

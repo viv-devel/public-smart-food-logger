@@ -9,7 +9,9 @@ test.describe("Landing Page Performance & Layout", () => {
 
     // 1. Verify "How It Works" (static content) is visible immediately
     // Using a more specific locator if possible, or text.
-    await expect(page.getByRole("heading", { name: "How It Works" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "How It Works" }),
+    ).toBeVisible();
 
     // 2. Verify Auth section is NOT immediately visible (it's delayed)
     // We can't easily check for "not visible immediately" without race conditions,
@@ -24,7 +26,9 @@ test.describe("Landing Page Performance & Layout", () => {
     // HOWEVER, `page.tsx` has `setTimeout` delay for `isAuthReady`.
 
     // We expect the button "設定手順を見る" (See Instructions) which is also inside the delayed block.
-    await expect(page.getByRole("button", { name: "設定手順を見る" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "設定手順を見る" }),
+    ).toBeVisible();
 
     // Verify console log if needed, though hard to assert in standard playwright test without page error listener
     // but the requirement was just to add it to code.

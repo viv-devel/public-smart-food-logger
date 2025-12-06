@@ -78,9 +78,7 @@ test.describe("静的ページ", () => {
     await page.goto("/");
     // フッター内のリンクを確認
     const footer = page.locator("footer");
-    await expect(
-      footer.getByRole("link", { name: "利用規約" }),
-    ).toBeVisible();
+    await expect(footer.getByRole("link", { name: "利用規約" })).toBeVisible();
     await expect(
       footer.getByRole("link", { name: "プライバシーポリシー" }),
     ).toBeVisible();
