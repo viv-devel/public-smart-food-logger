@@ -36,7 +36,16 @@ export default function FitbitLandingPage() {
       user &&
       localStorage.getItem("fitbitAuthCompleted") === "true";
     setIsAuthenticated(!!isAuth);
-  }, [loading, user]);
+
+    if (isAuth) {
+      const autoRedirect = localStorage.getItem("autoRedirectToRegister");
+      if (autoRedirect === "true") {
+        router.push("/register");
+      } else {
+        setShowRedirectModal(true);
+      }
+    }
+  }, [loading, user, router]);
 
   useEffect(() => {
     // ページロード後に認証コンポーネントを表示（LCP優先のため）
