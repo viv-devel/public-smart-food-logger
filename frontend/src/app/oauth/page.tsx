@@ -5,6 +5,16 @@ import { Suspense, useEffect } from "react";
 
 import { useFirebaseAuth } from "../auth/FirebaseAuthProvider";
 
+/**
+ * Fitbit OAuth認証フローの制御コンポーネント。
+ *
+ * このページは以下の2つの役割を持つ:
+ * 1. **認証開始**: 未認証状態の場合、Fitbitの認証サーバーへリダイレクトURLを構築して遷移させる。
+ * 2. **コールバック受信**: バックエンドでの認証完了後、リダイレクトされて戻ってきた際の成功パラメータ (`uid`) を検知し、認証完了フラグをローカルストレージに保存してトップページへ戻す。
+ *
+ * 注意:
+ * - `Suspense` でラップされており、クライアントサイドでの動的なクエリパラメータ取得 (`useSearchParams`) に対応している。
+ */
 function FitbitOAuthContent() {
   const searchParams = useSearchParams();
   const router = useRouter();

@@ -1,3 +1,9 @@
+/**
+ * プライバシーポリシーページコンポーネント。
+ *
+ * 本サービスの個人情報保護方針（データの非保存、Fitbitトークンの扱いなど）を表示する静的ページ。
+ * Tailwind CSSのtypographyプラグイン (`prose`) を使用してスタイリングされている。
+ */
 export default function PrivacyPolicyPage() {
   return (
     <div className="prose prose-invert max-w-none">

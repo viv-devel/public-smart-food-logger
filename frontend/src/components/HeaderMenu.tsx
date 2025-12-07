@@ -6,6 +6,17 @@ import { useEffect, useState } from "react";
 
 import { useFirebaseAuth } from "@/app/auth/FirebaseAuthProvider";
 
+/**
+ * ヘッダーメニューコンポーネント。
+ *
+ * 画面右上のハンバーガーメニューを提供し、ナビゲーション機能と認証状態に応じたアクション（ログアウトなど）を管理する。
+ * Framer Motionを使用して、スムーズな開閉アニメーションを実現している。
+ *
+ * 主な機能:
+ * - ナビゲーションリンクの表示（認証状態による切り替えあり）。
+ * - ログアウト処理の実行（確認ダイアログ付き）。
+ * - メニュー展開時の背景スクロールロック。
+ */
 export default function HeaderMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useFirebaseAuth();
