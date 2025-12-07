@@ -9,7 +9,8 @@
     "test:coverage": "pnpm -r run test:coverage",
     "clean:all": "rimraf frontend/.next frontend/out frontend/coverage frontend/test/results backend/dist backend/coverage shared/dist shared/coverage",
     "lint": "eslint .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
   },
   "workspaces": [
     "frontend",

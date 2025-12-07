@@ -49,11 +49,11 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/setup
 
-      - name: Run ESLint Check (No Fix)
-        run: pnpm run lint
+      - name: Run ESLint (Fix)
+        run: pnpm run lint --fix
 
-      - name: Run Prettier Check (No Write)
-        run: pnpm run format:check
+      - name: Run Prettier (Write)
+        run: pnpm run format
 
   test-shared:
     needs: [check-changes, code-quality]
