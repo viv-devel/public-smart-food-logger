@@ -4,7 +4,7 @@
  *
  * @description
  * このパッケージは、モノレポ内の `frontend` と `backend` の両方で共通して使用される
- * ZodスキーマやTypeScriptの型定義をを提供します。
+ * ZodスキーマやTypeScriptの型定義を提供します。
  *
  * 主に以下の役割を担います:
  * - **外部APIスキーマ**: Fitbit APIなど、外部サービスのAPIリクエスト・レスポンスの型定義。
