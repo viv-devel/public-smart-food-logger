@@ -12,16 +12,36 @@ import {
 
 import { app } from "./firebaseConfig";
 
+/**
+ * @interface FirebaseAuthContextType
+ * @property {User | null} user - 現在認証されているFirebaseユーザーオブジェクト。未認証の場合はnull。
+ * @property {boolean} loading - 認証状態の確認・更新処理が進行中かを示すフラグ。
+ * @property {string | null} idToken - 認証済みユーザーのFirebase IDトークン。バックエンドAPIへの認証に使用する。
+ */
 interface FirebaseAuthContextType {
   user: User | null;
   loading: boolean;
   idToken: string | null;
 }
 
+/**
+ * Firebase認証の状態をアプリケーション全体で共有するためのReact Context。
+ */
 const FirebaseAuthContext = createContext<FirebaseAuthContextType | undefined>(
   undefined,
 );
 
+/**
+ * Firebase認証の状態（ユーザー情報、ローディング状態、IDトークン）を管理し、
+ * Context経由で子コンポーネントに提供するプロバイダーコンポーネント。
+ *
+ * 主な機能:
+ * - `onAuthStateChanged` リスナーを登録し、Firebaseの認証状態の変更を監視する。
+ * - 認証されたユーザーのIDトークンを取得し、定期的に（30分ごと）自動更新する。
+ * - 環境変数 `NEXT_PUBLIC_MOCK_AUTH` が `true` の場合、テスト用のモック認証データを使用する。
+ *
+ * @param {{ children: ReactNode }} props - 子コンポーネント
+ */
 export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   const isMockAuth = process.env.NEXT_PUBLIC_MOCK_AUTH === "true";
 
@@ -153,6 +173,13 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * `FirebaseAuthContext` から認証状態（ユーザー情報、ローディング状態、IDトークン）を取得するためのカスタムフック。
+ * このフックは必ず `FirebaseAuthProvider` の子コンポーネント内で使用する必要がある。
+ *
+ * @returns {FirebaseAuthContextType} 現在の認証コンテキスト
+ * @throws `FirebaseAuthProvider` のコンテキスト外で使用された場合にエラーをスローする
+ */
 export function useFirebaseAuth() {
   const context = useContext(FirebaseAuthContext);
   if (context === undefined) {
