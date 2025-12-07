@@ -26,9 +26,35 @@ export default function FitbitLandingPage() {
     "idle" | "success" | "collapsing"
   >("idle");
   const [isAuthReady, setIsAuthReady] = useState(false);
+
+  // Modal states
   const [showRedirectModal, setShowRedirectModal] = useState(false);
+  const [rememberRedirect, setRememberRedirect] = useState(false);
+  const [showAuthSuccessMessage, setShowAuthSuccessMessage] = useState(false);
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+
+  // Load remember preference on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedRemember = localStorage.getItem("redirectRemembered");
+      if (storedRemember === "true") {
+        setRememberRedirect(true);
+      }
+    }
+  }, []);
+
+  // Check for success session flag on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const showSuccess = sessionStorage.getItem("showAuthSuccessModal");
+      if (showSuccess === "true") {
+        setShowAuthSuccessMessage(true);
+        sessionStorage.removeItem("showAuthSuccessModal");
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const isAuth =
@@ -36,16 +62,7 @@ export default function FitbitLandingPage() {
       user &&
       localStorage.getItem("fitbitAuthCompleted") === "true";
     setIsAuthenticated(!!isAuth);
-
-    if (isAuth) {
-      const autoRedirect = localStorage.getItem("autoRedirectToRegister");
-      if (autoRedirect === "true") {
-        router.push("/register");
-      } else {
-        setShowRedirectModal(true);
-      }
-    }
-  }, [loading, user, router]);
+  }, [loading, user]);
 
   useEffect(() => {
     // ページロード後に認証コンポーネントを表示（LCP優先のため）
@@ -55,20 +72,30 @@ export default function FitbitLandingPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Automatically open modal if success message is present
   useEffect(() => {
-    if (isAuthenticated) {
-      const autoRedirect = localStorage.getItem("autoRedirectToRegister");
-      if (autoRedirect === "true") {
-        router.push("/register");
-      } else {
-        setShowRedirectModal(true);
-      }
+    if (isAuthenticated && showAuthSuccessMessage) {
+      setShowRedirectModal(true);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, showAuthSuccessMessage]);
 
-  const handleRedirectConfirm = (remember: boolean) => {
-    if (remember) {
-      localStorage.setItem("autoRedirectToRegister", "true");
+  const handleStartFlow = () => {
+    if (rememberRedirect) {
+      router.push("/register");
+    } else {
+      setShowRedirectModal(true);
+    }
+  };
+
+  const handleConfirmRedirect = () => {
+    if (rememberRedirect) {
+      localStorage.setItem("redirectRemembered", "true");
+      // Also update the autoRedirectToRegister for backward compatibility if needed,
+      // but the prompt asked for "redirectRemembered".
+      // Let's stick to the prompt's request but also keep the old key if it was used elsewhere?
+      // The prompt specifically asked for "redirectRemembered" in localStorage logic.
+      // Wait, the prompt said: `localStorage.removeItem("redirectRemembered")` in handleLogout.
+      // So the key is likely `redirectRemembered`.
     }
     router.push("/register");
   };
@@ -106,6 +133,7 @@ export default function FitbitLandingPage() {
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("fitbitAuthCompleted");
+      localStorage.removeItem("redirectRemembered");
     }
     try {
       const { getAuth, signOut } = await import("firebase/auth");
@@ -123,7 +151,10 @@ export default function FitbitLandingPage() {
       <RedirectModal
         isOpen={showRedirectModal}
         onClose={() => setShowRedirectModal(false)}
-        onConfirm={handleRedirectConfirm}
+        onConfirm={handleConfirmRedirect}
+        remember={rememberRedirect}
+        setRemember={setRememberRedirect}
+        showSuccessMessage={showAuthSuccessMessage}
       />
       <main className="container mx-auto px-4 py-12">
         <div className="text-center max-w-3xl mx-auto">
@@ -160,11 +191,13 @@ export default function FitbitLandingPage() {
                 ) : isAuthenticated ? (
                   <div className="flex flex-col items-center gap-4">
                     <div className="flex gap-4">
-                      <Link href="/register" passHref>
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                          食事の記録を登録する
-                        </button>
-                      </Link>
+                      {/* handleStartFlow handles the redirect logic now */}
+                      <button
+                        onClick={handleStartFlow}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        食事の記録を登録する
+                      </button>
                       <button
                         onClick={handleLogout}
                         className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
