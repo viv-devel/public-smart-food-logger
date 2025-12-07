@@ -40,8 +40,8 @@ export default function HeaderMenu() {
         console.error("ログアウトエラー:", error);
         alert("ログアウトに失敗しました");
       }
+      setIsOpen(false);
     }
-    setIsOpen(false);
   };
 
   const toggleMenu = () => setIsOpen(!isOpen);
