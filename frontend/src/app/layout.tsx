@@ -2,6 +2,7 @@ import "./globals.css";
 
 import Link from "next/link";
 
+import HeaderMenu from "@/components/HeaderMenu";
 import { getHeaderColor } from "@/utils/environment";
 
 import { FirebaseAuthProvider } from "./auth/FirebaseAuthProvider";
@@ -29,6 +30,7 @@ export default function RootLayout({
                 <Link href="/">
                   <h1 className="text-xl font-bold">Smart Food Logger AI</h1>
                 </Link>
+                <HeaderMenu />
               </div>
             </header>
             <main className="grow container mx-auto p-8">{children}</main>

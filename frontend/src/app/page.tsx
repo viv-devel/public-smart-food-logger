@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ReCAPTCHAProps } from "react-google-recaptcha";
 
@@ -37,10 +37,12 @@ export default function FitbitLandingPage() {
     // サーバーサイドでは false を返す（SSRセーフ）
     return false;
   });
+
   const [showAuthSuccessMessage, setShowAuthSuccessMessage] = useState(false);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Check for success session flag on mount
   useEffect(() => {
@@ -71,6 +73,10 @@ export default function FitbitLandingPage() {
 
   // Automatically open modal if success message is present, OR if remembered redirect
   useEffect(() => {
+    // ?show_top=true が指定されている場合は自動リダイレクトをスキップ
+    const showTop = searchParams.get("show_top") === "true";
+    if (showTop) return;
+
     if (isAuthenticated) {
       if (showAuthSuccessMessage) {
         setShowRedirectModal(true);
@@ -78,7 +84,13 @@ export default function FitbitLandingPage() {
         router.push("/register");
       }
     }
-  }, [isAuthenticated, showAuthSuccessMessage, rememberRedirect, router]);
+  }, [
+    isAuthenticated,
+    showAuthSuccessMessage,
+    rememberRedirect,
+    router,
+    searchParams,
+  ]);
 
   const handleStartFlow = () => {
     if (rememberRedirect) {
@@ -158,7 +170,10 @@ export default function FitbitLandingPage() {
       />
       <main className="container mx-auto px-4 py-12">
         <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-teal-500">
+          <h1
+            className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-teal-500"
+            data-testid="landing-title"
+          >
             Smart Food Logger AI
           </h1>
           <p className="text-lg md:text-xl text-gray-300 mb-8">

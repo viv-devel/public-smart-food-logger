@@ -26,7 +26,11 @@ export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   const isMockAuth = process.env.NEXT_PUBLIC_MOCK_AUTH === "true";
 
   const [user, setUser] = useState<User | null>(() => {
-    if (isMockAuth) {
+    const shouldDisableMock =
+      typeof window !== "undefined" &&
+      window.localStorage.getItem("DISABLE_MOCK_AUTH") === "true";
+
+    if (isMockAuth && !shouldDisableMock) {
       console.log("Mock auth enabled. Mocking Firebase Auth user.");
       return {
         uid: "mock-test-uid",
