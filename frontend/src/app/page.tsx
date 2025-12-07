@@ -29,21 +29,18 @@ export default function FitbitLandingPage() {
 
   // Modal states
   const [showRedirectModal, setShowRedirectModal] = useState(false);
-  const [rememberRedirect, setRememberRedirect] = useState(false);
+  const [rememberRedirect, setRememberRedirect] = useState(() => {
+    if (typeof window !== "undefined") {
+      // クライアントサイドでのみ localStorage の値を初期値として読み込む
+      return localStorage.getItem("redirectRemembered") === "true";
+    }
+    // サーバーサイドでは false を返す（SSRセーフ）
+    return false;
+  });
   const [showAuthSuccessMessage, setShowAuthSuccessMessage] = useState(false);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
-
-  // Load remember preference on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedRemember = localStorage.getItem("redirectRemembered");
-      if (storedRemember === "true") {
-        setRememberRedirect(true);
-      }
-    }
-  }, []);
 
   // Check for success session flag on mount
   useEffect(() => {
@@ -88,15 +85,14 @@ export default function FitbitLandingPage() {
   };
 
   const handleConfirmRedirect = () => {
+    // rememberRedirect は既に RedirectModal からの setRememberRedirect 呼び出しで更新されている
     if (rememberRedirect) {
       localStorage.setItem("redirectRemembered", "true");
-      // Also update the autoRedirectToRegister for backward compatibility if needed,
-      // but the prompt asked for "redirectRemembered".
-      // Let's stick to the prompt's request but also keep the old key if it was used elsewhere?
-      // The prompt specifically asked for "redirectRemembered" in localStorage logic.
-      // Wait, the prompt said: `localStorage.removeItem("redirectRemembered")` in handleLogout.
-      // So the key is likely `redirectRemembered`.
+    } else {
+      // ユーザーがチェックを外した場合、永続化された設定もクリアする
+      localStorage.removeItem("redirectRemembered");
     }
+    setShowRedirectModal(false);
     router.push("/register");
   };
 
