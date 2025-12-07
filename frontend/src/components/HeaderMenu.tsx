@@ -12,13 +12,14 @@ export default function HeaderMenu() {
 
   // Prevent scrolling when menu is open
   useEffect(() => {
+    const bodyClassList = document.body.classList;
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      bodyClassList.add("overflow-hidden");
     } else {
-      document.body.style.overflow = "unset";
+      bodyClassList.remove("overflow-hidden");
     }
     return () => {
-      document.body.style.overflow = "unset";
+      bodyClassList.remove("overflow-hidden");
     };
   }, [isOpen]);
 
