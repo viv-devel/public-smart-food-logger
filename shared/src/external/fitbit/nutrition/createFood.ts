@@ -1,13 +1,24 @@
+/**
+ * @file Fitbit Create Food APIのスキーマと型定義です。
+ * @module shared/external/fitbit/nutrition/createFood
+ *
+ * @description
+ * このファイルは、Fitbitのプライベートフードデータベースに新しい食品を登録するためのAPI（Create Food）に関連する
+ * リクエストとレスポンスのZodスキーマ、およびTypeScriptの型を定義します。
+ *
+ * ユーザーが記録したい食品がFitbitの公開データベースに存在しない場合、
+ * このAPIを利用して自身のプライベートデータベースに食品を追加した上で、食事ログを記録する必要があります。
+ *
+ * @see https://dev.fitbit.com/build/reference/web-api/nutrition/create-food/
+ */
 import { z } from "zod";
 
 import { allNutritionFields } from "./common.js";
 
 /**
- * Fitbit Create Food API のリクエストスキーマ
- * @see https://dev.fitbit.com/build/reference/web-api/nutrition/create-food/
+ * 食品の形状（formType）を表すZodスキーマです。
+ * Fitbit APIでは、食品が液体か固体かを "LIQUID" または "DRY" で指定します。
  */
-
-// formType の列挙型
 export const FormTypeSchema = z.enum(["LIQUID", "DRY"]);
 
 // 必須フィールド
@@ -25,7 +36,10 @@ const requiredFields = {
 };
 
 /**
- * Fitbit Create Food API のリクエストスキーマ
+ * Fitbit Create Food API へのリクエストボディのZodスキーマです。
+ *
+ * 新規食品を登録するために必要な必須フィールド（`name`, `calories`など）と、
+ * `allNutritionFields` からインポートした詳細な栄養素フィールドで構成されます。
  */
 export const CreateFoodRequestSchema = z.object({
   ...requiredFields,
@@ -33,8 +47,13 @@ export const CreateFoodRequestSchema = z.object({
 });
 
 /**
- * Fitbit Create Food API のレスポンススキーマ
- * 注意: 公式ドキュメントと異なり、実際には 'food' オブジェクトが返される（fitbitService.tsの実装に基づく）
+ * Fitbit Create Food API からのレスポンスボディのZodスキーマです。
+ *
+ * @remarks
+ * 公式ドキュメントではレスポンスの `food` オブジェクトの詳細な型が明記されていませんが、
+ * 実際のAPIレスポンス（および`fitbitService.ts`の実装）に基づき、
+ * 新規作成された食品の`foodId`と`name`を含むオブジェクトとして定義しています。
+ * `units` フィールドは存在が確認されていますが、詳細な型が不明なためオプショナルな配列としています。
  */
 export const CreateFoodResponseSchema = z.object({
   food: z.object({
@@ -46,16 +65,19 @@ export const CreateFoodResponseSchema = z.object({
 });
 
 /**
- * Fitbit Create Food API のリクエスト型
+ * Fitbit Create Food API へのリクエストボディの型。
+ * `CreateFoodRequestSchema` から自動生成されます。
  */
 export type CreateFoodRequest = z.infer<typeof CreateFoodRequestSchema>;
 
 /**
- * Fitbit Create Food API のレスポンス型
+ * Fitbit Create Food API からのレスポンスボディの型。
+ * `CreateFoodResponseSchema` から自動生成されます。
  */
 export type CreateFoodResponse = z.infer<typeof CreateFoodResponseSchema>;
 
 /**
- * FormType 型
+ * 食品の形状（`LIQUID` または `DRY`）を表す型。
+ * `FormTypeSchema` から自動生成されます。
  */
 export type FormType = z.infer<typeof FormTypeSchema>;

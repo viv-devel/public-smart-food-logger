@@ -72,6 +72,17 @@ const swipePower = (offset: number, velocity: number) => {
   return Math.abs(offset) * velocity;
 };
 
+/**
+ * サービス利用手順（How It Works）を表示するカルーセルコンポーネント。
+ *
+ * Framer Motionを使用して、スワイプ可能なスライドショー形式で3つのステップを紹介する。
+ * 自動再生機能、ドラッグ操作、ページネーションインジケーターを備える。
+ *
+ * 主な機能:
+ * - 5秒ごとの自動ページ送り。
+ * - タッチ/マウスによるスワイプ操作。
+ * - ステップごとの画像と説明文の表示。
+ */
 export default function HowItWorksCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
 

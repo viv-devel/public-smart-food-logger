@@ -2,6 +2,12 @@ import Link from "next/link";
 
 import { AppLinks } from "@/components/AppLinks";
 
+/**
+ * 活用ヒントページコンポーネント。
+ *
+ * モバイルアプリ（Fitbit, Google Gemini）の導入を促すためのリンク集を表示する。
+ * 実質的には `AppLinks` コンポーネントのラッパーページである。
+ */
 export default function TipsPage() {
   return (
     <div className="max-w-3xl mx-auto">

@@ -7,7 +7,10 @@
     "test": "pnpm -r run test",
     "test:all": "pnpm run test && pnpm --filter frontend run test:e2e",
     "test:coverage": "pnpm -r run test:coverage",
-    "clean:all": "rimraf frontend/.next frontend/out frontend/coverage frontend/test/results backend/dist backend/coverage shared/dist shared/coverage"
+    "clean:all": "rimraf frontend/.next frontend/out frontend/coverage frontend/test/results backend/dist backend/coverage shared/dist shared/coverage",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
   },
   "workspaces": [
     "frontend",
@@ -19,11 +22,11 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@eslint/js": "^9.39.1",
-    "@next/eslint-plugin-next": "^16.0.5",
+    "@next/eslint-plugin-next": "^16.0.7",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
     "@typescript-eslint/parser": "^8.48.0",
     "eslint": "^9.39.1",
-    "eslint-config-next": "16.0.1",
+    "eslint-config-next": "16.0.7",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-cypress": "^5.2.0",
     "eslint-plugin-import": "^2.32.0",

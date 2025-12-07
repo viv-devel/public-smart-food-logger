@@ -1,3 +1,21 @@
+/**
+ * @file Fitbitへの食事ログリクエストのテンプレートJSONを生成するユーティリティを提供します。
+ * @module frontend/utils/fitbitTemplate
+ */
+
+/**
+ * 食事ログリクエストのサンプルとして使用する、整形されたJSON文字列を生成します。
+ *
+ * この関数は、主に以下の目的で使用されます。
+ * 1. Gemini APIがうまく機能しなかった、あるいはユーザーが手動でJSONを編集したい場合のテンプレートを提供する。
+ * 2. 開発者がAPIリクエストのデータ構造を容易に確認できるようにする。
+ *
+ * 生成されるJSONには、照り焼きサーモンと白米という2つの食品アイテムがサンプルとして含まれており、
+ * 必須フィールドや栄養素の記述方法を示しています。
+ * `log_date` と `log_time` は、関数が呼び出された現在の⽇時に動的に設定されます。
+ *
+ * @returns {string} 整形された食事ログリクエストのJSON文字列。
+ */
 export const generateTemplate = () => {
   const now = new Date();
   const log_date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;

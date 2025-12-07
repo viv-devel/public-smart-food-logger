@@ -1,11 +1,22 @@
 import { z } from "zod";
 
 /**
- * Fitbit Nutrition API で共通利用される型定義
+ * @file Fitbit Nutrition APIで共通利用される栄養素関連の型定義です。
+ * @module shared/external/fitbit/nutrition/common
+ *
+ * @description
+ * このファイルは、Fitbitの食品登録や食事ログで使用される栄養素フィールドをZodスキーマとして定義します。
+ * 栄養素は「一般的な栄養素」「ビタミン」「ミネラル」の3つのカテゴリに分類され、
+ * `allNutritionFields` ですべてがマージされます。
+ *
+ * 各フィールドはオプションかつ非負数(`nonnegative().optional()`)として定義されており、
+ * データが不足している場合でも柔軟に扱えるようになっています。
+ * コメントにはFitbit APIで想定されている単位（g, mg, IUなど）を記載しています。
  */
 
 /**
- * 一般的な栄養素フィールド（オプション）
+ * 食品に含まれる一般的な栄養素のZodスキーマ定義です。
+ * 脂質、炭水化物、タンパク質などが含まれます。
  */
 export const commonNutritionFields = {
   caloriesFromFat: z.number().nonnegative().optional(),
@@ -22,7 +33,7 @@ export const commonNutritionFields = {
 };
 
 /**
- * ビタミンフィールド（オプション）
+ * 食品に含まれるビタミン類のZodスキーマ定義です。
  */
 export const vitaminFields = {
   vitaminA: z.number().nonnegative().optional(), // IU
@@ -40,7 +51,7 @@ export const vitaminFields = {
 };
 
 /**
- * ミネラルフィールド（オプション）
+ * 食品に含まれるミネラル類のZodスキーマ定義です。
  */
 export const mineralFields = {
   calcium: z.number().nonnegative().optional(), // g
@@ -53,7 +64,9 @@ export const mineralFields = {
 };
 
 /**
- * 全ての栄養素フィールドを含むオブジェクト
+ * `commonNutritionFields`, `vitaminFields`, `mineralFields` をすべて結合した、
+ * 包括的な栄養素スキーマ定義です。
+ * これにより、Fitbit APIでサポートされるすべての栄養素フィールドを一度に扱うことができます。
  */
 export const allNutritionFields = {
   ...commonNutritionFields,

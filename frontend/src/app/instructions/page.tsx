@@ -16,6 +16,16 @@ interface CopyableFieldProps {
   isTextArea?: boolean;
 }
 
+/**
+ * クリップボードコピー機能付きフィールドコンポーネント。
+ *
+ * ラベルと値を表示し、ボタンクリックで値をクリップボードにコピーする機能を提供する。
+ * 長文の場合はテキストエリア形式での表示もサポートする。
+ *
+ * @param label - フィールドのラベル。
+ * @param value - 表示およびコピー対象の値。
+ * @param isTextArea - trueの場合、inputではなくスクロール可能なpreタグで表示する（長文用）。
+ */
 const CopyableField: FC<CopyableFieldProps> = ({
   label,
   value,
@@ -67,6 +77,12 @@ const CopyableField: FC<CopyableFieldProps> = ({
   );
 };
 
+/**
+ * カスタムGemini設定手順ページコンポーネント。
+ *
+ * ユーザーに対して、Fitbit連携に必要なカスタムGeminiの作成手順、および必要なプロンプト（指示）を提供する。
+ * 各設定値はワンクリックでコピーできるようになっている。
+ */
 export default function InstructionsPage() {
   return (
     <div className="max-w-3xl mx-auto">
