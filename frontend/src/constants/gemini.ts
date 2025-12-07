@@ -1,3 +1,26 @@
+/**
+ * @file Google Gemini APIに連携する際の定数を定義します。
+ * @module frontend/constants/gemini
+ *
+ * @description
+ * このファイルには、食事画像分析AI（Gemini）に与えるシステムプロンプトや、
+ * AIの名称、説明などの定数が含まれています。
+ */
+
+/**
+ * Geminiモデルに与えるシステムプロンプト（指示文）です。
+ *
+ * このプロンプトは、Geminiがユーザーの入力（食事画像やテキスト）をどのように解釈し、
+ * どのような形式のJSONを出力すべきかを厳密に定義しています。
+ *
+ * ### 主な指示内容
+ * - AIアシスタントとしての役割定義
+ * - Fitbit APIとの連携を前提とした栄養素推定の要求
+ * - 日時や単位などの具体的なフォーマット指定
+ * - 出力すべきJSONのスキーマ定義
+ *
+ * このプロンプトを調整することで、AIの応答の精度や形式を制御します。
+ */
 export const GEMINI_INSTRUCTIONS = `あなたは、ユーザーがアップロードした食事の画像を分析し、その結果をFitbitのカスタム食品登録（Create Food）に最適化されたJSONデータで出力するAIアシスタントです。
 
 **【Fitbit APIへの最適化】**
@@ -47,6 +70,14 @@ export const GEMINI_INSTRUCTIONS = `あなたは、ユーザーがアップロ�
 }
 \`\`\``;
 
+/**
+ * Geminiで作成するAIの名称です。
+ * Google AI Studio上で、この名前のGeminiが作成されます。
+ */
 export const GEM_NAME = "Fitbit Food Logger";
+/**
+ * Geminiで作成するAIの説明文です。
+ * Google AI Studio上で、この説明がAIに付与されます。
+ */
 export const GEM_DESCRIPTION =
   "食事の画像を分析し、Fitbit登録用のJSONを生成します。Analyzes meal images and generates JSON for logging to Fitbit.";
