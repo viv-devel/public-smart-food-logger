@@ -14,6 +14,7 @@ const ReCAPTCHA = dynamic<ReCAPTCHAProps>(
 );
 
 import HowItWorksCarousel from "@/components/HowItWorksCarousel";
+import RedirectModal from "@/components/RedirectModal";
 
 import { useFirebaseAuth } from "./auth/FirebaseAuthProvider";
 import { app } from "./auth/firebaseConfig";
@@ -25,7 +26,40 @@ export default function FitbitLandingPage() {
     "idle" | "success" | "collapsing"
   >("idle");
   const [isAuthReady, setIsAuthReady] = useState(false);
+
+  // Modal states
+  const [showRedirectModal, setShowRedirectModal] = useState(false);
+  const [rememberRedirect, setRememberRedirect] = useState(() => {
+    if (typeof window !== "undefined") {
+      // クライアントサイドでのみ localStorage の値を初期値として読み込む
+      return localStorage.getItem("redirectRemembered") === "true";
+    }
+    // サーバーサイドでは false を返す（SSRセーフ）
+    return false;
+  });
+  const [showAuthSuccessMessage, setShowAuthSuccessMessage] = useState(false);
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+
+  // Check for success session flag on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const showSuccess = sessionStorage.getItem("showAuthSuccessModal");
+      if (showSuccess === "true") {
+        setShowAuthSuccessMessage(true);
+        sessionStorage.removeItem("showAuthSuccessModal");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const isAuth =
+      !loading &&
+      user &&
+      localStorage.getItem("fitbitAuthCompleted") === "true";
+    setIsAuthenticated(!!isAuth);
+  }, [loading, user]);
 
   useEffect(() => {
     // ページロード後に認証コンポーネントを表示（LCP優先のため）
@@ -34,6 +68,37 @@ export default function FitbitLandingPage() {
     }, 0);
     return () => clearTimeout(timer);
   }, []);
+
+  // Automatically open modal if success message is present, OR if remembered redirect
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (showAuthSuccessMessage) {
+        setShowRedirectModal(true);
+      } else if (rememberRedirect) {
+        router.push("/register");
+      }
+    }
+  }, [isAuthenticated, showAuthSuccessMessage, rememberRedirect, router]);
+
+  const handleStartFlow = () => {
+    if (rememberRedirect) {
+      router.push("/register");
+    } else {
+      setShowRedirectModal(true);
+    }
+  };
+
+  const handleConfirmRedirect = () => {
+    // rememberRedirect は既に RedirectModal からの setRememberRedirect 呼び出しで更新されている
+    if (rememberRedirect) {
+      localStorage.setItem("redirectRemembered", "true");
+    } else {
+      // ユーザーがチェックを外した場合、永続化された設定もクリアする
+      localStorage.removeItem("redirectRemembered");
+    }
+    setShowRedirectModal(false);
+    router.push("/register");
+  };
 
   useEffect(() => {
     if (recaptchaToken) {
@@ -68,6 +133,7 @@ export default function FitbitLandingPage() {
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("fitbitAuthCompleted");
+      localStorage.removeItem("redirectRemembered");
     }
     try {
       const { getAuth, signOut } = await import("firebase/auth");
@@ -80,14 +146,16 @@ export default function FitbitLandingPage() {
     window.location.reload(); // Easiest way to reset state
   };
 
-  const isAuthenticated =
-    !loading &&
-    user &&
-    typeof window !== "undefined" &&
-    localStorage.getItem("fitbitAuthCompleted") === "true";
-
   return (
     <div className="bg-gray-900 text-white min-h-screen">
+      <RedirectModal
+        isOpen={showRedirectModal}
+        onClose={() => setShowRedirectModal(false)}
+        onConfirm={handleConfirmRedirect}
+        remember={rememberRedirect}
+        setRemember={setRememberRedirect}
+        showSuccessMessage={showAuthSuccessMessage}
+      />
       <main className="container mx-auto px-4 py-12">
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-teal-500">
@@ -123,11 +191,13 @@ export default function FitbitLandingPage() {
                 ) : isAuthenticated ? (
                   <div className="flex flex-col items-center gap-4">
                     <div className="flex gap-4">
-                      <Link href="/register" passHref>
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                          食事の記録を登録する
-                        </button>
-                      </Link>
+                      {/* handleStartFlow handles the redirect logic now */}
+                      <button
+                        onClick={handleStartFlow}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        食事の記録を登録する
+                      </button>
                       <button
                         onClick={handleLogout}
                         className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"

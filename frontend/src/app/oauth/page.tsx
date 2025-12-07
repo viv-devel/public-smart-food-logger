@@ -16,6 +16,8 @@ function FitbitOAuthContent() {
     if (uid) {
       // コールバック成功。フラグを立ててメインページにリダイレクト
       localStorage.setItem("fitbitAuthCompleted", "true");
+      // 認証完了メッセージ表示用のセッションフラグを設定
+      sessionStorage.setItem("showAuthSuccessModal", "true");
       router.push("/");
       return; // これ以降の処理は不要
     }
