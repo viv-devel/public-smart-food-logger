@@ -69,12 +69,16 @@ export default function FitbitLandingPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Automatically open modal if success message is present
+  // Automatically open modal if success message is present, OR if remembered redirect
   useEffect(() => {
-    if (isAuthenticated && showAuthSuccessMessage) {
-      setShowRedirectModal(true);
+    if (isAuthenticated) {
+      if (showAuthSuccessMessage) {
+        setShowRedirectModal(true);
+      } else if (rememberRedirect) {
+        router.push("/register");
+      }
     }
-  }, [isAuthenticated, showAuthSuccessMessage]);
+  }, [isAuthenticated, showAuthSuccessMessage, rememberRedirect, router]);
 
   const handleStartFlow = () => {
     if (rememberRedirect) {
