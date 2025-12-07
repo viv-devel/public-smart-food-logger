@@ -5,13 +5,17 @@ test.describe("Auth Flow & Redirect Modal", () => {
     page,
   }) => {
     // 1. Simulate Authenticated State
-    await page.addInitScript(() => {
+    // Note: We use page.evaluate for initial setup instead of addInitScript
+    // because addInitScript runs on every navigation, which interferes with
+    // testing persistence across reloads/navigation in the same test.
+    await page.goto("/");
+    await page.evaluate(() => {
       localStorage.setItem("fitbitAuthCompleted", "true");
       localStorage.removeItem("autoRedirectToRegister");
       localStorage.removeItem("redirectRemembered");
     });
-
-    await page.goto("/");
+    // Reload to apply localStorage state for the first time
+    await page.reload();
 
     // 2. Click "食事の記録を登録する" button
     const registerButton = page.getByRole("button", {
@@ -44,24 +48,22 @@ test.describe("Auth Flow & Redirect Modal", () => {
     );
     expect(remembered).toBe("true");
 
-    // 8. Go back to home and verify auto-redirect (or immediate push logic)
-    // Note: The implemented logic uses `router.push` in `handleStartFlow` if remembered.
+    // 8. Go back to home and verify auto-redirect
     await page.goto("/");
 
-    // Logic: If remembered, clicking start should redirect immediately WITHOUT modal.
-    await registerButton.click();
+    // Now that logic supports automatic redirect, we expect to be redirected to /register
+    // WITHOUT clicking any button.
     await expect(page).toHaveURL(/\/register/);
-    await expect(modal).not.toBeVisible();
   });
 
   test("Shows success message after auth flow", async ({ page }) => {
     // 1. Simulate Auth Success Redirect (session flag set)
-    await page.addInitScript(() => {
+    await page.goto("/");
+    await page.evaluate(() => {
       localStorage.setItem("fitbitAuthCompleted", "true");
       sessionStorage.setItem("showAuthSuccessModal", "true");
     });
-
-    await page.goto("/");
+    await page.reload();
 
     // 2. Verify Modal Auto-Opens with Success Message
     const modal = page.getByRole("dialog");
@@ -82,16 +84,18 @@ test.describe("Auth Flow & Redirect Modal", () => {
   });
 
   test("A11Y: Modal Focus Management", async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem("fitbitAuthCompleted", "true");
-    });
     await page.goto("/");
+    await page.evaluate(() => {
+      localStorage.setItem("fitbitAuthCompleted", "true");
+      // Ensure no success modal interferes
+      sessionStorage.removeItem("showAuthSuccessModal");
+    });
+    await page.reload();
 
     // Open modal
     await page.getByRole("button", { name: "食事の記録を登録する" }).click();
 
     // Verify focus is inside modal (on the container with tabIndex=-1)
-    // Note: In JSDOM/headless this can be tricky, but we can check activeElement
     const modalContent = page.locator('div[role="dialog"] > div');
     await expect(modalContent).toBeFocused();
 
