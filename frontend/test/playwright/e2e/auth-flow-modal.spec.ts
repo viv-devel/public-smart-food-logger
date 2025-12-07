@@ -65,9 +65,12 @@ test.describe("Auth Flow & Redirect Modal", () => {
     });
     await page.reload();
 
-    // 2. Verify Modal Auto-Opens with Success Message
+    // 2. Wait for Auth and Verify Modal Auto-Opens with Success Message
+    // Ensure authentication is recognized before checking for modal
+    await expect(page.getByText("Fitbit連携済み")).toBeVisible({ timeout: 10000 });
+
     const modal = page.getByRole("dialog");
-    await expect(modal).toBeVisible();
+    await expect(modal).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("登録ありがとうございます")).toBeVisible();
     await expect(
       page.getByText("✅ Fitbitの認証が確認できました！"),
