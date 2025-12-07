@@ -23,12 +23,15 @@ import {
 const REDIRECT_URI = process.env.FITBIT_REDIRECT_URI;
 
 /**
- * Exchanges an authorization code for an access token and refresh token.
- * @param {string} clientId Fitbit client ID.
- * @param {string} clientSecret Fitbit client secret.
- * @param {string} code The authorization code.
- * @param {string} firebaseUid The Firebase user ID to associate the tokens with.
- * @returns {Promise<object>} The token data from Fitbit.
+ * Fitbitの認証フローの一部として、認可コードをアクセストークンと交換します。
+ * この関数は、ユーザーがFitbitでの認証を成功させた後、コールバックURL（`webhookHandler`）から呼び出されます。
+ * 取得したトークンは、FitbitユーザーIDをキーとしてFirestoreに保存され、FirebaseユーザーIDと関連付けられます。
+ *
+ * @param clientId FitbitアプリケーションのクライアントID。
+ * @param clientSecret Fitbitアプリケーションのクライアントシークレット。
+ * @param code ユーザーの認証後にFitbitから提供される認可コード。
+ * @param firebaseUid トークンを関連付けるFirebaseユーザーのUID。
+ * @returns Fitbit APIからのトークン情報を含むPromise。
  */
 export async function exchangeCodeForTokens(
   clientId: string,
@@ -63,11 +66,14 @@ export async function exchangeCodeForTokens(
 }
 
 /**
- * Refreshes a Fitbit access token for a specific user.
- * @param {string} firebaseUid The Firebase UID of the user.
- * @param {string} clientId Fitbit client ID.
- * @param {string} clientSecret Fitbit client secret.
- * @returns {Promise<string>} The new access token.
+ * 期限切れのFitbitアクセストークンをリフレッシュトークンを使って更新します。
+ * APIリクエストの前に `expiresAt` をチェックし、トークンが古い場合にこの関数を呼び出すことが重要です。
+ * 更新されたトークンは、新しい有効期限と共にFirestoreに上書き保存されます。
+ *
+ * @param firebaseUid どのユーザーのトークンをリフレッシュするかを指定するためのFirebase UID。
+ * @param clientId FitbitアプリケーションのクライアントID。
+ * @param clientSecret Fitbitアプリケーションのクライアントシークレット。
+ * @returns 新しいアクセストークン文字列を含むPromise。
  */
 export async function refreshFitbitAccessToken(
   firebaseUid: string,
@@ -114,7 +120,18 @@ export async function refreshFitbitAccessToken(
 }
 
 /**
- * Creates and logs food data to Fitbit for a specific user.
+ * 複数の食品情報をFitbitに記録するメインロジック。
+ * Fitbit APIの仕様上、食品を「作成」してから「記録」するという2段階のプロセスが必要です。
+ * 1. **食品の作成**: 提供された栄養情報（カロリー、タンパク質など）を元に、ユーザーのプライベート食品データベースに新しい食品を作成します。
+ *    - この段階で、各食品にユニークな `foodId` がFitbitによって割り当てられます。
+ *    - APIはバッチ処理をサポートしていないため、各食品を直列で1つずつ作成します。
+ * 2. **食事ログの記録**: 作成した食品の `foodId` を使用し、指定された日時、食事の種類（朝食など）で食事ログを記録します。
+ *    - こちらも同様に、各食品を1つずつ記録します。
+ *
+ * @param accessToken 有効なFitbit APIアクセストークン。
+ * @param nutritionData 記録する食品の配列と、食事の種類、日時を含むリクエストオブジェクト。
+ * @param fitbitUserId 操作対象のFitbitユーザーID。
+ * @returns Fitbit APIからのレスポンスオブジェクトの配列を含むPromise。
  */
 export async function processAndLogFoods(
   accessToken: string,
@@ -124,21 +141,29 @@ export async function processAndLogFoods(
   const mealTypeId: MealTypeId =
     (MEAL_TYPE_MAP as any)[nutritionData.meal_type] || MEAL_TYPE_MAP.Anytime;
 
+  /**
+   * 文字列の単位（"g", "ml"など）をFitbit APIが要求する数値IDに変換します。
+   * マッピングに存在しない単位が来た場合は、汎用的な「serving」をデフォルト値として使用し、警告をログに出力します。
+   * @param unit 変換する単位の文字列。
+   * @returns 対応するFitbitの単位ID。
+   */
   const getUnitId = (unit: string): number => {
+    // 頻出する単位とそのバリエーションをFitbitのIDにマッピング
     const unitMap: { [key: string]: number } = {
-      g: 1,
+      g: 1, // gram
       gram: 1,
       grams: 1,
-      ml: 147,
+      ml: 147, // milliliter
       milliliter: 147,
       milliliters: 147,
-      oz: 13,
-      "fl oz": 19,
-      serving: 86,
-      個: 86,
+      oz: 13, // ounce
+      "fl oz": 19, // fluidounce
+      serving: 86, // serving
+      個: 86, // 日本語の「個」もservingとして扱う
     };
     const lowerCaseUnit = unit ? unit.toLowerCase() : "";
     if (unitMap[lowerCaseUnit]) return unitMap[lowerCaseUnit];
+    // 未知の単位に対するフォールバック
     console.warn(`Unknown unit "${unit}". Defaulting to 'serving'(86).`);
     return 86;
   };
@@ -179,6 +204,8 @@ export async function processAndLogFoods(
       food.description || `Logged via Gemini: ${food.foodName}`,
     );
 
+    // 栄養素のキーを、sharedパッケージで定義されたFoodItemのキーからFitbit APIのパラメータ名に変換する。
+    // これにより、フロントエンドとバックエンド（およびFitbit）間でのデータ構造の違いを吸収する。
     const nutritionMap: { [key: string]: string } = {
       caloriesFromFat: "caloriesFromFat",
       totalFat_g: "totalFat",
