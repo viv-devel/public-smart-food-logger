@@ -6,6 +6,17 @@ import { FormEvent } from "react";
 import { useFitbitLogger } from "@/hooks/useFitbitLogger";
 import { generateTemplate } from "@/utils/fitbitTemplate";
 
+/**
+ * 食事記録登録（JSON入力）ページコンポーネント。
+ *
+ * ユーザーがGeminiから生成されたJSONデータを貼り付け、Fitbit APIへの登録を実行するメイン機能を提供する。
+ * `useFitbitLogger` フックを使用し、フォーム送信、バリデーション、API通信の状態を管理する。
+ *
+ * 主な機能:
+ * - JSON貼り付け用テキストエリア。
+ * - テンプレート読み込み/クリア機能。
+ * - 送信実行と結果メッセージの表示。
+ */
 export default function FitbitViaGeminiRegisterPage() {
   const {
     jsonInput,

@@ -18,6 +18,17 @@ import { app } from "@/app/auth/firebaseConfig";
 import HowItWorksCarousel from "@/components/HowItWorksCarousel";
 import RedirectModal from "@/components/RedirectModal";
 
+/**
+ * ランディングページのメインコンテンツコンポーネント。
+ *
+ * 認証フロー、サービス紹介（カルーセル）、およびFitbit連携への導線を一元管理する。
+ * `Suspense`境界内で使用されることを想定しており、動的インポートやクライアントサイドのフックを多用する。
+ *
+ * 主な責務:
+ * - **認証フロー管理**: 匿名認証、reCAPTCHA検証、Fitbit OAuthへのリダイレクト。
+ * - **リダイレクト制御**: `RedirectModal`を使用したユーザーへの確認と設定の永続化。
+ * - **UI表示**: ヒーローセクション、機能紹介カルーセル、認証状態に応じたボタンの表示切り替え。
+ */
 export default function LandingPageContent() {
   const { user, loading } = useFirebaseAuth();
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);

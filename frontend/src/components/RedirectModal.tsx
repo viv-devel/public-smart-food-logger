@@ -9,6 +9,20 @@ interface RedirectModalProps {
   showSuccessMessage: boolean;
 }
 
+/**
+ * ユーザー向けリダイレクト確認モーダル。
+ *
+ * 主に「食事データ登録」フローの開始前に表示され、ユーザーの意思確認と設定の保存を行う。
+ * 成功メッセージの表示機能も兼ね備えている。
+ *
+ * Props:
+ * @param isOpen - モーダルの表示状態。
+ * @param onClose - モーダルを閉じる際（背景クリック、Escapeキー、閉じるボタン）のコールバック。
+ * @param onConfirm - 「登録する」ボタン押下時のコールバック。
+ * @param remember - 「次回以降も記憶する」チェックボックスの状態。
+ * @param setRemember - チェックボックスの状態更新関数。
+ * @param showSuccessMessage - 認証成功メッセージを表示するかどうか。
+ */
 export default function RedirectModal({
   isOpen,
   onClose,

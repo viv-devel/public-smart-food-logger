@@ -5,17 +5,32 @@ import {
   ErrorDetail,
 } from "@smart-food-logger/shared";
 
+/**
+ * @typedef {object} LogToFitbitResult
+ * @property {boolean} success - 処理が成功したかどうか
+ * @property {string} message - ユーザーへの通知メッセージ
+ */
 type LogToFitbitResult = {
   success: boolean;
   message: string;
 };
 
+/**
+ * クライアントから受け取った食事データを検証し、バックエンドのWebhook APIに送信するServer Action。
+ * FirebaseのIDトークンを利用してバックエンドでの認証を行う。
+ *
+ * @param {unknown} data - クライアントから送信された食事データ。Zodスキーマ `CreateFoodLogRequestSchema` で検証される。
+ * @param {string} idToken - Firebase Authから取得したIDトークン。バックエンドAPIの認証に使用する。
+ * @returns {Promise<LogToFitbitResult>} 処理結果。成功・失敗とメッセージを含む。
+ */
 export async function logToFitbit(
   data: unknown,
   idToken: string,
 ): Promise<LogToFitbitResult> {
   const API_ENDPOINT = process.env.BACKEND_FITBIT_WEBHOOK_URL;
 
+  // 環境変数が設定されていない場合は、設定不備としてエラーを返す。
+  // これは開発者が気づくべき問題であり、ユーザーに直接的な原因はない。
   if (!API_ENDPOINT) {
     console.error("BACKEND_FITBIT_WEBHOOK_URL is not defined");
     return {

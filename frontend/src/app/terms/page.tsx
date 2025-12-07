@@ -1,3 +1,9 @@
+/**
+ * 利用規約ページコンポーネント。
+ *
+ * 本サービスの利用条件、免責事項、禁止事項などを表示する静的ページ。
+ * Tailwind CSSのtypographyプラグイン (`prose`) を使用してスタイリングされている。
+ */
 export default function TermsOfServicePage() {
   return (
     <div className="prose prose-invert max-w-none">

@@ -1,5 +1,11 @@
 import React from "react";
 
+/**
+ * 外部アプリリンク表示コンポーネント。
+ *
+ * ユーザーに対して、FitbitアプリおよびGeminiアプリ（スマートフォン版）へのダウンロードリンクを提供する。
+ * 各ストア（App Store, Google Play）への外部リンクを含む。
+ */
 export const AppLinks = () => {
   return (
     <>

@@ -18,16 +18,40 @@ import {
   ValidationError,
 } from "../utils/errors.js";
 
+/**
+ * Fitbit API連携の中核を担うHTTP Cloud Function。
+ * 1. GET (クエリなし): ヘルスチェック
+ * 2. GET (codeクエリあり): Fitbit OAuth 2.0認証のコールバック処理
+ * 3. POST: 食事ログの記録リクエスト処理
+ * 4. OPTIONS: CORSプリフライトリクエストの処理
+ *
+ * 認証フロー:
+ * - フロントエンドはFirebaseのUIDとリダイレクトURIをエンコードした`state`パラメータを生成し、ユーザーをFitbitの認証画面にリダイレクトさせる。
+ * - 認証後、Fitbitは指定されたリダイレクトURI（このWebhook）に `code` と `state` を付けてリダイレクトする。
+ * - このハンドラは `state` をデコードしてFirebase UIDを取得し、`code` を使ってFitbitのアクセストークンを取得・保存する。
+ * - その後、`state` に含まれていた元のリダイレクトURIにユーザーをリダイレクトし、フロントエンド側でログイン完了処理を行う。
+ *
+ * 食事ログ記録フロー:
+ * - フロントエンドはFirebase Authで認証し、取得したIDトークンを `Authorization: Bearer <ID_TOKEN>` ヘッダーに含めてPOSTリクエストを送信する。
+ * - このハンドラはIDトークンを検証してFirebase UIDを取得し、Firestoreから対応するFitbitトークンを検索する。
+ * - トークンを使ってFitbit APIに食事データを記録する。
+ * - トークンの有効期限が切れている場合は、リフレッシュしてからAPIリクエストを実行する。
+ *
+ * @param req Express互換のリクエストオブジェクト
+ * @param res Express互換のレスポンスオブジェクト
+ */
 export const fitbitWebhookHandler: HttpFunction = async (req, res) => {
   // 必要な環境変数のチェック
   if (!process.env.FITBIT_REDIRECT_URI) {
     throw new Error("FITBIT_REDIRECT_URI 環境変数が設定されていません。");
   }
 
+  // CORSプリフライトリクエストに対応するためのヘッダーを設定
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
+  // OPTIONSメソッドはCORSプリフライトリクエスト。ヘッダーを付与して204で即時終了する。
   if (req.method === "OPTIONS") {
     res.status(204).send("");
     return;
@@ -61,7 +85,9 @@ export const fitbitWebhookHandler: HttpFunction = async (req, res) => {
 
       let firebaseUid, redirectUri;
       try {
-        // stateにはFirebase UIDとリダイレクトURLが含まれることを想定
+        // stateパラメータは、フロントエンドでBase64エンコードされたJSON文字列。
+        // これにより、OAuthフローを介して複数の情報（ここではUIDとリダイレクト先）を安全に渡すことができる。
+        // 仕様: { firebaseUid: string; redirectUri: string; }
         const decodedState = JSON.parse(
           Buffer.from(state, "base64").toString("utf8"),
         );
