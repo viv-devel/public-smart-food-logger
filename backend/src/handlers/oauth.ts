@@ -2,7 +2,7 @@ import { HttpFunction } from "@google-cloud/functions-framework";
 import { Buffer } from "buffer";
 
 import { exchangeCodeForTokens } from "../services/fitbitService.js";
-import { ValidationError, MethodNotAllowedError } from "../utils/errors.js";
+import { MethodNotAllowedError, ValidationError } from "../utils/errors.js";
 
 /**
  * Fitbit OAuth 2.0 認証のコールバック処理を行う Cloud Function。
