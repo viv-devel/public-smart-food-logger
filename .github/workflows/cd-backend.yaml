@@ -13,18 +13,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  FUNCTION_NAME: fitbitwebhookhandler
-  SOURCE_DIR: backend
-
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-    permissions:
-      contents: read
-      id-token: write
-      statuses: write
     steps:
       - uses: actions/checkout@v4
 
@@ -42,27 +33,102 @@ jobs:
           cd backend
           npm pkg delete devDependencies
 
-      # Authenticate with Google Cloud
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: backend
+
+  filter_changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deploy_health: ${{ steps.filter.outputs.deploy_health }}
+      deploy_recaptcha: ${{ steps.filter.outputs.deploy_recaptcha }}
+      deploy_oauth: ${{ steps.filter.outputs.deploy_oauth }}
+      deploy_foodlog: ${{ steps.filter.outputs.deploy_foodlog }}
+      deploy_fitbit_legacy: ${{ steps.filter.outputs.deploy_fitbit_legacy }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            deploy_health:
+              - 'backend/src/health.ts'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_recaptcha:
+              - 'backend/src/recaptcha.ts'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_oauth:
+              - 'backend/src/handlers/oauth.ts'
+              - 'backend/src/services/**'
+              - 'backend/src/repositories/**'
+              - 'backend/src/utils/**'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_foodlog:
+              - 'backend/src/handlers/foodlog.ts'
+              - 'backend/src/services/**'
+              - 'backend/src/repositories/**'
+              - 'backend/src/utils/**'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_fitbit_legacy:
+              - 'backend/src/handlers/webhookHandler.ts'
+              - 'backend/src/services/**'
+              - 'backend/src/repositories/**'
+              - 'backend/src/utils/**'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+
+  deploy_fitbit_legacy:
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_fitbit_legacy == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend
+
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY }}"
 
-      # Deploy to Cloud Functions
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy ${{ env.FUNCTION_NAME }} \
+          gcloud functions deploy fitbitwebhookhandler \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
             --runtime=nodejs20 \
-            --source=${{ env.SOURCE_DIR }} \
+            --source=backend \
             --entry-point=fitbitWebhookHandler \
             --trigger-http \
             --allow-unauthenticated \
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
             --project=${{ secrets.PROJECT_ID }}
 
-      # Optional: Notify Discord on Success/Failure
       - name: Define Context
         if: always()
         run: |
@@ -80,8 +146,232 @@ jobs:
           webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
           message: |
             ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
+            Job: deploy_fitbit_legacy
             Workflow: ${{ github.workflow }}
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
+  deploy_health:
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_health == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend
+
+      - name: Authorize GCP
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      - name: Deploy Cloud Function
+        run: |
+          gcloud functions deploy healthchecker \
+            --gen2 \
+            --region=${{ secrets.FUNCTION_REGION }} \
+            --runtime=nodejs20 \
+            --source=backend \
+            --entry-point=healthChecker \
+            --trigger-http \
+            --allow-unauthenticated \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --project=${{ secrets.PROJECT_ID }}
+
+      - name: Define Context
+        if: always()
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "CONTEXT_MSG=Production (main)" >> $GITHUB_ENV
+          else
+            echo "CONTEXT_MSG=Staging (develop)" >> $GITHUB_ENV
+          fi
+
+      - name: Discord Notification
+        if: always() && env.DISCORD_WEBHOOK_ID != ''
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: |
+            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
+            Job: deploy_health
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+
+  deploy_recaptcha:
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_recaptcha == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend
+
+      - name: Authorize GCP
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      - name: Deploy Cloud Function
+        run: |
+          gcloud functions deploy recaptchaverifier \
+            --gen2 \
+            --region=${{ secrets.FUNCTION_REGION }} \
+            --runtime=nodejs20 \
+            --source=backend \
+            --entry-point=recaptchaVerifier \
+            --trigger-http \
+            --allow-unauthenticated \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_SECRET=${{ secrets.RECAPTCHA_SECRET }}" \
+            --project=${{ secrets.PROJECT_ID }}
+
+      - name: Define Context
+        if: always()
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "CONTEXT_MSG=Production (main)" >> $GITHUB_ENV
+          else
+            echo "CONTEXT_MSG=Staging (develop)" >> $GITHUB_ENV
+          fi
+
+      - name: Discord Notification
+        if: always() && env.DISCORD_WEBHOOK_ID != ''
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: |
+            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
+            Job: deploy_recaptcha
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+
+  deploy_oauth:
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_oauth == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend
+
+      - name: Authorize GCP
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      - name: Deploy Cloud Function
+        run: |
+          gcloud functions deploy oauthhandler \
+            --gen2 \
+            --region=${{ secrets.FUNCTION_REGION }} \
+            --runtime=nodejs20 \
+            --source=backend \
+            --entry-point=oauthHandler \
+            --trigger-http \
+            --allow-unauthenticated \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --project=${{ secrets.PROJECT_ID }}
+
+      - name: Define Context
+        if: always()
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "CONTEXT_MSG=Production (main)" >> $GITHUB_ENV
+          else
+            echo "CONTEXT_MSG=Staging (develop)" >> $GITHUB_ENV
+          fi
+
+      - name: Discord Notification
+        if: always() && env.DISCORD_WEBHOOK_ID != ''
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: |
+            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
+            Job: deploy_oauth
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+
+  deploy_foodlog:
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_foodlog == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+      statuses: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend
+
+      - name: Authorize GCP
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      - name: Deploy Cloud Function
+        run: |
+          gcloud functions deploy foodloghandler \
+            --gen2 \
+            --region=${{ secrets.FUNCTION_REGION }} \
+            --runtime=nodejs20 \
+            --source=backend \
+            --entry-point=foodLogHandler \
+            --trigger-http \
+            --allow-unauthenticated \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --project=${{ secrets.PROJECT_ID }}
+
+      - name: Define Context
+        if: always()
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "CONTEXT_MSG=Production (main)" >> $GITHUB_ENV
+          else
+            echo "CONTEXT_MSG=Staging (develop)" >> $GITHUB_ENV
+          fi
+
+      - name: Discord Notification
+        if: always() && env.DISCORD_WEBHOOK_ID != ''
+        uses: appleboy/discord-action@v1.2.0
+        with:
+          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+          message: |
+            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
+            Job: deploy_foodlog
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
