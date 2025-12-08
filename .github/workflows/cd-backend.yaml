@@ -39,8 +39,66 @@ jobs:
           name: backend-dist
           path: backend
 
+  filter_changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deploy_health: ${{ steps.filter.outputs.deploy_health }}
+      deploy_recaptcha: ${{ steps.filter.outputs.deploy_recaptcha }}
+      deploy_oauth: ${{ steps.filter.outputs.deploy_oauth }}
+      deploy_foodlog: ${{ steps.filter.outputs.deploy_foodlog }}
+      deploy_fitbit_legacy: ${{ steps.filter.outputs.deploy_fitbit_legacy }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            deploy_health:
+              - 'backend/src/health.ts'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_recaptcha:
+              - 'backend/src/recaptcha.ts'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_oauth:
+              - 'backend/src/handlers/oauth.ts'
+              - 'backend/src/services/**'
+              - 'backend/src/repositories/**'
+              - 'backend/src/utils/**'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_foodlog:
+              - 'backend/src/handlers/foodlog.ts'
+              - 'backend/src/services/**'
+              - 'backend/src/repositories/**'
+              - 'backend/src/utils/**'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+            deploy_fitbit_legacy:
+              - 'backend/src/handlers/webhookHandler.ts'
+              - 'backend/src/services/**'
+              - 'backend/src/repositories/**'
+              - 'backend/src/utils/**'
+              - 'backend/package.json'
+              - 'backend/src/index.ts'
+              - 'shared/**'
+              - '.github/workflows/cd-backend.yaml'
+
   deploy_fitbit_legacy:
-    needs: build
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_fitbit_legacy == 'true' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -95,7 +153,8 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_health:
-    needs: build
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_health == 'true' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -150,7 +209,8 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_recaptcha:
-    needs: build
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_recaptcha == 'true' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -205,7 +265,8 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_oauth:
-    needs: build
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_oauth == 'true' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -260,7 +321,8 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_foodlog:
-    needs: build
+    needs: [build, filter_changes]
+    if: ${{ needs.filter_changes.outputs.deploy_foodlog == 'true' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
