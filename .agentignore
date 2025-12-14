@@ -10,6 +10,13 @@ out/
 build/
 coverage/
 
+# Terraform
+infra/.terraform/
+infra/state/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
 # Version Control
 .git/
 
