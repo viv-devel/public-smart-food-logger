@@ -7,10 +7,10 @@ terraform {
 
   required_providers {
     # Google Cloud Platform (GCP)
-    # google = {
-    #   source  = "hashicorp/google"
-    #   version = "~> 7.0" # 最新バージョン 7.x 系を許容
-    # }
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 7.0"
+    }
 
     # GitHub (Variables, Secrets, ブランチ保護)
     github = {

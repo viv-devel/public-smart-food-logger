@@ -59,4 +59,13 @@ resource "google_cloud_run_domain_mapping" "domain_mappings" {
   spec {
     route_name = google_cloud_run_service.services[each.value.service_key].name
   }
+
+  lifecycle {
+    ignore_changes = [
+      spec[0].certificate_mode,
+      spec[0].force_override,
+      metadata[0].annotations,
+      metadata[0].labels,
+    ]
+  }
 }
