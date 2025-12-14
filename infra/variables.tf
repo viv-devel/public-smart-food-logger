@@ -47,3 +47,15 @@ variable "github_env_vars" {
   }))
 }
 
+variable "cloud_run_config" {
+  description = "Configuration for Cloud Run services and domain mappings per environment"
+  type = map(object({
+    project_id = string
+    region     = string
+    services = map(object({
+      service_name = string
+      domains      = list(string)
+    }))
+  }))
+}
+

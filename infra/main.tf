@@ -62,6 +62,8 @@ module "stg" {
   FUNCTION_REGION       = var.github_env_vars["staging"]["secrets"]["FUNCTION_REGION"]
   GCP_SA_KEY            = var.github_env_vars["staging"]["secrets"]["GCP_SA_KEY"]
   PROJECT_ID            = var.github_env_vars["staging"]["secrets"]["PROJECT_ID"]
+
+  cloud_run_config = var.cloud_run_config["stg"]
 }
 
 module "prod" {
@@ -76,5 +78,7 @@ module "prod" {
   FUNCTION_REGION       = var.github_env_vars["production"]["secrets"]["FUNCTION_REGION"]
   GCP_SA_KEY            = var.github_env_vars["production"]["secrets"]["GCP_SA_KEY"]
   PROJECT_ID            = var.github_env_vars["production"]["secrets"]["PROJECT_ID"]
+
+  cloud_run_config = var.cloud_run_config["prod"]
 }
 
