@@ -8,10 +8,106 @@ variable "netlify_team_id" {
   type        = string
 }
 
-variable "netlify_env_vars" {
-  description = "Map of Netlify environment variables, where each key is a variable name and value is a list of objects with 'value' and 'context' properties (e.g., 'production', 'deploy-preview', 'branch-deploy')"
-  type = map(list(object({
+variable "APP_ENVIRONMENT" {
+  description = "Netlify Environment Variable: APP_ENVIRONMENT"
+  type = list(object({
     value   = string
     context = string
-  })))
+  }))
+}
+
+variable "BACKEND_FITBIT_WEBHOOK_URL" {
+  description = "Netlify Environment Variable: BACKEND_FITBIT_WEBHOOK_URL"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FIREBASE_API_KEY" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FIREBASE_API_KEY"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FIREBASE_APP_ID" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FIREBASE_APP_ID"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FIREBASE_PROJECT_ID" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FITBIT_CLIENT_ID" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FITBIT_CLIENT_ID"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_RECAPTCHA_SITE_KEY" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_RECAPTCHA_SITE_KEY"
+  type = list(object({
+    value   = string
+    context = string
+  }))
 }
