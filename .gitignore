@@ -61,4 +61,8 @@ test-results.json
 dist/
 
 # Agent
-.agent/
+# Agent
+.agent/*
+!.agent/rules/
+!.agent/workflows/
+!.agent/.agentignore
