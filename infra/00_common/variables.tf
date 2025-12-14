@@ -8,6 +8,23 @@ variable "netlify_team_id" {
   type        = string
 }
 
+variable "cloudflare_zone_id" {
+  description = "Cloudflare Zone ID"
+  type        = string
+}
+
+variable "cloudflare_dns_records" {
+  description = "Map of Cloudflare DNS records"
+  type = map(object({
+    name    = string
+    content = string
+    type    = string
+    proxied = bool
+    comment = optional(string)
+  }))
+  default = {}
+}
+
 variable "APP_ENVIRONMENT" {
   description = "Netlify Environment Variable: APP_ENVIRONMENT"
   type = list(object({
