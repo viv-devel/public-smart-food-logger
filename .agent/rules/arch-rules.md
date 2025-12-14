@@ -39,3 +39,18 @@ trigger: always_on
 - **PR本文 (Body)**:
   - コミットログを羅列するのではなく、**日本語で変更点のサマリ**を作成すること。
   - 変更内容は「機能追加」「バグ修正」「リファクタリング」「その他」などでカテゴライズして記述する。
+
+## 6. AI Agent Ignore Rules
+
+The following file patterns should be ignored by AI agents (Gemini, Sonnet, etc.) to avoid context pollution and security risks, unless explicitly requested.
+
+- **Secrets/Keys**: _.json (GCP keys, credentials), .env_ (except .env.example).
+- **Large/Auto-generated**: package-lock.json, pnpm-lock.yaml, plan.txt.
+- **Logs/Reports**: \*.log, output/ (raw data), coverage/.
+- **Config**: .git/, .vscode/, .gemini/ (unless editing agent config).
+
+## 7. ローカル一時ファイル (Windows対応)
+
+- **推奨ディレクトリ**: .agent/tmp/
+- **目的**: Windows環境などで一時的な作業ファイル（ログ、ダウンロードしたJSONなど）を置く場所として使用する。
+- **Git管理**: このディレクトリは .gitignore によりデフォルトで無視されるため、Git履歴を汚さずに安全に利用できる。
