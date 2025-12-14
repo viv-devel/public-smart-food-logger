@@ -22,6 +22,7 @@ variable "cloudflare_dns_records" {
     proxied = bool
     comment = optional(string)
   }))
+  default = {}
 }
 
 variable "APP_ENVIRONMENT" {
