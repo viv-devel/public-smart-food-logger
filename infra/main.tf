@@ -2,10 +2,16 @@ terraform {
   required_version = "~> 1.6"
 }
 
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
+
 module "common" {
   source          = "./00_common"
   netlify_site_id = var.netlify_site_id
   netlify_team_id = var.netlify_team_id
+  cloudflare_zone_id = var.cloudflare_zone_id
+  cloudflare_dns_records = var.cloudflare_dns_records
 
   # Netlify Environment Variables
   APP_ENVIRONMENT                            = var.netlify_env_vars["APP_ENVIRONMENT"]
