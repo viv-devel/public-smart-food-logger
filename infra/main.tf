@@ -15,11 +15,11 @@ module "ci" {
   input_secrets   = var.github_env_vars["ci"]["secrets"]
 }
 
-module "preview" {
-  source          = "./20_preview"
-  input_variables = var.github_env_vars["preview"]["variables"]
-  input_secrets   = var.github_env_vars["preview"]["secrets"]
-}
+# module "preview" {
+#   source          = "./20_preview"
+#   input_variables = var.github_env_vars["preview"]["variables"]
+#   input_secrets   = var.github_env_vars["preview"]["secrets"]
+# }
 
 module "stg" {
   source          = "./30_stg"

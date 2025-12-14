@@ -12,8 +12,4 @@ resource "netlify_environment_variable" "vars" {
   # Checking original code: values = [ { value = "x", context = "y" } ]
   # So we directly pass the list.
   values = each.value
-
-  lifecycle {
-    ignore_changes = [values]
-  }
 }
