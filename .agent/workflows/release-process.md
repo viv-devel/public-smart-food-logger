@@ -26,10 +26,16 @@ description: Create a release PR, wait for merge, and synchronize develop (Reset
    // turbo
    git checkout develop
 
-6. Reset develop to match main (Reset Model)
+6. (安全チェック) developブランチに未マージのコミットがないか確認
+   // turbo
+   git log origin/main..origin/develop
+
+   > **チェック**: このコマンドの出力は空でなければなりません。もし何か表示された場合、リリース開始後に新しいコミットが `develop` にプッシュされたことを意味します。データ損失を避けるため、処理を**停止**して原因を調査してください。
+
+7. Reset develop to match main (Reset Model)
    // turbo
    git reset --hard origin/main
 
-7. Force push synchronized develop
+8. Force push synchronized develop
    // turbo
    git push origin develop --force
