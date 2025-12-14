@@ -1,0 +1,53 @@
+# AI Agent Ignore Rules
+# These files should be ignored by Gemini/Sonnet/Antigravity agents to avoid context pollution and security risks.
+
+# Dependencies & Builds
+node_modules/
+.pnpm-store/
+.next/
+dist/
+out/
+build/
+coverage/
+
+# Terraform
+infra/.terraform/
+infra/state/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
+# Version Control
+.git/
+
+# Secrets & Environment Variables
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+oauth_creds.json
+
+# Large Auto-generated Files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+plan.txt
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+output/
+
+# Editor/System Config
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Agent Config (Avoid recursive reading unless necessary)
+.gemini/

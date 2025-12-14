@@ -61,4 +61,27 @@ test-results.json
 dist/
 
 # Agent
-.agent/
+.agent/*
+!.agent/rules/
+!.agent/workflows/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+moved.tf
+tfplan
+
+# Terraformer generated files
+generated/
+plan.json
+state.tfstate

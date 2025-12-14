@@ -1,7 +1,13 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  entry: [
+    "src/index.ts",
+    "src/recaptcha.ts",
+    "src/health.ts",
+    "src/handlers/oauth.ts",
+    "src/handlers/foodlog.ts",
+  ],
   format: ["esm"],
   clean: true,
   target: "node20",
