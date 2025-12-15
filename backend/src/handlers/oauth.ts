@@ -12,8 +12,8 @@ import { MethodNotAllowedError, ValidationError } from "../utils/errors.js";
  */
 export const oauthHandler: HttpFunction = async (req, res) => {
   // 必要な環境変数のチェック
-  if (!process.env.FITBIT_REDIRECT_URI) {
-    throw new Error("FITBIT_REDIRECT_URI 環境変数が設定されていません。");
+  if (!process.env.OAUTH_FITBIT_REDIRECT_URI) {
+    throw new Error("OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。");
   }
 
   // CORSプリフライトリクエストに対応するためのヘッダーを設定

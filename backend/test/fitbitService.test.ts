@@ -39,7 +39,7 @@ const mockRedirectUri = "http://localhost:3000/callback";
 const mockFirebaseUid = "testFirebaseUid";
 
 // 環境変数をモック
-process.env.FITBIT_REDIRECT_URI = mockRedirectUri;
+process.env.OAUTH_FITBIT_REDIRECT_URI = mockRedirectUri;
 
 describe("Fitbit API Functions", () => {
   beforeEach(() => {
@@ -144,7 +144,7 @@ describe("Fitbit API Functions", () => {
           body: new URLSearchParams({
             grant_type: "authorization_code",
             code: mockCode,
-            redirect_uri: "http://localhost:3000/oauth",
+            redirect_uri: mockRedirectUri,
             client_id: mockClientId,
           }).toString(),
         },
