@@ -294,7 +294,7 @@ jobs:
             --entry-point=oauthHandler \
             --trigger-http \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
@@ -350,7 +350,7 @@ jobs:
             --entry-point=foodLogHandler \
             --trigger-http \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context

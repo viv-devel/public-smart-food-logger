@@ -19,9 +19,6 @@ import {
   ValidationError,
 } from "../utils/errors.js";
 
-// OAuth flow redirect URI
-const REDIRECT_URI = process.env.FITBIT_REDIRECT_URI;
-
 /**
  * Fitbitの認証フローの一部として、認可コードをアクセストークンと交換します。
  * この関数は、ユーザーがFitbitでの認証を成功させた後、コールバックURL（`webhookHandler`）から呼び出されます。
@@ -50,7 +47,7 @@ export async function exchangeCodeForTokens(
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code: code,
-      redirect_uri: REDIRECT_URI || "",
+      redirect_uri: process.env.OAUTH_FITBIT_REDIRECT_URI || "",
       client_id: clientId,
     }).toString(),
   });
