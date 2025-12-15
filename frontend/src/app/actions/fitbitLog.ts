@@ -27,12 +27,12 @@ export async function logToFitbit(
   data: unknown,
   idToken: string,
 ): Promise<LogToFitbitResult> {
-  const API_ENDPOINT = process.env.BACKEND_FITBIT_WEBHOOK_URL;
+  const API_ENDPOINT = process.env.FOOD_LOG_URL;
 
   // 環境変数が設定されていない場合は、設定不備としてエラーを返す。
   // これは開発者が気づくべき問題であり、ユーザーに直接的な原因はない。
   if (!API_ENDPOINT) {
-    console.error("BACKEND_FITBIT_WEBHOOK_URL is not defined");
+    console.error("FOOD_LOG_URL is not defined");
     return {
       success: false,
       message: "サーバー設定エラー: APIエンドポイントが設定されていません。",
