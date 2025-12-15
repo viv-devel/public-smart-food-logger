@@ -1,5 +1,5 @@
-# Variables
 variable "FITBIT_REDIRECT_URI" { type = string }
+variable "OAUTH_FITBIT_REDIRECT_URI" { type = string }
 
 # Secrets
 variable "DISCORD_WEBHOOK_ID"    { type = string }

@@ -128,3 +128,19 @@ variable "NEXT_PUBLIC_RECAPTCHA_SITE_KEY" {
     context = string
   }))
 }
+
+variable "FOOD_LOG_URL" {
+  description = "Netlify Environment Variable: FOOD_LOG_URL"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}

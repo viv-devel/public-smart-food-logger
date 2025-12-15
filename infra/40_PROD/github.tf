@@ -9,7 +9,8 @@ locals {
     PROJECT_ID            = var.PROJECT_ID
   }
   variables = {
-    FITBIT_REDIRECT_URI = var.FITBIT_REDIRECT_URI
+    FITBIT_REDIRECT_URI       = var.FITBIT_REDIRECT_URI
+    OAUTH_FITBIT_REDIRECT_URI = var.OAUTH_FITBIT_REDIRECT_URI
   }
 }
 
