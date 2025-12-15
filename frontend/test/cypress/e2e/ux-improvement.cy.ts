@@ -58,7 +58,7 @@ describe("UX Improvement Tests for Smart Food Logger AI", () => {
       // API通信をモック
       cy.intercept(
         "POST",
-        process.env.BACKEND_FITBIT_WEBHOOK_URL || "**/fitbit-api-logic",
+        process.env.FOOD_LOG_URL || "**/fitbit-api-logic",
         {
           statusCode: 200,
           body: { message: "Fitbitへの記録が完了しました！" },
