@@ -27,13 +27,14 @@ module "common" {
   NEXT_PUBLIC_FITBIT_CLIENT_ID               = var.netlify_env_vars["NEXT_PUBLIC_FITBIT_CLIENT_ID"]
   NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI   = var.netlify_env_vars["NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI"]
   NEXT_PUBLIC_RECAPTCHA_SITE_KEY             = var.netlify_env_vars["NEXT_PUBLIC_RECAPTCHA_SITE_KEY"]
+  FOOD_LOG_URL                               = var.netlify_env_vars["FOOD_LOG_URL"]
+  NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI      = var.netlify_env_vars["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
 }
 
 module "ci" {
   source = "./10_ci"
 
   APP_ENVIRONMENT                          = var.github_env_vars["ci"]["variables"]["APP_ENVIRONMENT"]
-  FITBIT_BACKEND_REDIRECT_URI              = var.github_env_vars["ci"]["variables"]["FITBIT_BACKEND_REDIRECT_URI"]
   FITBIT_REDIRECT_URI                      = var.github_env_vars["ci"]["variables"]["FITBIT_REDIRECT_URI"]
   NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI  = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI"]
   NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI"]
@@ -42,6 +43,10 @@ module "ci" {
   FITBIT_CLIENT_ID               = var.github_env_vars["ci"]["secrets"]["FITBIT_CLIENT_ID"]
   FITBIT_CLIENT_SECRET           = var.github_env_vars["ci"]["secrets"]["FITBIT_CLIENT_SECRET"]
   NEXT_PUBLIC_RECAPTCHA_SITE_KEY = var.github_env_vars["ci"]["secrets"]["NEXT_PUBLIC_RECAPTCHA_SITE_KEY"]
+
+  FOOD_LOG_URL = var.github_env_vars["ci"]["variables"]["FOOD_LOG_URL"]
+  NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
+  OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["OAUTH_FITBIT_REDIRECT_URI"]
 }
 
 # module "preview" {
@@ -53,7 +58,8 @@ module "ci" {
 module "stg" {
   source = "./30_stg"
 
-  FITBIT_REDIRECT_URI = var.github_env_vars["staging"]["variables"]["FITBIT_REDIRECT_URI"]
+  FITBIT_REDIRECT_URI       = var.github_env_vars["staging"]["variables"]["FITBIT_REDIRECT_URI"]
+  OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["staging"]["variables"]["OAUTH_FITBIT_REDIRECT_URI"]
 
   DISCORD_WEBHOOK_ID    = var.github_env_vars["staging"]["secrets"]["DISCORD_WEBHOOK_ID"]
   DISCORD_WEBHOOK_TOKEN = var.github_env_vars["staging"]["secrets"]["DISCORD_WEBHOOK_TOKEN"]
@@ -69,7 +75,8 @@ module "stg" {
 module "prod" {
   source = "./40_PROD"
 
-  FITBIT_REDIRECT_URI = var.github_env_vars["production"]["variables"]["FITBIT_REDIRECT_URI"]
+  FITBIT_REDIRECT_URI       = var.github_env_vars["production"]["variables"]["FITBIT_REDIRECT_URI"]
+  OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["production"]["variables"]["OAUTH_FITBIT_REDIRECT_URI"]
 
   DISCORD_WEBHOOK_ID    = var.github_env_vars["production"]["secrets"]["DISCORD_WEBHOOK_ID"]
   DISCORD_WEBHOOK_TOKEN = var.github_env_vars["production"]["secrets"]["DISCORD_WEBHOOK_TOKEN"]
