@@ -6,14 +6,16 @@
  */
 export default function TermsOfServicePage() {
   return (
-    <div className="prose prose-invert max-w-none">
-      <h2 className="text-3xl font-bold">Smart Food Logger AI - 利用規約</h2>
+    <div className="prose prose-sm prose-invert">
+      <h2 className="text-3xl font-bold mb-8">利用規約</h2>
       <p>
         本利用規約（以下、「本規約」といいます。）は、「Fitbit via
         Gemini」（以下、「本サービス」といいます。）の利用条件を定めるものです。本サービスをご利用になる前に、本規約をよくお読みいただき、同意いただく必要があります。
       </p>
 
-      <h3 className="text-xl font-semibold">第1条（本サービスの役割と構成）</h3>
+      <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">
+        第1条（本サービスの役割と構成）
+      </h3>
       <p>
         本サービスは、ユーザーがGoogle
         LLCの提供するGemini（カスタムGem）を用いて分析した食事の栄養情報（JSON形式）を、ユーザー自身のFitbitアカウントに食事ログとして記録するためのウェブアプリケーションです。本サービスは、以下の独立したサービスを連携させる「仲介」の役割を果たします。
@@ -32,10 +34,13 @@ export default function TermsOfServicePage() {
         </li>
       </ul>
       <p>
-        本サービスの利用にあたっては、ユーザーは本サービスに対し、自身のFitbitアカウントへのアクセス許可（OAuth認証）を与える必要があります。また、上記を含む第三者サービスの利用規約にも従う必要があります。
+        本サービスの利用にあたっては、Firebase
+        Authenticationを用いた認証（匿名認証、または将来的に導入されるGoogleログイン等）を行い、本サービスに対し自身のFitbitアカウントへのアクセス許可（OAuth認証）を与える必要があります。また、上記を含む第三者サービスの利用規約にも従う必要があります。
       </p>
 
-      <h3 className="text-xl font-semibold">第2条（免責事項）</h3>
+      <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">
+        第2条（免責事項）
+      </h3>
       <p>
         1.
         本サービスは、Geminiが生成する栄養情報の正確性、完全性、または有用性を一切保証しません。AIによる推定値には誤差が含まれる可能性があり、医療専門家の指導に代わるものではありません。
@@ -49,22 +54,30 @@ export default function TermsOfServicePage() {
         開発者は、本サービスの利用、中断、または利用不能に起因するいかなる損害（Fitbitアカウントのデータ損失、健康上の問題、その他一切の不利益）についても、一切の責任を負いません。本サービスは現状有姿（as-is）で提供されます。
       </p>
 
-      <h3 className="text-xl font-semibold">第3条（ユーザーの責任）</h3>
+      <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">
+        第3条（ユーザーの責任）
+      </h3>
       <p>
         ユーザーは、自己の責任において本サービスを利用するものとし、本サービスを利用して登録する食事データの内容について一切の責任を負うものとします。
       </p>
 
-      <h3 className="text-xl font-semibold">第4条（禁止事項）</h3>
+      <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">
+        第4条（禁止事項）
+      </h3>
       <p>
         ユーザーは、本サービスの利用にあたり、法令または公序良俗に違反する行為、本サービスのサーバーに過度な負荷をかける行為、リバースエンジニアリング、その他開発者が不適切と判断する行為を行ってはなりません。
       </p>
 
-      <h3 className="text-xl font-semibold">第5条（本サービスの変更・終了）</h3>
+      <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">
+        第5条（本サービスの変更・終了）
+      </h3>
       <p>
         開発者は、事前の通知なく、いつでも本サービスの内容を変更し、または提供を終了することができるものとします。
       </p>
 
-      <h3 className="text-xl font-semibold">第6条（本規約の変更）</h3>
+      <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">
+        第6条（本規約の変更）
+      </h3>
       <p>
         開発者は、必要と判断した場合には、ユーザーに通知することなくいつでも本規約を変更することができるものとします。変更後の規約は、本サービス上に掲載された時点から効力を生じるものとします。
       </p>

@@ -56,14 +56,10 @@ describe("UX Improvement Tests for Smart Food Logger AI", () => {
   context("Register Page (register)", () => {
     it("【反映後:OK / 反映前:NG】記録成功後、tipsページへのリンクが表示される", () => {
       // API通信をモック
-      cy.intercept(
-        "POST",
-        process.env.FOOD_LOG_URL || "**/fitbit-api-logic",
-        {
-          statusCode: 200,
-          body: { message: "Fitbitへの記録が完了しました！" },
-        },
-      ).as("fitbitApi");
+      cy.intercept("POST", process.env.FOOD_LOG_URL || "**/fitbit-api-logic", {
+        statusCode: 200,
+        body: { message: "Fitbitへの記録が完了しました！" },
+      }).as("fitbitApi");
 
       cy.visit("/register", {
         onBeforeLoad(win) {
