@@ -7,7 +7,7 @@
 export default function TermsOfServicePage() {
   return (
     <div className="prose prose-sm prose-invert">
-      <h2 className="text-3xl font-bold">利用規約</h2>
+      <h2 className="text-3xl font-bold mb-8">利用規約</h2>
       <p>
         本利用規約（以下、「本規約」といいます。）は、「Fitbit via
         Gemini」（以下、「本サービス」といいます。）の利用条件を定めるものです。本サービスをご利用になる前に、本規約をよくお読みいただき、同意いただく必要があります。
@@ -35,7 +35,7 @@ export default function TermsOfServicePage() {
       </ul>
       <p>
         本サービスの利用にあたっては、Firebase
-        Authenticationを用いた認証（Googleログイン等）を行い、本サービスに対し自身のFitbitアカウントへのアクセス許可（OAuth認証）を与える必要があります。また、上記を含む第三者サービスの利用規約にも従う必要があります。
+        Authenticationを用いた認証（匿名認証、または将来的に導入されるGoogleログイン等）を行い、本サービスに対し自身のFitbitアカウントへのアクセス許可（OAuth認証）を与える必要があります。また、上記を含む第三者サービスの利用規約にも従う必要があります。
       </p>
 
       <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">
