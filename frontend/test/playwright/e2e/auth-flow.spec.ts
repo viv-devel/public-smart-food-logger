@@ -60,7 +60,8 @@ test.describe("認証フロー", () => {
     expect(url).toContain("scope");
     expect(url).toContain("nutrition");
     // リダイレクトURIパラメータが含まれていることを確認 (新しい環境変数が使用されているか)
-    const expectedRedirectUri = process.env.NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI;
+    const expectedRedirectUri =
+      process.env.NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI;
     if (expectedRedirectUri) {
       expect(url).toContain(encodeURIComponent(expectedRedirectUri));
     } else {
