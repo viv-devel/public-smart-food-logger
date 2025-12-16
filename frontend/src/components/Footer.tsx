@@ -76,33 +76,36 @@ export const Footer = () => {
           >
             <GitHubIcon className="h-4 w-4" />
           </a>
-          <a
-            href="https://www.netlify.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-400 opacity-50 hover:opacity-100 hover:text-[#20C6B7] transition-all"
-            aria-label="Powered by Netlify"
-          >
-            <NetlifyIcon className="h-4 w-4" />
-          </a>
-          <a
-            href="https://www.fitbit.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-400 opacity-50 hover:opacity-100 hover:text-[#00B0B9] transition-all"
-            aria-label="Works with Fitbit"
-          >
-            <FitbitIcon className="h-4 w-4" />
-          </a>
-          <a
-            href="https://gemini.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-400 opacity-50 hover:opacity-100 hover:text-[#4E88D4] transition-all"
-            aria-label="Built with Gemini"
-          >
-            <GeminiIcon className="h-4 w-4" />
-          </a>
+          <div className="h-3 w-px bg-gray-700 mx-2" />
+          <div className="flex gap-2">
+            <a
+              href="https://www.netlify.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 opacity-50 hover:opacity-100 hover:text-[#20C6B7] transition-all"
+              aria-label="Powered by Netlify"
+            >
+              <NetlifyIcon className="h-4 w-4" />
+            </a>
+            <a
+              href="https://www.fitbit.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 opacity-50 hover:opacity-100 hover:text-[#00B0B9] transition-all"
+              aria-label="Works with Fitbit"
+            >
+              <FitbitIcon className="h-4 w-4" />
+            </a>
+            <a
+              href="https://gemini.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 opacity-50 hover:opacity-100 hover:text-[#4E88D4] transition-all"
+              aria-label="Built with Gemini"
+            >
+              <GeminiIcon className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
