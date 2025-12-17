@@ -4,7 +4,6 @@ import eslintPluginNext from "@next/eslint-plugin-next";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import prettierConfig from "eslint-config-prettier";
-import pluginCypress from "eslint-plugin-cypress";
 import eslintPluginImport from "eslint-plugin-import";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import vitest from "eslint-plugin-vitest";
@@ -139,24 +138,6 @@ const config = [
       "@next/next/no-html-link-for-pages": "off",
     },
   ),
-
-  // Frontend Cypress test files
-  {
-    files: ["frontend/**/*.cy.{ts,tsx}"],
-    languageOptions: {
-      parser: typescriptParser,
-      globals: {
-        ...pluginCypress.configs.globals.globals,
-      },
-    },
-    plugins: {
-      cypress: pluginCypress,
-    },
-    rules: {
-      ...pluginCypress.configs.recommended.rules,
-      // Add or override specific Cypress rules here
-    },
-  },
 
   // ========================================
   // Shared package configuration
