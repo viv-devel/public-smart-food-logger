@@ -46,7 +46,8 @@ export default function PrivacyPolicyPage() {
       </h3>
       <p>
         Fitbit
-        APIの連携に必要なアクセストークンおよびリフレッシュトークンは、Google Cloud
+        APIの連携に必要なアクセストークンおよびリフレッシュトークンは、Google
+        Cloud
         Firestoreにて安全に保管されます。これにより、ユーザーはスムーズに食事ログを記録することができます。
       </p>
 
@@ -55,7 +56,8 @@ export default function PrivacyPolicyPage() {
       </h3>
       <p>
         本サービスは、ユーザーの同意がある場合、または法令に基づく場合を除き、取得した情報を第三者に提供することはありません。ただし、本サービスの機能実現のために、Fitbit
-        API（Google LLC）に対して必要なデータ（認証トークン、食事データ）を送信します。
+        API（Google
+        LLC）に対して必要なデータ（認証トークン、食事データ）を送信します。
       </p>
 
       <h3 className="text-xl font-semibold mt-10 mb-6 border-l-4 border-indigo-500 pl-4">

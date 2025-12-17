@@ -2,6 +2,7 @@ import "./globals.css";
 
 import Link from "next/link";
 
+import { Footer } from "@/components/Footer";
 import HeaderMenu from "@/components/HeaderMenu";
 import { getHeaderColor } from "@/utils/environment";
 
@@ -34,23 +35,7 @@ export default function RootLayout({
               </div>
             </header>
             <main className="grow container mx-auto p-8">{children}</main>
-            <footer className="p-4 text-center text-xs text-gray-500 border-t border-gray-700">
-              <div className="flex justify-center gap-4 mb-2">
-                <Link
-                  href="/terms"
-                  className="text-gray-400 hover:text-gray-200"
-                >
-                  利用規約
-                </Link>
-                <Link
-                  href="/privacy"
-                  className="text-gray-400 hover:text-gray-200"
-                >
-                  プライバシーポリシー
-                </Link>
-              </div>
-              <p>© {new Date().getFullYear()} vivviv. All rights reserved.</p>
-            </footer>
+            <Footer />
           </div>
         </FirebaseAuthProvider>
       </body>
