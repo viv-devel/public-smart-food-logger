@@ -109,6 +109,20 @@ export default function HowItWorksCarousel() {
     };
   }, [isZoomed]);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!isZoomed) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsZoomed(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isZoomed]);
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4">
       <h2 className="text-3xl font-bold text-center mb-10 text-white">
@@ -212,6 +226,9 @@ export default function HowItWorksCarousel() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
             onClick={() => setIsZoomed(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Image lightbox"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
