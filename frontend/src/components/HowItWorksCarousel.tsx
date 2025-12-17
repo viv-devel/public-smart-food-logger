@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, PanInfo } from "framer-motion";
+import { ZoomIn } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -77,14 +78,17 @@ const swipePower = (offset: number, velocity: number) => {
  *
  * Framer Motionを使用して、スワイプ可能なスライドショー形式で3つのステップを紹介する。
  * 自動再生機能、ドラッグ操作、ページネーションインジケーターを備える。
+ * 画像クリックで拡大表示（ライトボックス）が可能。
  *
  * 主な機能:
- * - 5秒ごとの自動ページ送り。
+ * - 5秒ごとの自動ページ送り（拡大中は停止）。
  * - タッチ/マウスによるスワイプ操作。
  * - ステップごとの画像と説明文の表示。
+ * - 画像拡大表示機能。
  */
 export default function HowItWorksCarousel() {
   const [[page, direction], setPage] = useState([0, 0]);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   // We only have 3 steps, so we mod the page to get the index
   const imageIndex = ((page % steps.length) + steps.length) % steps.length;
@@ -94,6 +98,8 @@ export default function HowItWorksCarousel() {
   };
 
   useEffect(() => {
+    if (isZoomed) return;
+
     const timer = setInterval(() => {
       paginate(1);
     }, 5000);
@@ -101,7 +107,7 @@ export default function HowItWorksCarousel() {
     return () => {
       clearInterval(timer);
     };
-  }, []);
+  }, [isZoomed]);
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4">
@@ -138,7 +144,11 @@ export default function HowItWorksCarousel() {
           >
             {/* Image Section */}
             <div className="relative w-full md:w-1/2 h-1/2 md:h-full bg-gray-900 p-4 md:p-8 flex items-center justify-center">
-              <div className="relative w-full h-full max-w-[300px] md:max-w-full aspect-9/19 md:aspect-auto shadow-[0_0_15px_rgba(0,0,0,0.5)] border-4 border-gray-700 rounded-3xl overflow-hidden">
+              <motion.div
+                className="relative group w-full h-full max-w-[300px] md:max-w-full aspect-9/19 md:aspect-auto shadow-[0_0_15px_rgba(0,0,0,0.5)] border-4 border-gray-700 rounded-3xl overflow-hidden cursor-zoom-in"
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setIsZoomed(true)}
+              >
                 <Image
                   src={steps[imageIndex].image}
                   alt={steps[imageIndex].title}
@@ -147,7 +157,10 @@ export default function HowItWorksCarousel() {
                   draggable={false}
                   priority={imageIndex === 0}
                 />
-              </div>
+                <div className="absolute bottom-2 right-2 p-1 bg-black/50 rounded-full text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                  <ZoomIn size={24} />
+                </div>
+              </motion.div>
             </div>
 
             {/* Content Section */}
@@ -189,6 +202,37 @@ export default function HowItWorksCarousel() {
           />
         ))}
       </div>
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {isZoomed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setIsZoomed(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-4xl max-h-[85vh] aspect-auto border-4 border-gray-700 rounded-3xl overflow-hidden shadow-2xl bg-gray-900"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative w-full h-full min-h-[50vh] md:min-h-[60vh]">
+                <Image
+                  src={steps[imageIndex].image}
+                  alt={steps[imageIndex].title}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 80vw"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
