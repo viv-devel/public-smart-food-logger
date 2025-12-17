@@ -7,6 +7,7 @@ locals {
     FUNCTION_REGION       = var.FUNCTION_REGION
     GCP_SA_KEY            = var.GCP_SA_KEY
     PROJECT_ID            = var.PROJECT_ID
+    RECAPTCHA_V3_SECRET_KEY = var.RECAPTCHA_V3_SECRET_KEY
   }
   variables = {
     FITBIT_REDIRECT_URI       = var.FITBIT_REDIRECT_URI

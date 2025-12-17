@@ -9,6 +9,7 @@ variable "FITBIT_CLIENT_SECRET"  { type = string }
 variable "FUNCTION_REGION"       { type = string }
 variable "GCP_SA_KEY"            { type = string }
 variable "PROJECT_ID"            { type = string }
+variable "RECAPTCHA_V3_SECRET_KEY" { type = string }
 
 variable "cloud_run_config" {
   description = "Cloud Run configuration for this environment"

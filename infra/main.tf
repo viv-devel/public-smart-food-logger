@@ -29,6 +29,7 @@ module "common" {
   NEXT_PUBLIC_RECAPTCHA_SITE_KEY             = var.netlify_env_vars["NEXT_PUBLIC_RECAPTCHA_SITE_KEY"]
   FOOD_LOG_URL                               = var.netlify_env_vars["FOOD_LOG_URL"]
   NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI      = var.netlify_env_vars["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
+  NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY          = var.netlify_env_vars["NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY"]
 }
 
 module "ci" {
@@ -47,6 +48,8 @@ module "ci" {
   FOOD_LOG_URL = var.github_env_vars["ci"]["variables"]["FOOD_LOG_URL"]
   NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
   OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["OAUTH_FITBIT_REDIRECT_URI"]
+  NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY"]
+  RECAPTCHA_V3_SECRET_KEY = var.github_env_vars["ci"]["secrets"]["RECAPTCHA_V3_SECRET_KEY"]
 }
 
 # module "preview" {
@@ -68,6 +71,7 @@ module "stg" {
   FUNCTION_REGION       = var.github_env_vars["staging"]["secrets"]["FUNCTION_REGION"]
   GCP_SA_KEY            = var.github_env_vars["staging"]["secrets"]["GCP_SA_KEY"]
   PROJECT_ID            = var.github_env_vars["staging"]["secrets"]["PROJECT_ID"]
+  RECAPTCHA_V3_SECRET_KEY = var.github_env_vars["staging"]["secrets"]["RECAPTCHA_V3_SECRET_KEY"]
 
   cloud_run_config = var.cloud_run_config["stg"]
 }
@@ -85,6 +89,7 @@ module "prod" {
   FUNCTION_REGION       = var.github_env_vars["production"]["secrets"]["FUNCTION_REGION"]
   GCP_SA_KEY            = var.github_env_vars["production"]["secrets"]["GCP_SA_KEY"]
   PROJECT_ID            = var.github_env_vars["production"]["secrets"]["PROJECT_ID"]
+  RECAPTCHA_V3_SECRET_KEY = var.github_env_vars["production"]["secrets"]["RECAPTCHA_V3_SECRET_KEY"]
 
   cloud_run_config = var.cloud_run_config["prod"]
 }

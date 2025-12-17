@@ -137,8 +137,17 @@ variable "FOOD_LOG_URL" {
   }))
 }
 
+
 variable "NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI" {
   description = "Netlify Environment Variable: NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}
+
+variable "NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY"
   type = list(object({
     value   = string
     context = string
