@@ -20,11 +20,23 @@ vi.mock("framer-motion", () => ({
       variants,
       transition,
       custom,
+      onTap,
       ...props
     }: any) => {
       // Mock drag handling if needed
+      // Map onTap to onClick for testing purposes
+      const handleClick = (e: any) => {
+        if (props.onClick) props.onClick(e);
+        if (onTap) onTap(e, {}); // onTap usually receives (event, info)
+      };
+
       return (
-        <div className={className} data-testid="motion-div" {...props}>
+        <div
+          className={className}
+          data-testid="motion-div"
+          onClick={handleClick}
+          {...props}
+        >
           {children}
         </div>
       );
@@ -122,7 +134,9 @@ describe("HowItWorksCarousel", () => {
 
     // Find the wrapper with cursor-zoom-in or just click the image wrapper
     // The image wrapper in our component has onClick. In the mock, the wrapper (motion.div) gets the onClick.
-    const imageWrapper = imagesBefore[0].closest("div[data-testid='motion-div']");
+    const imageWrapper = imagesBefore[0].closest(
+      "div[data-testid='motion-div']",
+    );
     expect(imageWrapper).toBeDefined();
 
     // Click to zoom
@@ -151,7 +165,7 @@ describe("HowItWorksCarousel", () => {
 
     // Click overlay to close
     if (modalOverlay) {
-        fireEvent.click(modalOverlay);
+      fireEvent.click(modalOverlay);
     }
 
     // Should be back to 1 image

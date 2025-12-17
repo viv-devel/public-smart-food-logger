@@ -147,7 +147,7 @@ export default function HowItWorksCarousel() {
               <motion.div
                 className="relative group w-full h-full max-w-[300px] md:max-w-full aspect-9/19 md:aspect-auto shadow-[0_0_15px_rgba(0,0,0,0.5)] border-4 border-gray-700 rounded-3xl overflow-hidden cursor-zoom-in"
                 whileTap={{ scale: 0.97 }}
-                onClick={() => setIsZoomed(true)}
+                onTap={() => setIsZoomed(true)}
               >
                 <Image
                   src={steps[imageIndex].image}
