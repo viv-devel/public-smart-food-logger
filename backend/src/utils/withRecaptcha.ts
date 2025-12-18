@@ -1,12 +1,6 @@
 import type { HttpFunction } from "@google-cloud/functions-framework";
 
-import { verifyRecaptcha } from "../recaptcha.js";
-
-// アクションごとの閾値定義（一元管理）
-const RECAPTCHA_THRESHOLDS: Record<string, number> = {
-  AUTHENTICATE: 0.3,
-  WRITE_LOG: 0.3,
-};
+import { RECAPTCHA_THRESHOLDS, verifyRecaptcha } from "../recaptcha.js";
 
 /**
  * reCAPTCHA検証を行う高階関数（ラッパー）

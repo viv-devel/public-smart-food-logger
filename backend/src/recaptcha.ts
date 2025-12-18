@@ -1,7 +1,13 @@
 import type { HttpFunction } from "@google-cloud/functions-framework";
 import fetch from "node-fetch";
 
-export const recaptchaVerifier: HttpFunction = (req, res) => {
+// アクションごとの閾値定義（一元管理）
+export const RECAPTCHA_THRESHOLDS: Record<string, number> = {
+  AUTHENTICATE: 0.3,
+  WRITE_LOG: 0.3,
+};
+
+export const recaptchaVerifier: HttpFunction = async (req, res) => {
   // CORS configuration
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -18,12 +24,24 @@ export const recaptchaVerifier: HttpFunction = (req, res) => {
     return;
   }
 
-  const { token } = req.body;
+  const { token, action } = req.body;
 
-  if (token) {
-    res.status(200).json({ success: true, score: 0.9 });
-  } else {
-    res.status(200).json({ success: false, error: "reCAPTCHA token missing" });
+  if (!token) {
+    res.status(400).json({ success: false, error: "reCAPTCHA token missing" });
+    return;
+  }
+
+  const requestedAction = typeof action === "string" ? action : "";
+
+  // アクションに基づく閾値の決定（デフォルトは0.3）
+  const threshold = RECAPTCHA_THRESHOLDS[requestedAction] || 0.3;
+
+  try {
+    const isValid = await verifyRecaptcha(token, requestedAction, threshold);
+    res.status(200).json({ success: isValid });
+  } catch (error) {
+    console.error("Error in recaptchaVerifier:", error);
+    res.status(500).json({ success: false, error: "Verification failed" });
   }
 };
 
