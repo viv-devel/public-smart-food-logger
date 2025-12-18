@@ -31,13 +31,8 @@ export function useRecaptcha() {
       }
 
       return new Promise((resolve, reject) => {
-        window.grecaptcha.ready(async () => {
-          try {
-            const token = await window.grecaptcha.execute(siteKey, { action });
-            resolve(token);
-          } catch (error) {
-            reject(error);
-          }
+        window.grecaptcha.ready(() => {
+          window.grecaptcha.execute(siteKey, { action }).then(resolve, reject);
         });
       });
     },
@@ -49,8 +44,7 @@ export function useRecaptcha() {
    *
    * @param {string} token - executeRecaptchaで取得したトークン
    * @param {string} action - アクション名
-   * @returns {Promise<boolean>} 検証結果 (true: 成功, false: 失敗)
-   * @throws {Error} バックエンドURLが未設定、またはAPI呼び出しエラーの場合
+   * @returns {Promise<boolean>} 検証成功時は true、失敗またはエラー時は false を返す
    */
   const verifyWithBackend = useCallback(
     async (token: string, action: string): Promise<boolean> => {
