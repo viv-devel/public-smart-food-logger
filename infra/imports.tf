@@ -23,8 +23,8 @@ import {
   for_each = {
     for mapping in local.stg_domain_mappings : "${mapping.service_key}-${mapping.domain}" => mapping
   }
-  to       = module.stg.google_cloud_run_domain_mapping.domain_mappings[each.key]
-  id       = "locations/${var.cloud_run_config["stg"].region}/namespaces/${var.cloud_run_config["stg"].project_id}/domainmappings/${each.value.domain}"
+  to = module.stg.google_cloud_run_domain_mapping.domain_mappings[each.key]
+  id = "locations/${var.cloud_run_config["stg"].region}/namespaces/${var.cloud_run_config["stg"].project_id}/domainmappings/${each.value.domain}"
 }
 
 # ------------------------------------------------------------------------------
