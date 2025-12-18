@@ -153,3 +153,11 @@ variable "NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY" {
     context = string
   }))
 }
+
+variable "NEXT_PUBLIC_RECAPTCHA_BACKEND_URL" {
+  description = "Netlify Environment Variable: NEXT_PUBLIC_RECAPTCHA_BACKEND_URL"
+  type = list(object({
+    value   = string
+    context = string
+  }))
+}

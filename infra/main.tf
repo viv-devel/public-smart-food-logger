@@ -30,6 +30,7 @@ module "common" {
   FOOD_LOG_URL                               = var.netlify_env_vars["FOOD_LOG_URL"]
   NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI      = var.netlify_env_vars["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
   NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY          = var.netlify_env_vars["NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY"]
+  NEXT_PUBLIC_RECAPTCHA_BACKEND_URL          = var.netlify_env_vars["NEXT_PUBLIC_RECAPTCHA_BACKEND_URL"]
 }
 
 module "ci" {
@@ -49,6 +50,7 @@ module "ci" {
   NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
   OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["OAUTH_FITBIT_REDIRECT_URI"]
   NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY"]
+  NEXT_PUBLIC_RECAPTCHA_BACKEND_URL = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_RECAPTCHA_BACKEND_URL"]
   RECAPTCHA_V3_SECRET_KEY = var.github_env_vars["ci"]["secrets"]["RECAPTCHA_V3_SECRET_KEY"]
 }
 
