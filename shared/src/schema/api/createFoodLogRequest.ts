@@ -183,6 +183,12 @@ export const CreateFoodLogRequestSchema = z.object({
    * @remarks 現在の実装では使用されていませんが、将来的にマルチユーザー対応する際の拡張用フィールドです。
    */
   userId: z.string().optional(),
+
+  /**
+   * reCAPTCHAトークン (オプション)。
+   * @remarks Bot対策として導入。フロントエンドで取得したトークンを含める。
+   */
+  recaptchaToken: z.string().optional(),
 });
 
 /**
