@@ -42,8 +42,9 @@ export async function verifyRecaptcha(
 ): Promise<boolean> {
   const secret = process.env.RECAPTCHA_V3_SECRET_KEY;
   if (!secret) {
-    console.warn("RECAPTCHA_V3_SECRET_KEY is not set. Skipping verification.");
-    return true; // 開発環境などで設定がない場合は通す（運用ポリシーによるが、ここではログ出力のみで安全側に倒すかエラーにするか。指示では環境変数取得とあるので必須扱いが妥当だが、CI等考慮し一旦ログ出力）
+    // 仕様変更: 設定漏れは致命的なのでErrorをスロー (Fail Closed)
+    console.error("RECAPTCHA_V3_SECRET_KEY is not set.");
+    throw new Error("RECAPTCHA_V3_SECRET_KEY is not set.");
   }
 
   try {
@@ -99,10 +100,16 @@ export async function verifyRecaptcha(
 
     return true;
   } catch (error) {
-    console.error("Error during reCAPTCHA verification:", error);
-    // API呼び出しエラーの場合は、システム全体の可用性を優先して通すか、厳密に弾くか。
-    // ここでは安全のため弾く（false）設定にするのが一般的だが、Google側の障害で全滅するリスクもある。
-    // 指示には明記がないが、失敗として扱う。
-    return false;
+    // 仕様変更: Google APIエラー時はログを出して通す (Fail Open)
+    console.error(
+      JSON.stringify({
+        severity: "ERROR",
+        component: "recaptcha",
+        result: "error_skipped", // 指示通りの識別子
+        message: "Error during reCAPTCHA verification, allowing request.",
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
+    return true;
   }
 }
