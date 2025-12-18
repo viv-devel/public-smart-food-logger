@@ -2,6 +2,12 @@ import type { HttpFunction } from "@google-cloud/functions-framework";
 
 import { verifyRecaptcha } from "../recaptcha.js";
 
+// アクションごとの閾値定義（一元管理）
+const RECAPTCHA_THRESHOLDS: Record<string, number> = {
+  AUTHENTICATE: 0.3,
+  WRITE_LOG: 0.3,
+};
+
 /**
  * reCAPTCHA検証を行う高階関数（ラッパー）
  *
@@ -31,19 +37,8 @@ export const withRecaptcha = (
       return handler(req, res);
     }
 
-    // 閾値の決定（環境変数優先 -> デフォルト0.3）
-    let threshold = 0.3;
-    if (
-      action === "AUTHENTICATE" &&
-      process.env.RECAPTCHA_THRESHOLD_AUTHENTICATE
-    ) {
-      threshold = parseFloat(process.env.RECAPTCHA_THRESHOLD_AUTHENTICATE);
-    } else if (
-      action === "WRITE_LOG" &&
-      process.env.RECAPTCHA_THRESHOLD_WRITE_LOG
-    ) {
-      threshold = parseFloat(process.env.RECAPTCHA_THRESHOLD_WRITE_LOG);
-    }
+    // 閾値の決定（定数定義を使用）
+    const threshold = RECAPTCHA_THRESHOLDS[action] || 0.3;
 
     // 検証実行
     const isValid = await verifyRecaptcha(token, action, threshold);

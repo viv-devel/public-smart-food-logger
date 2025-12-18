@@ -137,18 +137,34 @@ describe("withRecaptcha Middleware and Utility", () => {
     expect(mockHandler).not.toHaveBeenCalled();
   });
 
-  it("middleware should use custom threshold from env", async () => {
-    process.env.RECAPTCHA_THRESHOLD_AUTHENTICATE = "0.8";
-    vi.mocked(fetch).mockResolvedValue({
-      json: async () => ({ success: true, action: "AUTHENTICATE", score: 0.7 }), // 0.7 < 0.8 -> Fail
+  it("middleware should enforce default constant threshold (0.3)", async () => {
+    // Case 1: Score 0.2 (< 0.3) -> Should Fail
+    vi.mocked(fetch).mockResolvedValueOnce({
+      json: async () => ({ success: true, action: "WRITE_LOG", score: 0.2 }),
     } as any);
 
-    const wrappedHandler = withRecaptcha("AUTHENTICATE", mockHandler);
-    req.body = { recaptchaToken: "token" };
+    const wrappedHandlerFail = withRecaptcha("WRITE_LOG", mockHandler);
+    req.body = { recaptchaToken: "low-score-token" };
 
-    await wrappedHandler(req as Request, res as Response);
+    await wrappedHandlerFail(req as Request, res as Response);
 
     expect(res.status).toHaveBeenCalledWith(403);
     expect(mockHandler).not.toHaveBeenCalled();
+
+    // Reset mocks for success case
+    vi.clearAllMocks();
+    res.status = vi.fn().mockReturnThis();
+
+    // Case 2: Score 0.4 (> 0.3) -> Should Pass
+    vi.mocked(fetch).mockResolvedValueOnce({
+      json: async () => ({ success: true, action: "WRITE_LOG", score: 0.4 }),
+    } as any);
+
+    const wrappedHandlerPass = withRecaptcha("WRITE_LOG", mockHandler);
+    req.body = { recaptchaToken: "high-score-token" };
+
+    await wrappedHandlerPass(req as Request, res as Response);
+
+    expect(mockHandler).toHaveBeenCalled();
   });
 });
