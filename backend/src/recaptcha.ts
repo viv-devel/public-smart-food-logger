@@ -60,7 +60,7 @@ export async function verifyRecaptcha(
       },
     );
 
-    const data: any = await response.json();
+    const data = (await response.json()) as { success: boolean; score: number; action: string; hostname: string; 'error-codes'?: string[] };
 
     // 構造化ログの出力
     console.log(
