@@ -87,7 +87,12 @@ jobs:
         run: pnpm --filter shared run build
 
       - name: Test Backend with Coverage
-        run: pnpm --filter backend run test:coverage
+        run: |
+          echo "## Backend Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pnpm --filter backend run test:coverage | tee backend_coverage.txt
+          cat backend_coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Backend Coverage
         uses: actions/upload-artifact@v4
@@ -122,7 +127,12 @@ jobs:
         run: pnpm --filter frontend run test
 
       - name: Test Frontend with Coverage
-        run: pnpm --filter frontend run test:coverage
+        run: |
+          echo "## Frontend Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pnpm --filter frontend run test:coverage | tee frontend_coverage.txt
+          cat frontend_coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Setup Playwright
         uses: ./.github/actions/setup-playwright
