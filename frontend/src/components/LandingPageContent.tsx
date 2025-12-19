@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useFirebaseAuth } from "@/app/auth/FirebaseAuthProvider";
 import { app } from "@/app/auth/firebaseConfig";
 import HowItWorksCarousel from "@/components/HowItWorksCarousel";
+import RecaptchaScript from "@/components/RecaptchaScript";
 import RedirectModal from "@/components/RedirectModal";
 import { useRecaptcha } from "@/hooks/useRecaptcha";
 
@@ -175,6 +176,8 @@ export default function LandingPageContent() {
 
   return (
     <div className="bg-gray-900 text-white min-h-screen">
+      {/* このページでのみ reCAPTCHA を読み込む */}
+      <RecaptchaScript />
       <RedirectModal
         isOpen={showRedirectModal}
         onClose={() => setShowRedirectModal(false)}
