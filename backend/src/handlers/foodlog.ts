@@ -15,19 +15,15 @@ import {
   MethodNotAllowedError,
   ValidationError,
 } from "../utils/errors.js";
-import { withRecaptcha } from "../utils/withRecaptcha.js";
-
 /**
  * 食事ログの記録リクエストを処理する Cloud Function。
  *
  * @param req Express互換のリクエストオブジェクト
  * @param res Express互換のレスポンスオブジェクト
  */
-export const foodLogHandler: HttpFunction = withRecaptcha(
-  "WRITE_LOG",
-  async (req, res) => {
-    // 必要な環境変数のチェック
-    if (!process.env.FITBIT_REDIRECT_URI) {
+export const foodLogHandler: HttpFunction = async (req, res) => {
+  // 必要な環境変数のチェック
+  if (!process.env.FITBIT_REDIRECT_URI) {
       throw new Error("FITBIT_REDIRECT_URI 環境変数が設定されていません。");
     }
 
@@ -124,23 +120,22 @@ export const foodLogHandler: HttpFunction = withRecaptcha(
         return;
       }
 
-      throw new MethodNotAllowedError("Method Not Allowed");
-    } catch (error: any) {
-      console.error("Unhandled error in foodLogHandler:", error);
-      if (error.statusCode) {
-        res.status(error.statusCode).json({ error: error.message });
-        return;
-      } else if (
-        error.message.includes("ID token") ||
-        error.message.includes("Unauthorized")
-      ) {
-        res.status(401).json({ error: error.message });
-        return;
-      }
-      res
-        .status(500)
-        .json({ error: error.message || "An internal server error occurred." });
+    throw new MethodNotAllowedError("Method Not Allowed");
+  } catch (error: any) {
+    console.error("Unhandled error in foodLogHandler:", error);
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    } else if (
+      error.message.includes("ID token") ||
+      error.message.includes("Unauthorized")
+    ) {
+      res.status(401).json({ error: error.message });
       return;
     }
-  },
-);
+    res
+      .status(500)
+      .json({ error: error.message || "An internal server error occurred." });
+    return;
+  }
+};

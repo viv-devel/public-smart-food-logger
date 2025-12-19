@@ -3,7 +3,6 @@ import { Buffer } from "buffer";
 
 import { exchangeCodeForTokens } from "../services/fitbitService.js";
 import { MethodNotAllowedError, ValidationError } from "../utils/errors.js";
-import { withRecaptcha } from "../utils/withRecaptcha.js";
 
 /**
  * Fitbit OAuth 2.0 認証のコールバック処理を行う Cloud Function。
@@ -11,11 +10,9 @@ import { withRecaptcha } from "../utils/withRecaptcha.js";
  * @param req Express互換のリクエストオブジェクト
  * @param res Express互換のレスポンスオブジェクト
  */
-export const oauthHandler: HttpFunction = withRecaptcha(
-  "AUTHENTICATE",
-  async (req, res) => {
-    // 必要な環境変数のチェック
-    if (!process.env.OAUTH_FITBIT_REDIRECT_URI) {
+export const oauthHandler: HttpFunction = async (req, res) => {
+  // 必要な環境変数のチェック
+  if (!process.env.OAUTH_FITBIT_REDIRECT_URI) {
       throw new Error(
         "OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。",
       );
@@ -94,23 +91,22 @@ export const oauthHandler: HttpFunction = withRecaptcha(
         return;
       }
 
-      throw new MethodNotAllowedError("Method Not Allowed");
-    } catch (error: any) {
-      console.error("Unhandled error in oauthHandler:", error);
-      if (error.statusCode) {
-        res.status(error.statusCode).json({ error: error.message });
-        return;
-      } else if (
-        error.message.includes("ID token") ||
-        error.message.includes("Unauthorized")
-      ) {
-        res.status(401).json({ error: error.message });
-        return;
-      }
-      res
-        .status(500)
-        .json({ error: error.message || "An internal server error occurred." });
+    throw new MethodNotAllowedError("Method Not Allowed");
+  } catch (error: any) {
+    console.error("Unhandled error in oauthHandler:", error);
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    } else if (
+      error.message.includes("ID token") ||
+      error.message.includes("Unauthorized")
+    ) {
+      res.status(401).json({ error: error.message });
       return;
     }
-  },
-);
+    res
+      .status(500)
+      .json({ error: error.message || "An internal server error occurred." });
+    return;
+  }
+};

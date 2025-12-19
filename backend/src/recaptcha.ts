@@ -4,7 +4,6 @@ import fetch from "node-fetch";
 // アクションごとの閾値定義（一元管理）
 export const RECAPTCHA_THRESHOLDS: Record<string, number> = {
   AUTHENTICATE: 0.3,
-  WRITE_LOG: 0.3,
 };
 
 export const recaptchaVerifier: HttpFunction = async (req, res) => {
