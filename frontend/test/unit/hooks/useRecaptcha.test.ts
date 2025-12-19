@@ -19,7 +19,7 @@ describe("useRecaptcha Hook", () => {
     vi.resetModules();
     process.env = { ...originalEnv };
     process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY = "test-site-key";
-    process.env.NEXT_PUBLIC_BACKEND_BASE_URL = "http://test-backend";
+    process.env.NEXT_PUBLIC_RECAPTCHA_BACKEND_URL = "http://test-backend/recaptchaVerifier";
 
     // Mock window.grecaptcha
     window.grecaptcha = {
@@ -137,7 +137,7 @@ describe("useRecaptcha Hook", () => {
     });
 
     it("should return false if backend URL is missing", async () => {
-      process.env.NEXT_PUBLIC_BACKEND_BASE_URL = "";
+      process.env.NEXT_PUBLIC_RECAPTCHA_BACKEND_URL = "";
 
       const { result } = renderHook(() => useRecaptcha());
 
