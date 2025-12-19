@@ -11,7 +11,7 @@ import { useCallback } from "react";
  */
 export function useRecaptcha() {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY;
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL;
+  const backendUrl = process.env.NEXT_PUBLIC_RECAPTCHA_BACKEND_URL;
 
   /**
    * reCAPTCHA v3 トークンを取得します。
@@ -54,7 +54,8 @@ export function useRecaptcha() {
       }
 
       try {
-        const response = await fetch(`${backendUrl}/recaptchaVerifier`, {
+        // backendUrl は完全なエンドポイントURLとして扱います
+        const response = await fetch(backendUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
