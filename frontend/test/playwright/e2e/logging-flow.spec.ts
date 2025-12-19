@@ -36,35 +36,22 @@ test.describe("食事ログ記録フロー", () => {
     await startButton.click();
 
     // 3. 認証完了を待つ (localStorageを強制セットして /register へ)
-    // 実際の遷移を待つか、あるいは手動で遷移させる
-    // auth-flow.spec.tsではリダイレクトを待っているが、ここでは「ログイン済み」状態を作りたいだけ
-    // ただし、Startボタンを押した時点でバックグラウンドで処理が走り、oauthへ飛んでしまう可能性があるため、
-    // ここではあえて少し待ってから強制的に register へ遷移させるか、あるいは oauth への遷移を待ってから戻るか。
-    // 最も確実なのは、匿名認証が完了するのを待つことだが、UI上は遷移してしまう。
 
-    // ここでは、ボタンクリック -> (モック検証成功) -> 匿名認証 -> /oauth へ遷移 というフローが走る。
-    // ログ記録フローのテストとしては、認証済み状態で /register にいることが前提。
+    // Mock Auth有効時は実際のリダイレクトが発生しない（または外部認証へ飛ばない）可能性があるため、
+    // 遷移チェックをスキップするか、条件を緩める。
+    // auth-flow.spec.ts ではリダイレクトチェックをスキップしている。
+    // ここでも同様に、もし Mock Auth なら遷移待ちをスキップして強制移動する。
 
-    // なので、ボタンを押して遷移が始まったら、強制的にローカルストレージを書き換えて /register に移動してしまっても良いが、
-    // タイミングによっては競合する。
-    // Playwright的には、ボタンを押した後、waitForURLで /oauth などを待ち、その後に /register に行くのが自然。
-
-    // しかし、/oauth に行くと Fitbitへリダイレクトされてしまう (mock auth有効なら)。
-    // CI環境なら mock auth 有効なのでリダイレクトされないかもしれないし、fitbit.com へ行くかもしれない。
-
-    // シンプルに、認証をバイパスするために、localStorage と sessionStorage をセットしてから /register を開く方法もあるが、
-    // LandingPageのロジック上、未認証だと Start ボタンしか出ない。
-    // Startボタンを押すテストをしたいわけではなく、ログ記録をテストしたいなら、
-    // そもそも Start ボタンを押さずに、直接 localStorage をセットして reload する方が早いかもしれない。
-    // だが、既存のテストコードは「Startボタンを押す」流れを含んでいたので、それを踏襲する。
-
-    // Startボタンクリック
-    // -> 検証成功
-    // -> handleAnonymousSignIn
-    // -> router.push("/oauth")
-
-    // 遷移を待つ
-    await page.waitForTimeout(1000);
+    if (process.env.CI && process.env.NEXT_PUBLIC_MOCK_AUTH === "true") {
+       // Mock Auth時はリダイレクトが発生しない(エラーになる)か、挙動が異なるため
+       // UI上の反応だけ確認して次へ進む（ここでは検証成功後に即座に次へ行くとする）
+       // 少しだけ待つ
+       await page.waitForTimeout(1000);
+    } else {
+       // 通常時は遷移を待つ
+       // ボタンクリック後、トップページ以外へ遷移したことを確認
+       await page.waitForURL((url) => url.pathname !== "/", { timeout: 10000, waitUntil: 'domcontentloaded' });
+    }
 
     await page.evaluate(() => {
       localStorage.setItem("fitbitAuthCompleted", "true");
