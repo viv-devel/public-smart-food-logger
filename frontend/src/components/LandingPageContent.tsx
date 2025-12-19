@@ -132,10 +132,10 @@ export default function LandingPageContent() {
     setIsVerifying(true);
     try {
       // 1. reCAPTCHA v3 トークンの取得
-      const token = await executeRecaptcha("login");
+      const token = await executeRecaptcha("AUTHENTICATE");
 
       // 2. バックエンドでの検証
-      const isValid = await verifyWithBackend(token, "login");
+      const isValid = await verifyWithBackend(token, "AUTHENTICATE");
 
       if (isValid) {
         // 3. 検証成功 -> 匿名認証フローへ
