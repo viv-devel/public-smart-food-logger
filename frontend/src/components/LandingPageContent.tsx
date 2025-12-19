@@ -1,22 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { ReCAPTCHAProps } from "react-google-recaptcha";
-
-const ReCAPTCHA = dynamic<ReCAPTCHAProps>(
-  () => import("react-google-recaptcha").then((mod) => mod.default),
-  {
-    ssr: false,
-  },
-);
 
 import { useFirebaseAuth } from "@/app/auth/FirebaseAuthProvider";
 import { app } from "@/app/auth/firebaseConfig";
 import HowItWorksCarousel from "@/components/HowItWorksCarousel";
 import RedirectModal from "@/components/RedirectModal";
+import { useRecaptcha } from "@/hooks/useRecaptcha";
 
 /**
  * ランディングページのメインコンテンツコンポーネント。
@@ -31,10 +23,8 @@ import RedirectModal from "@/components/RedirectModal";
  */
 export default function LandingPageContent() {
   const { user, loading } = useFirebaseAuth();
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const [recaptchaStatus, setRecaptchaStatus] = useState<
-    "idle" | "success" | "collapsing"
-  >("idle");
+  const { executeRecaptcha, verifyWithBackend } = useRecaptcha();
+  const [isVerifying, setIsVerifying] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   // Modal states
@@ -122,33 +112,48 @@ export default function LandingPageContent() {
     router.push("/register");
   };
 
-  useEffect(() => {
-    if (recaptchaToken) {
-      setTimeout(() => {
-        setRecaptchaStatus("success");
-      }, 0);
-      const timer = setTimeout(() => {
-        setRecaptchaStatus("collapsing");
-      }, 1000); // 1秒後に縮小アニメーション開始
-      return () => clearTimeout(timer);
-    }
-  }, [recaptchaToken]);
-
-  const handleAnonymousSignIn = async () => {
-    if (!recaptchaToken) {
-      alert("reCAPTCHAを完了してください。");
-      return;
-    }
+  const handleAnonymousSignIn = async (): Promise<boolean> => {
     try {
       const { getAuth, signInAnonymously } = await import("firebase/auth");
       const auth = getAuth(app);
       await signInAnonymously(auth);
       // 匿名認証成功後、Fitbit認証フローを開始するためにoauthページへ遷移
       router.push("/oauth");
+      return true;
     } catch (error) {
       console.error("匿名認証エラー:", error);
       console.log("TODO: Implement toast notification for user feedback");
       alert("匿名認証に失敗しました。再度お試しください。");
+      return false;
+    }
+  };
+
+  const handleStartVerification = async () => {
+    setIsVerifying(true);
+    try {
+      // 1. reCAPTCHA v3 トークンの取得
+      const token = await executeRecaptcha("login");
+
+      // 2. バックエンドでの検証
+      const isValid = await verifyWithBackend(token, "login");
+
+      if (isValid) {
+        // 3. 検証成功 -> 匿名認証フローへ
+        const authSuccess = await handleAnonymousSignIn();
+        // 認証失敗時はボタンの状態をリセット
+        if (!authSuccess) {
+          setIsVerifying(false);
+        }
+      } else {
+        alert(
+          "セキュリティチェックに失敗しました。ページをリロードして再度お試しください。",
+        );
+        setIsVerifying(false);
+      }
+    } catch (error) {
+      console.error("Verification failed:", error);
+      alert("エラーが発生しました。再度お試しください。");
+      setIsVerifying(false);
     }
   };
 
@@ -234,43 +239,26 @@ export default function LandingPageContent() {
                   </div>
                 ) : (
                   <>
-                    <div
-                      data-testid="recaptcha-container"
-                      className={`flex justify-center items-center transition-all duration-500 ease-in-out ${
-                        recaptchaStatus === "collapsing" ? "h-0" : "h-[78px]"
-                      }`}
-                    >
-                      {recaptchaStatus === "idle" && (
-                        <ReCAPTCHA
-                          sitekey={
-                            process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""
-                          }
-                          onChange={(token: string | null) =>
-                            setRecaptchaToken(token)
-                          }
-                          theme="dark"
-                        />
-                      )}
-                      {(recaptchaStatus === "success" ||
-                        recaptchaStatus === "collapsing") && (
-                        <p className="text-green-400">
-                          ✓ reCAPTCHA認証が完了しました
-                        </p>
-                      )}
-                    </div>
                     <p className="text-xs text-gray-400 max-w-xs text-center">
                       ボタンを押すと、サービス利用のための一時的なIDが発行され、Fitbitの連携ページに移動します。
                     </p>
                     <button
-                      onClick={handleAnonymousSignIn}
-                      disabled={!recaptchaToken}
-                      className={`font-bold py-3 px-6 rounded-lg transition-colors ${
-                        recaptchaToken
-                          ? "bg-green-500 hover:bg-green-700 text-white"
-                          : "bg-gray-400 text-gray-700 cursor-not-allowed"
+                      onClick={handleStartVerification}
+                      disabled={isVerifying}
+                      className={`font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2 ${
+                        isVerifying
+                          ? "bg-gray-500 cursor-not-allowed"
+                          : "bg-green-500 hover:bg-green-700 text-white"
                       }`}
                     >
-                      利用を開始する
+                      {isVerifying ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                          検証中...
+                        </>
+                      ) : (
+                        "利用を開始する"
+                      )}
                     </button>
                   </>
                 )}
