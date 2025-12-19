@@ -4,6 +4,11 @@ test.describe("認証フロー", () => {
   test("利用開始ボタンをクリックするとreCAPTCHA検証を経てFitbit認証へ遷移すること", async ({
     page,
   }) => {
+    // 外部のreCAPTCHAスクリプトのロードをブロックして、モックが上書きされないようにする
+    await page.route("https://www.google.com/recaptcha/**", (route) => {
+        route.abort();
+    });
+
     // reCAPTCHA検証APIのモック
     await page.route("**/recaptchaVerifier", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
