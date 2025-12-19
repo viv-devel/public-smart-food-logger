@@ -64,7 +64,7 @@ test.describe("食事ログ記録フロー", () => {
     // -> router.push("/oauth")
 
     // 遷移を待つ
-    await page.waitForTimeout(1000);
+    await page.waitForURL("**/oauth");
 
     await page.evaluate(() => {
       localStorage.setItem("fitbitAuthCompleted", "true");
