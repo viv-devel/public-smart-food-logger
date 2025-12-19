@@ -58,6 +58,8 @@ test.describe("認証フロー", () => {
 
     const url = page.url();
     expect(url).toContain("client_id");
+    expect(url).toContain("response_type");
+    expect(url).toContain("scope");
 
     const expectedRedirectUri =
       process.env.NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI;
