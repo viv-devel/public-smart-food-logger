@@ -66,7 +66,12 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Test Shared
-        run: pnpm --filter shared run test
+        run: |
+          echo "## Shared Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pnpm --filter shared run test:coverage --no-color | tee shared_coverage.txt
+          cat shared_coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
   test-backend:
     needs: [check-changes, code-quality]
@@ -90,7 +95,7 @@ jobs:
         run: |
           echo "## Backend Coverage" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          pnpm --filter backend run test:coverage | tee backend_coverage.txt
+          pnpm --filter backend run test:coverage --no-color | tee backend_coverage.txt
           cat backend_coverage.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
@@ -130,7 +135,7 @@ jobs:
         run: |
           echo "## Frontend Coverage" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          pnpm --filter frontend run test:coverage | tee frontend_coverage.txt
+          pnpm --filter frontend run test:coverage --no-color | tee frontend_coverage.txt
           cat frontend_coverage.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
