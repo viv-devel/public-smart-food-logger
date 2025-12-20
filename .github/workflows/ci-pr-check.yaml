@@ -50,10 +50,10 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Run ESLint (Fix)
-        run: pnpm run lint --fix
+        run: pnpm run lint:fix
 
       - name: Run Prettier (Write)
-        run: pnpm run format
+        run: pnpm run format:write
 
   test-shared:
     needs: [check-changes, code-quality]
