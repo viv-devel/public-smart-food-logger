@@ -85,7 +85,7 @@ export default function FitbitViaGeminiRegisterPage() {
             </h3>
             <ul className="list-disc list-inside text-gray-200 space-y-1">
               {registeredFoods.map((food, index) => (
-                <li key={index} className="truncate">
+                <li key={`${food}-${index}`} className="truncate">
                   {food}
                 </li>
               ))}

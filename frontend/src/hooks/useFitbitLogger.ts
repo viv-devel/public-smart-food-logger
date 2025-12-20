@@ -1,4 +1,4 @@
-import { CreateFoodLogRequest } from "@smart-food-logger/shared";
+import { CreateFoodLogRequest, FoodItem } from "@smart-food-logger/shared";
 import { FormEvent, useState } from "react";
 
 import { logToFitbit } from "@/app/actions/fitbitLog";
@@ -77,9 +77,7 @@ export const useFitbitLogger = () => {
         setIsError(false);
         // 成功した場合、食品名を抽出して状態に保存
         if (parsedData.foods && Array.isArray(parsedData.foods)) {
-          setRegisteredFoods(
-            parsedData.foods.map((f: { foodName: string }) => f.foodName),
-          );
+          setRegisteredFoods(parsedData.foods.map((f: FoodItem) => f.foodName));
         }
       } else {
         setStatusMessage(result.message);

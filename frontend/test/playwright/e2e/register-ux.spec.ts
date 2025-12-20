@@ -41,16 +41,8 @@ test.describe("Register Page UX", () => {
   test("should show success view and allow logging another meal", async ({
     page,
   }) => {
-    // Mock the backend API response for food logging
-    await page.route("**/functions/foodLogHandler", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          message: "Fitbitに記録しました。",
-        }),
-      });
-    });
+    // Note: このテストは環境変数 NEXT_PUBLIC_MOCK_AUTH=true によるモックに依存しています
+    // Server Action (logToFitbit) 内でAPI呼び出しがスキップされます
 
     // Fill the Textarea with valid JSON
     const validJson = JSON.stringify({
