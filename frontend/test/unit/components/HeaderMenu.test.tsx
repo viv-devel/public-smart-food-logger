@@ -53,7 +53,11 @@ describe("HeaderMenu", () => {
     });
   });
 
-  it("shows restricted items only when logged in", async () => {
+  it("shows restricted items only when logged in and fitbit auth completed", async () => {
+    // Mock localStorage
+    const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
+    getItemSpy.mockReturnValue("true");
+
     // Logged in
     (useFirebaseAuth as Mock).mockReturnValue({ user: { uid: "123" } });
     render(<HeaderMenu />);
@@ -63,9 +67,15 @@ describe("HeaderMenu", () => {
       expect(screen.getByText("JSON登録")).toBeDefined();
       expect(screen.getByText("連携解除")).toBeDefined();
     });
+
+    getItemSpy.mockRestore();
   });
 
   it("does not show restricted items when logged out", async () => {
+    // Mock localStorage
+    const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
+    getItemSpy.mockReturnValue("true");
+
     // Logged out
     (useFirebaseAuth as Mock).mockReturnValue({ user: null });
     render(<HeaderMenu />);
@@ -78,11 +88,15 @@ describe("HeaderMenu", () => {
   });
 
   it("handles logout confirmation", async () => {
+    // Mock localStorage for auth check
+    const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
+    getItemSpy.mockReturnValue("true");
+
     // Mock window.confirm
     const confirmSpy = vi.spyOn(window, "confirm");
     confirmSpy.mockImplementation(() => true);
 
-    // Mock local storage
+    // Mock local storage removeItem
     const localStorageSpy = vi.spyOn(Storage.prototype, "removeItem");
 
     (useFirebaseAuth as Mock).mockReturnValue({ user: { uid: "123" } });
