@@ -65,6 +65,8 @@ module "stg" {
 
   FITBIT_REDIRECT_URI       = var.github_env_vars["staging"]["variables"]["FITBIT_REDIRECT_URI"]
   OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["staging"]["variables"]["OAUTH_FITBIT_REDIRECT_URI"]
+  ALLOWED_REDIRECT_ORIGINS  = var.github_env_vars["staging"]["variables"]["ALLOWED_REDIRECT_ORIGINS"]
+  ALLOWED_REDIRECT_PATTERN  = var.github_env_vars["staging"]["variables"]["ALLOWED_REDIRECT_PATTERN"]
 
   DISCORD_WEBHOOK_ID      = var.github_env_vars["staging"]["secrets"]["DISCORD_WEBHOOK_ID"]
   DISCORD_WEBHOOK_TOKEN   = var.github_env_vars["staging"]["secrets"]["DISCORD_WEBHOOK_TOKEN"]
@@ -83,6 +85,8 @@ module "prod" {
 
   FITBIT_REDIRECT_URI       = var.github_env_vars["production"]["variables"]["FITBIT_REDIRECT_URI"]
   OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["production"]["variables"]["OAUTH_FITBIT_REDIRECT_URI"]
+  ALLOWED_REDIRECT_ORIGINS  = var.github_env_vars["production"]["variables"]["ALLOWED_REDIRECT_ORIGINS"]
+  ALLOWED_REDIRECT_PATTERN  = var.github_env_vars["production"]["variables"]["ALLOWED_REDIRECT_PATTERN"]
 
   DISCORD_WEBHOOK_ID      = var.github_env_vars["production"]["secrets"]["DISCORD_WEBHOOK_ID"]
   DISCORD_WEBHOOK_TOKEN   = var.github_env_vars["production"]["secrets"]["DISCORD_WEBHOOK_TOKEN"]
