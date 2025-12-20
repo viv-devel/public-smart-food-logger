@@ -2,7 +2,7 @@
   base = "."
   publish = "frontend/.next"
   command = "pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
-  ignore = "git diff --name-only $CACHED_COMMIT_REF $COMMIT_REF | grep -E '^(frontend/|shared/|package\\.json|pnpm-lock\\.yaml)' | grep -E -v '^(frontend/\\.env\\.local\\.example|frontend/test/|netlify\\.toml)' && exit 1 || exit 0"
+  ignore = "node scripts/netlify-ignore.js"
 
 [context.production.environment]
   APP_ENVIRONMENT = "PROD"
