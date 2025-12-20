@@ -15,6 +15,8 @@ import { useFirebaseAuth } from "@/app/auth/FirebaseAuthProvider";
  *  - `setStatusMessage`: `statusMessage` を更新するセッター
  *  - `isError`: エラーが発生したかどうかの状態
  *  - `handleSubmit`: フォーム送信時に実行される非同期関数
+ *  - `registeredFoods`: 登録に成功した食品名のリスト
+ *  - `resetState`: 状態をリセットし、次の入力に備える関数
  */
 export const useFitbitLogger = () => {
   /** @dev Geminiから受け取った食事ログのJSON文字列を保持する */
@@ -25,6 +27,9 @@ export const useFitbitLogger = () => {
   const [statusMessage, setStatusMessage] = useState<React.ReactNode>("");
   /** @dev 処理結果がエラーかどうかのフラグ */
   const [isError, setIsError] = useState(false);
+  /** @dev 登録に成功した食品名のリスト */
+  const [registeredFoods, setRegisteredFoods] = useState<string[]>([]);
+
   const { idToken } = useFirebaseAuth();
 
   /**
@@ -52,6 +57,7 @@ export const useFitbitLogger = () => {
     setIsLoading(true);
     setStatusMessage("Fitbit認証と記録をCloud Functionに依頼中...");
     setIsError(false);
+    setRegisteredFoods([]);
 
     try {
       let parsedData: Partial<CreateFoodLogRequest>;
@@ -69,6 +75,12 @@ export const useFitbitLogger = () => {
       if (result.success) {
         setStatusMessage(result.message);
         setIsError(false);
+        // 成功した場合、食品名を抽出して状態に保存
+        if (parsedData.foods && Array.isArray(parsedData.foods)) {
+          setRegisteredFoods(
+            parsedData.foods.map((f: { foodName: string }) => f.foodName),
+          );
+        }
       } else {
         setStatusMessage(result.message);
         setIsError(true);
@@ -86,6 +98,17 @@ export const useFitbitLogger = () => {
     }
   };
 
+  /**
+   * 状態をリセットし、次の入力に備える。
+   */
+  const resetState = () => {
+    setJsonInput("");
+    setStatusMessage("");
+    setIsError(false);
+    setRegisteredFoods([]);
+    setIsLoading(false);
+  };
+
   return {
     jsonInput,
     setJsonInput,
@@ -94,5 +117,7 @@ export const useFitbitLogger = () => {
     setStatusMessage,
     isError,
     handleSubmit,
+    registeredFoods,
+    resetState,
   };
 };
