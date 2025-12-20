@@ -167,6 +167,7 @@ export default function HowItWorksCarousel() {
                   src={steps[imageIndex].image}
                   alt={steps[imageIndex].title}
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className={`object-cover ${steps[imageIndex].position}`}
                   draggable={false}
                   priority={imageIndex === 0}
