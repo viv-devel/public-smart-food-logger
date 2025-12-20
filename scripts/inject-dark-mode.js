@@ -14,6 +14,12 @@ function addDarkMode(dir) {
   const files = fs.readdirSync(dir);
   for (const file of files) {
     const fullPath = path.join(dir, file);
+
+    // Skip Playwright reports
+    if (fullPath.includes('playwright')) {
+      continue;
+    }
+
     const stat = fs.statSync(fullPath);
 
     if (stat.isDirectory()) {
