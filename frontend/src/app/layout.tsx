@@ -24,6 +24,10 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
+        {/* Preconnect hints for critical third-party domains to improve initial load performance */}
+        {/* Next.js will hoist these to the <head> */}
+        <link rel="preconnect" href="https://apis.google.com" />
+        <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
         <FirebaseAuthProvider>
           <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
             <header className={`p-4 border-b border-gray-700 ${headerBgClass}`}>
