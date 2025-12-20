@@ -116,6 +116,7 @@ export const useFitbitLogger = () => {
     statusMessage,
     setStatusMessage,
     isError,
+    setIsError,
     handleSubmit,
     registeredFoods,
     resetState,

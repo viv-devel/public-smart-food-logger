@@ -27,6 +27,7 @@ export default function FitbitViaGeminiRegisterPage() {
     setStatusMessage,
     isError,
     handleSubmit,
+    setIsError,
     registeredFoods,
     resetState,
   } = useFitbitLogger();
@@ -37,13 +38,20 @@ export default function FitbitViaGeminiRegisterPage() {
   };
 
   const handlePaste = async () => {
+    if (!navigator.clipboard) {
+      setStatusMessage(
+        "お使いのブラウザはクリップボード機能をサポートしていません。",
+      );
+      setIsError(true);
+      return;
+    }
     try {
       const text = await navigator.clipboard.readText();
       setJsonInput(text);
     } catch (err) {
       console.error("Failed to read clipboard contents: ", err);
       setStatusMessage("クリップボードからの貼り付けに失敗しました。");
-      // エラー表示のためにフラグを立てる（ただし、入力自体はブロックしない）
+      setIsError(true);
     }
   };
 
