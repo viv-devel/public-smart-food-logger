@@ -18,17 +18,23 @@ DIFF_CMD="git diff --name-only $BASE_REF $HEAD_REF"
 # This prevents changes from previous PRs (merged into the base) from triggering builds
 if [ "$CONTEXT" == "deploy-preview" ]; then
   echo "Deploy Preview detected. Fetching origin/develop..."
-  # Fetch origin/develop. If this fails, we should probably force a build to be safe.
-  if ! git fetch origin develop:origin/develop --depth=1 2>/dev/null; then
+
+  # Optimization: Only fetch the tip of develop (depth=1) to keep it fast.
+  # We use 2-dot diff (FETCH_HEAD HEAD) instead of 3-dot diff to avoid needing the full history for merge-base.
+  # Note: This might cause false positives (triggering builds) if develop has new frontend changes
+  # that are not in the PR yet, but this is safer and faster than deep fetching.
+  if ! git fetch origin develop --depth=1 2>/dev/null; then
     echo "Failed to fetch origin/develop. Forcing build for safety."
     exit 1
   fi
 
-  BASE_REF="origin/develop"
+  # FETCH_HEAD points to origin/develop tip
+  BASE_REF="FETCH_HEAD"
   HEAD_REF="HEAD"
-  # Use 3-dot diff to find changes from the common ancestor
-  DIFF_CMD="git diff --name-only $BASE_REF...$HEAD_REF"
-  echo "Comparing $BASE_REF...$HEAD_REF"
+
+  # Use 2-dot diff (space separated)
+  DIFF_CMD="git diff --name-only $BASE_REF $HEAD_REF"
+  echo "Comparing $BASE_REF...$HEAD_REF (using 2-dot diff for performance)"
 else
   # Fallback: if CACHED_COMMIT_REF is empty (first build), force build
   if [ -z "$CACHED_COMMIT_REF" ]; then
