@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      ENVIRONMENT: ci-test
+      NEXT_PUBLIC_MOCK_AUTH: "true"
+      NEXT_PUBLIC_FITBIT_CLIENT_ID: "mock-client-id"
+      NEXT_PUBLIC_RECAPTCHA_SITE_KEY: "mock-site-key"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -17,20 +22,28 @@ jobs:
       - name: Setup Environment
         uses: ./.github/actions/setup
 
+      - name: Install Playwright Browsers
+        run: pnpm --filter frontend exec playwright install chromium
+
       - name: Build Shared
         run: pnpm --filter shared run build
 
       - name: Run Coverage
         run: pnpm -r run test:coverage
 
+      - name: Run E2E Tests
+        run: pnpm --filter frontend run test:e2e:ci
+
       - name: Prepare Coverage Report
         run: |
           mkdir -p _site/frontend
           mkdir -p _site/backend
           mkdir -p _site/shared
+          mkdir -p _site/frontend/playwright
           cp -r frontend/coverage/* _site/frontend/
           cp -r backend/coverage/* _site/backend/
           cp -r shared/coverage/* _site/shared/
+          cp -r frontend/test/results/playwright-report/* _site/frontend/playwright/
 
       - name: Create Index Page
         run: |
@@ -52,12 +65,13 @@ jobs:
               </style>
           </head>
           <body>
-              <h1>Smart Food Logger - Test Coverage Reports</h1>
-              <p>各モジュールのカバレッジレポート（Unit Test）へのリンクです。</p>
+              <h1>Smart Food Logger - Test Reports</h1>
+              <p>各モジュールのテストレポートへのリンクです。</p>
               <ul>
                   <li><a href="./frontend/index.html">Frontend Coverage (Vitest)</a></li>
                   <li><a href="./backend/index.html">Backend Coverage (Vitest)</a></li>
                   <li><a href="./shared/index.html">Shared Coverage (Vitest)</a></li>
+                  <li><a href="./frontend/playwright/index.html">Frontend E2E (Playwright)</a></li>
               </ul>
               <div class="meta">
                   Last updated: $(date '+%Y-%m-%d %H:%M:%S') (Ref: ${GITHUB_SHA::7})
@@ -65,6 +79,9 @@ jobs:
           </body>
           </html>
           EOF
+
+      - name: Inject Dark Mode Support
+        run: node scripts/inject-dark-mode.js _site
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
