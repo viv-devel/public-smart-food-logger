@@ -19,7 +19,8 @@ describe("useRecaptcha Hook", () => {
     vi.resetModules();
     process.env = { ...originalEnv };
     process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY = "test-site-key";
-    process.env.NEXT_PUBLIC_RECAPTCHA_BACKEND_URL = "http://test-backend/recaptchaVerifier";
+    process.env.NEXT_PUBLIC_RECAPTCHA_BACKEND_URL =
+      "http://test-backend/recaptchaVerifier";
 
     // Mock window.grecaptcha
     window.grecaptcha = {
@@ -50,7 +51,9 @@ describe("useRecaptcha Hook", () => {
       const token = await result.current.executeRecaptcha("test_action");
 
       expect(mockReady).toHaveBeenCalled();
-      expect(mockExecute).toHaveBeenCalledWith("test-site-key", { action: "test_action" });
+      expect(mockExecute).toHaveBeenCalledWith("test-site-key", {
+        action: "test_action",
+      });
       expect(token).toBe("test-token");
     });
 
@@ -59,7 +62,9 @@ describe("useRecaptcha Hook", () => {
 
       const { result } = renderHook(() => useRecaptcha());
 
-      await expect(result.current.executeRecaptcha("test")).rejects.toThrow("reCAPTCHA site key is not configured");
+      await expect(result.current.executeRecaptcha("test")).rejects.toThrow(
+        "reCAPTCHA site key is not configured",
+      );
     });
 
     it("should throw error if grecaptcha script is not loaded", async () => {
@@ -67,7 +72,9 @@ describe("useRecaptcha Hook", () => {
 
       const { result } = renderHook(() => useRecaptcha());
 
-      await expect(result.current.executeRecaptcha("test")).rejects.toThrow("reCAPTCHA script not loaded");
+      await expect(result.current.executeRecaptcha("test")).rejects.toThrow(
+        "reCAPTCHA script not loaded",
+      );
     });
 
     it("should propagate execution errors", async () => {
@@ -75,7 +82,9 @@ describe("useRecaptcha Hook", () => {
 
       const { result } = renderHook(() => useRecaptcha());
 
-      await expect(result.current.executeRecaptcha("test")).rejects.toThrow("Google API Error");
+      await expect(result.current.executeRecaptcha("test")).rejects.toThrow(
+        "Google API Error",
+      );
     });
   });
 
@@ -88,14 +97,17 @@ describe("useRecaptcha Hook", () => {
 
       const { result } = renderHook(() => useRecaptcha());
 
-      const isValid = await result.current.verifyWithBackend("token123", "action_abc");
+      const isValid = await result.current.verifyWithBackend(
+        "token123",
+        "action_abc",
+      );
 
       expect(global.fetch).toHaveBeenCalledWith(
         "http://test-backend/recaptchaVerifier",
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ token: "token123", action: "action_abc" }),
-        })
+        }),
       );
       expect(isValid).toBe(true);
     });
@@ -108,7 +120,10 @@ describe("useRecaptcha Hook", () => {
 
       const { result } = renderHook(() => useRecaptcha());
 
-      const isValid = await result.current.verifyWithBackend("token123", "action_abc");
+      const isValid = await result.current.verifyWithBackend(
+        "token123",
+        "action_abc",
+      );
 
       expect(isValid).toBe(false);
     });
@@ -121,7 +136,10 @@ describe("useRecaptcha Hook", () => {
 
       const { result } = renderHook(() => useRecaptcha());
 
-      const isValid = await result.current.verifyWithBackend("token123", "action_abc");
+      const isValid = await result.current.verifyWithBackend(
+        "token123",
+        "action_abc",
+      );
 
       expect(isValid).toBe(false);
     });
@@ -131,7 +149,10 @@ describe("useRecaptcha Hook", () => {
 
       const { result } = renderHook(() => useRecaptcha());
 
-      const isValid = await result.current.verifyWithBackend("token123", "action_abc");
+      const isValid = await result.current.verifyWithBackend(
+        "token123",
+        "action_abc",
+      );
 
       expect(isValid).toBe(false);
     });

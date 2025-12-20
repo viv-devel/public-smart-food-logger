@@ -6,7 +6,7 @@ test.describe("認証フロー", () => {
   }) => {
     // 外部のreCAPTCHAスクリプトのロードをブロックして、モックが上書きされないようにする
     await page.route("https://www.google.com/recaptcha/**", (route) => {
-        route.abort();
+      route.abort();
     });
 
     // reCAPTCHA検証APIのモック
@@ -26,7 +26,7 @@ test.describe("認証フロー", () => {
       (window as any).grecaptcha = {
         ready: (callback: () => void) => callback(),
         execute: async () => {
-            return "mock-recaptcha-token";
+          return "mock-recaptcha-token";
         },
       };
     });

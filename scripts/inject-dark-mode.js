@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 /**
  * Recursively traverses a directory and adds dark mode CSS to all HTML files.
@@ -16,7 +16,7 @@ function addDarkMode(dir) {
     const fullPath = path.join(dir, file);
 
     // Skip Playwright reports
-    if (fullPath.includes('playwright')) {
+    if (fullPath.includes("playwright")) {
       continue;
     }
 
@@ -24,9 +24,9 @@ function addDarkMode(dir) {
 
     if (stat.isDirectory()) {
       addDarkMode(fullPath);
-    } else if (file.endsWith('.html')) {
+    } else if (file.endsWith(".html")) {
       // Read the file
-      let content = fs.readFileSync(fullPath, 'utf8');
+      let content = fs.readFileSync(fullPath, "utf8");
 
       // Avoid double injection
       if (content.includes('id="injected-dark-mode-style"')) {
@@ -52,11 +52,11 @@ function addDarkMode(dir) {
 </style>
 `;
       // Inject before </head>
-      if (content.includes('</head>')) {
-        content = content.replace('</head>', `${darkModeStyle}</head>`);
-      } else if (content.includes('</body>')) {
+      if (content.includes("</head>")) {
+        content = content.replace("</head>", `${darkModeStyle}</head>`);
+      } else if (content.includes("</body>")) {
         // Fallback
-        content = content.replace('</body>', `${darkModeStyle}</body>`);
+        content = content.replace("</body>", `${darkModeStyle}</body>`);
       } else {
         // Fallback append
         content += darkModeStyle;
@@ -72,10 +72,10 @@ function addDarkMode(dir) {
 const targetDir = process.argv[2];
 
 if (!targetDir) {
-  console.error('Usage: node inject-dark-mode.js <directory>');
+  console.error("Usage: node inject-dark-mode.js <directory>");
   process.exit(1);
 }
 
 console.log(`Starting dark mode injection for directory: ${targetDir}`);
 addDarkMode(targetDir);
-console.log('Dark mode injection complete.');
+console.log("Dark mode injection complete.");
