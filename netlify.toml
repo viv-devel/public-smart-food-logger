@@ -2,7 +2,7 @@
   base = "."
   publish = "frontend/.next"
   command = "pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
-  ignore = "bash scripts/netlify-ignore.sh"
+  ignore = "node scripts/netlify-ignore.js"
 
 [context.production.environment]
   APP_ENVIRONMENT = "PROD"
