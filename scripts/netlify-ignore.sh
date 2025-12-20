@@ -56,7 +56,8 @@ echo "$CHANGED_FILES"
 
 # Filter logic
 # 1. We only care about changes in these directories/files:
-SIGNIFICANT_PATTERN="^(frontend/|shared/|package\.json|pnpm-lock\.yaml)"
+# Include netlify.toml and scripts/ to ensure config/build logic changes trigger builds.
+SIGNIFICANT_PATTERN="^(frontend/|shared/|package\.json|pnpm-lock\.yaml|netlify\.toml|scripts/)"
 
 # 2. But we explicitly ignore these sub-paths/files even if they match above:
 IGNORE_PATTERN="^(frontend/test/|shared/test/|.*\.md$|frontend/\.env\.local\.example|frontend/vitest\.config\.ts|frontend/playwright\.config\.ts|shared/vitest\.config\.ts)"
