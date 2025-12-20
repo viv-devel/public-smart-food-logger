@@ -60,11 +60,6 @@ const isValidRedirectUri = (uri: string): boolean => {
  * @param res Express互換のレスポンスオブジェクト
  */
 export const oauthHandler: HttpFunction = async (req, res) => {
-  // 必要な環境変数のチェック
-  if (!process.env.OAUTH_FITBIT_REDIRECT_URI) {
-    throw new Error("OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。");
-  }
-
   // CORSプリフライトリクエストに対応するためのヘッダーを設定
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -80,6 +75,13 @@ export const oauthHandler: HttpFunction = async (req, res) => {
     // 環境変数からFitbit認証情報を取得
     const clientId = process.env.FITBIT_CLIENT_ID;
     const clientSecret = process.env.FITBIT_CLIENT_SECRET;
+
+    // 必要な環境変数のチェック
+    if (!process.env.OAUTH_FITBIT_REDIRECT_URI) {
+      throw new Error(
+        "OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。",
+      );
+    }
 
     if (!clientId || !clientSecret) {
       throw new Error(
