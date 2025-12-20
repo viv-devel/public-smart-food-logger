@@ -11,6 +11,9 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["test/**/*.test.ts"],
+    reporters: process.env.GITHUB_ACTIONS
+      ? ["default", "github-actions"]
+      : ["default"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
