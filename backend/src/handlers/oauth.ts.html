@@ -186,9 +186,7 @@
 <a name='L108'></a><a href='#L108'>108</a>
 <a name='L109'></a><a href='#L109'>109</a>
 <a name='L110'></a><a href='#L110'>110</a>
-<a name='L111'></a><a href='#L111'>111</a>
-<a name='L112'></a><a href='#L112'>112</a>
-<a name='L113'></a><a href='#L113'>113</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L111'></a><a href='#L111'>111</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -204,8 +202,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -315,83 +311,81 @@ import { MethodNotAllowedError, ValidationError } from "../utils/errors.js";
 export const oauthHandler: HttpFunction = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt; {</span>
   // 必要な環境変数のチェック
 <span class="cstat-no" title="statement not covered" >  if (!process.env.OAUTH_FITBIT_REDIRECT_URI) {</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error("OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。");</span>
+  }
+&nbsp;
+  // CORSプリフライトリクエストに対応するためのヘッダーを設定
+<span class="cstat-no" title="statement not covered" >  res.set("Access-Control-Allow-Origin", "*");</span>
+<span class="cstat-no" title="statement not covered" >  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");</span>
+<span class="cstat-no" title="statement not covered" >  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");</span>
+&nbsp;
+  // OPTIONSメソッドはCORSプリフライトリクエスト。ヘッダーを付与して204で即時終了する。
+<span class="cstat-no" title="statement not covered" >  if (req.method === "OPTIONS") {</span>
+<span class="cstat-no" title="statement not covered" >    res.status(204).send("");</span>
+<span class="cstat-no" title="statement not covered" >    return;</span>
+  }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  try {</span>
+    // 環境変数からFitbit認証情報を取得
+    const clientId = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_ID;</span>
+    const clientSecret = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_SECRET;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    if (!clientId || !clientSecret) {</span>
 <span class="cstat-no" title="statement not covered" >      throw new Error(</span>
-        "OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。",
+        "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
       );
     }
 &nbsp;
-    // CORSプリフライトリクエストに対応するためのヘッダーを設定
-<span class="cstat-no" title="statement not covered" >    res.set("Access-Control-Allow-Origin", "*");</span>
-<span class="cstat-no" title="statement not covered" >    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");</span>
-<span class="cstat-no" title="statement not covered" >    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");</span>
-&nbsp;
-    // OPTIONSメソッドはCORSプリフライトリクエスト。ヘッダーを付与して204で即時終了する。
-<span class="cstat-no" title="statement not covered" >    if (req.method === "OPTIONS") {</span>
-<span class="cstat-no" title="statement not covered" >      res.status(204).send("");</span>
-<span class="cstat-no" title="statement not covered" >      return;</span>
-    }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      // 環境変数からFitbit認証情報を取得
-      const clientId = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_ID;</span>
-      const clientSecret = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_SECRET;</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >      if (!clientId || !clientSecret) {</span>
-<span class="cstat-no" title="statement not covered" >        throw new Error(</span>
-          "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
+    // OAuthコールバック: 認証コードをトークンと交換
+<span class="cstat-no" title="statement not covered" >    if (req.method === "GET" &amp;&amp; req.query.code) {</span>
+      const state = <span class="cstat-no" title="statement not covered" >req.query.state as string;</span>
+<span class="cstat-no" title="statement not covered" >      if (!state) {</span>
+<span class="cstat-no" title="statement not covered" >        throw new ValidationError(</span>
+          "Invalid request: state parameter is missing.",
         );
       }
 &nbsp;
-      // OAuthコールバック: 認証コードをトークンと交換
-<span class="cstat-no" title="statement not covered" >      if (req.method === "GET" &amp;&amp; req.query.code) {</span>
-        const state = <span class="cstat-no" title="statement not covered" >req.query.state as string;</span>
-<span class="cstat-no" title="statement not covered" >        if (!state) {</span>
-<span class="cstat-no" title="statement not covered" >          throw new ValidationError(</span>
-            "Invalid request: state parameter is missing.",
-          );
-        }
-&nbsp;
-        let firebaseUid, redirectUri;
-<span class="cstat-no" title="statement not covered" >        try {</span>
-          // stateパラメータは、フロントエンドでBase64エンコードされたJSON文字列。
-          // これにより、OAuthフローを介して複数の情報（ここではUIDとリダイレクト先）を安全に渡すことができる。
-          // 仕様: { firebaseUid: string; redirectUri: string; }
-          const decodedState = <span class="cstat-no" title="statement not covered" >JSON.parse(</span>
-            Buffer.from(state, "base64").toString("utf8"),
-          );
-<span class="cstat-no" title="statement not covered" >          firebaseUid = decodedState.firebaseUid;</span>
-<span class="cstat-no" title="statement not covered" >          redirectUri = decodedState.redirectUri;</span>
-        } catch (e: any) {
-<span class="cstat-no" title="statement not covered" >          throw new ValidationError(</span>
-            `Invalid state: could not decode state parameter. Error: ${e.message}`,
-          );
-        }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >        if (!firebaseUid) {</span>
-<span class="cstat-no" title="statement not covered" >          throw new ValidationError("Invalid state: Firebase UID is missing.");</span>
-        }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >        await exchangeCodeForTokens(</span>
-          clientId,
-          clientSecret,
-          req.query.code as string,
-          firebaseUid,
+      let firebaseUid, redirectUri;
+<span class="cstat-no" title="statement not covered" >      try {</span>
+        // stateパラメータは、フロントエンドでBase64エンコードされたJSON文字列。
+        // これにより、OAuthフローを介して複数の情報（ここではUIDとリダイレクト先）を安全に渡すことができる。
+        // 仕様: { firebaseUid: string; redirectUri: string; }
+        const decodedState = <span class="cstat-no" title="statement not covered" >JSON.parse(</span>
+          Buffer.from(state, "base64").toString("utf8"),
         );
+<span class="cstat-no" title="statement not covered" >        firebaseUid = decodedState.firebaseUid;</span>
+<span class="cstat-no" title="statement not covered" >        redirectUri = decodedState.redirectUri;</span>
+      } catch (e: any) {
+<span class="cstat-no" title="statement not covered" >        throw new ValidationError(</span>
+          `Invalid state: could not decode state parameter. Error: ${e.message}`,
+        );
+      }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        if (redirectUri) {</span>
-          const redirectUrl = <span class="cstat-no" title="statement not covered" >new URL(redirectUri);</span>
-          // クエリパラメータでFitbitユーザーIDの代わりにFirebase UIDを使用
-<span class="cstat-no" title="statement not covered" >          redirectUrl.searchParams.set("uid", firebaseUid);</span>
-<span class="cstat-no" title="statement not covered" >          res.redirect(302, redirectUrl.toString());</span>
-<span class="cstat-no" title="statement not covered" >          return;</span>
-        }
-<span class="cstat-no" title="statement not covered" >        res</span>
-          .status(200)
-          .send(
-            `Authorization successful! User UID: ${firebaseUid}. You can close this page.`,
-          );
+<span class="cstat-no" title="statement not covered" >      if (!firebaseUid) {</span>
+<span class="cstat-no" title="statement not covered" >        throw new ValidationError("Invalid state: Firebase UID is missing.");</span>
+      }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      await exchangeCodeForTokens(</span>
+        clientId,
+        clientSecret,
+        req.query.code as string,
+        firebaseUid,
+      );
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      if (redirectUri) {</span>
+        const redirectUrl = <span class="cstat-no" title="statement not covered" >new URL(redirectUri);</span>
+        // クエリパラメータでFitbitユーザーIDの代わりにFirebase UIDを使用
+<span class="cstat-no" title="statement not covered" >        redirectUrl.searchParams.set("uid", firebaseUid);</span>
+<span class="cstat-no" title="statement not covered" >        res.redirect(302, redirectUrl.toString());</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
       }
+<span class="cstat-no" title="statement not covered" >      res</span>
+        .status(200)
+        .send(
+          `Authorization successful! User UID: ${firebaseUid}. You can close this page.`,
+        );
+<span class="cstat-no" title="statement not covered" >      return;</span>
+    }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    throw new MethodNotAllowedError("Method Not Allowed");</span>
   } catch (error: any) {
@@ -419,7 +413,7 @@ export const oauthHandler: HttpFunction = <span class="cstat-no" title="statemen
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-20T04:02:31.136Z
+                at 2025-12-20T06:14:19.855Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

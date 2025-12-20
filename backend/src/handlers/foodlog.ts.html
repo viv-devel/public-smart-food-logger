@@ -215,9 +215,7 @@
 <a name='L137'></a><a href='#L137'>137</a>
 <a name='L138'></a><a href='#L138'>138</a>
 <a name='L139'></a><a href='#L139'>139</a>
-<a name='L140'></a><a href='#L140'>140</a>
-<a name='L141'></a><a href='#L141'>141</a>
-<a name='L142'></a><a href='#L142'>142</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L140'></a><a href='#L140'>140</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -305,8 +303,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -384,101 +380,99 @@ import {
 export const foodLogHandler: HttpFunction = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async (r</span>eq, res) =&gt; {</span>
   // 必要な環境変数のチェック
 <span class="cstat-no" title="statement not covered" >  if (!process.env.FITBIT_REDIRECT_URI) {</span>
-<span class="cstat-no" title="statement not covered" >      throw new Error("FITBIT_REDIRECT_URI 環境変数が設定されていません。");</span>
+<span class="cstat-no" title="statement not covered" >    throw new Error("FITBIT_REDIRECT_URI 環境変数が設定されていません。");</span>
+  }
+&nbsp;
+  // CORSプリフライトリクエストに対応するためのヘッダーを設定
+<span class="cstat-no" title="statement not covered" >  res.set("Access-Control-Allow-Origin", "*");</span>
+<span class="cstat-no" title="statement not covered" >  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");</span>
+<span class="cstat-no" title="statement not covered" >  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");</span>
+&nbsp;
+  // OPTIONSメソッドはCORSプリフライトリクエスト。ヘッダーを付与して204で即時終了する。
+<span class="cstat-no" title="statement not covered" >  if (req.method === "OPTIONS") {</span>
+<span class="cstat-no" title="statement not covered" >    res.status(204).send("");</span>
+<span class="cstat-no" title="statement not covered" >    return;</span>
+  }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  try {</span>
+    // 環境変数からFitbit認証情報を取得
+    const clientId = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_ID;</span>
+    const clientSecret = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_SECRET;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    if (!clientId || !clientSecret) {</span>
+<span class="cstat-no" title="statement not covered" >      throw new Error(</span>
+        "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
+      );
     }
 &nbsp;
-    // CORSプリフライトリクエストに対応するためのヘッダーを設定
-<span class="cstat-no" title="statement not covered" >    res.set("Access-Control-Allow-Origin", "*");</span>
-<span class="cstat-no" title="statement not covered" >    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");</span>
-<span class="cstat-no" title="statement not covered" >    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");</span>
+    // メインロジック: 食事ログのリクエストを処理 (認証が必要)
+<span class="cstat-no" title="statement not covered" >    if (req.method === "POST") {</span>
+      const authHeader = <span class="cstat-no" title="statement not covered" >req.headers.authorization;</span>
+<span class="cstat-no" title="statement not covered" >      if (!authHeader || !authHeader.startsWith("Bearer ")) {</span>
+<span class="cstat-no" title="statement not covered" >        throw new AuthenticationError(</span>
+          "Unauthorized: Authorization header is missing or invalid.",
+        );
+      }
+      const idToken = <span class="cstat-no" title="statement not covered" >authHeader.split("Bearer ")[1];</span>
 &nbsp;
-    // OPTIONSメソッドはCORSプリフライトリクエスト。ヘッダーを付与して204で即時終了する。
-<span class="cstat-no" title="statement not covered" >    if (req.method === "OPTIONS") {</span>
-<span class="cstat-no" title="statement not covered" >      res.status(204).send("");</span>
+      // IDトークンを検証してFirebase UIDを取得
+      const decodedToken = <span class="cstat-no" title="statement not covered" >await verifyFirebaseIdToken(idToken);</span>
+      const firebaseUid = <span class="cstat-no" title="statement not covered" >decodedToken.uid;</span>
+&nbsp;
+      const nutritionData = <span class="cstat-no" title="statement not covered" >req.body as CreateFoodLogRequest;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      if (</span>
+        !nutritionData ||
+        !nutritionData.foods ||
+        !Array.isArray(nutritionData.foods)
+      ) {
+<span class="cstat-no" title="statement not covered" >        throw new ValidationError(</span>
+          'Invalid JSON body. Required: meal_type, log_date, log_time, and a non-empty "foods" array.',
+        );
+      }
+&nbsp;
+      const tokens = <span class="cstat-no" title="statement not covered" >await getTokensFromFirestore(firebaseUid);</span>
+<span class="cstat-no" title="statement not covered" >      if (!tokens) {</span>
+<span class="cstat-no" title="statement not covered" >        throw new AuthenticationError(</span>
+          `No tokens found for user ${firebaseUid}. Please complete the OAuth flow.`,
+        );
+      }
+&nbsp;
+      let accessToken;
+      // トークンの有効期限が切れているかチェックし、必要であればリフレッシュ
+<span class="cstat-no" title="statement not covered" >      if (new Date().getTime() &gt;= tokens.expiresAt) {</span>
+<span class="cstat-no" title="statement not covered" >        console.log(`Token for user ${firebaseUid} has expired. Refreshing...`);</span>
+<span class="cstat-no" title="statement not covered" >        accessToken = await refreshFitbitAccessToken(</span>
+          firebaseUid,
+          clientId,
+          clientSecret,
+        );
+      } else {
+<span class="cstat-no" title="statement not covered" >        accessToken = tokens.accessToken;</span>
+      }
+&nbsp;
+      // FirestoreからFitbitユーザーIDを使用
+      const fitbitUserId = <span class="cstat-no" title="statement not covered" >tokens.fitbitUserId;</span>
+<span class="cstat-no" title="statement not covered" >      if (!fitbitUserId) {</span>
+<span class="cstat-no" title="statement not covered" >        throw new FitbitApiError(</span>
+          "Fitbit user ID not found in the database.",
+          500,
+        );
+      }
+&nbsp;
+      const fitbitResponses = <span class="cstat-no" title="statement not covered" >await processAndLogFoods(</span>
+        accessToken,
+        nutritionData,
+        fitbitUserId,
+      );
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      res.status(200).json({</span>
+        message: "All foods logged successfully to Fitbit.",
+        loggedData: nutritionData,
+        fitbitResponses: fitbitResponses,
+      });
 <span class="cstat-no" title="statement not covered" >      return;</span>
     }
-&nbsp;
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      // 環境変数からFitbit認証情報を取得
-      const clientId = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_ID;</span>
-      const clientSecret = <span class="cstat-no" title="statement not covered" >process.env.FITBIT_CLIENT_SECRET;</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >      if (!clientId || !clientSecret) {</span>
-<span class="cstat-no" title="statement not covered" >        throw new Error(</span>
-          "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
-        );
-      }
-&nbsp;
-      // メインロジック: 食事ログのリクエストを処理 (認証が必要)
-<span class="cstat-no" title="statement not covered" >      if (req.method === "POST") {</span>
-        const authHeader = <span class="cstat-no" title="statement not covered" >req.headers.authorization;</span>
-<span class="cstat-no" title="statement not covered" >        if (!authHeader || !authHeader.startsWith("Bearer ")) {</span>
-<span class="cstat-no" title="statement not covered" >          throw new AuthenticationError(</span>
-            "Unauthorized: Authorization header is missing or invalid.",
-          );
-        }
-        const idToken = <span class="cstat-no" title="statement not covered" >authHeader.split("Bearer ")[1];</span>
-&nbsp;
-        // IDトークンを検証してFirebase UIDを取得
-        const decodedToken = <span class="cstat-no" title="statement not covered" >await verifyFirebaseIdToken(idToken);</span>
-        const firebaseUid = <span class="cstat-no" title="statement not covered" >decodedToken.uid;</span>
-&nbsp;
-        const nutritionData = <span class="cstat-no" title="statement not covered" >req.body as CreateFoodLogRequest;</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >        if (</span>
-          !nutritionData ||
-          !nutritionData.foods ||
-          !Array.isArray(nutritionData.foods)
-        ) {
-<span class="cstat-no" title="statement not covered" >          throw new ValidationError(</span>
-            'Invalid JSON body. Required: meal_type, log_date, log_time, and a non-empty "foods" array.',
-          );
-        }
-&nbsp;
-        const tokens = <span class="cstat-no" title="statement not covered" >await getTokensFromFirestore(firebaseUid);</span>
-<span class="cstat-no" title="statement not covered" >        if (!tokens) {</span>
-<span class="cstat-no" title="statement not covered" >          throw new AuthenticationError(</span>
-            `No tokens found for user ${firebaseUid}. Please complete the OAuth flow.`,
-          );
-        }
-&nbsp;
-        let accessToken;
-        // トークンの有効期限が切れているかチェックし、必要であればリフレッシュ
-<span class="cstat-no" title="statement not covered" >        if (new Date().getTime() &gt;= tokens.expiresAt) {</span>
-<span class="cstat-no" title="statement not covered" >          console.log(</span>
-            `Token for user ${firebaseUid} has expired. Refreshing...`,
-          );
-<span class="cstat-no" title="statement not covered" >          accessToken = await refreshFitbitAccessToken(</span>
-            firebaseUid,
-            clientId,
-            clientSecret,
-          );
-        } else {
-<span class="cstat-no" title="statement not covered" >          accessToken = tokens.accessToken;</span>
-        }
-&nbsp;
-        // FirestoreからFitbitユーザーIDを使用
-        const fitbitUserId = <span class="cstat-no" title="statement not covered" >tokens.fitbitUserId;</span>
-<span class="cstat-no" title="statement not covered" >        if (!fitbitUserId) {</span>
-<span class="cstat-no" title="statement not covered" >          throw new FitbitApiError(</span>
-            "Fitbit user ID not found in the database.",
-            500,
-          );
-        }
-&nbsp;
-        const fitbitResponses = <span class="cstat-no" title="statement not covered" >await processAndLogFoods(</span>
-          accessToken,
-          nutritionData,
-          fitbitUserId,
-        );
-&nbsp;
-<span class="cstat-no" title="statement not covered" >        res.status(200).json({</span>
-          message: "All foods logged successfully to Fitbit.",
-          loggedData: nutritionData,
-          fitbitResponses: fitbitResponses,
-        });
-<span class="cstat-no" title="statement not covered" >        return;</span>
-      }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    throw new MethodNotAllowedError("Method Not Allowed");</span>
   } catch (error: any) {
@@ -506,7 +500,7 @@ export const foodLogHandler: HttpFunction = <span class="cstat-no" title="statem
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-20T04:02:31.136Z
+                at 2025-12-20T06:14:19.855Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
