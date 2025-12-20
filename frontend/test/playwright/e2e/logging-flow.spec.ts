@@ -4,7 +4,7 @@ test.describe("食事ログ記録フロー", () => {
   test.beforeEach(async ({ page }) => {
     // 外部のreCAPTCHAスクリプトのロードをブロックして、モックが上書きされないようにする
     await page.route("https://www.google.com/recaptcha/**", (route) => {
-        route.abort();
+      route.abort();
     });
 
     // reCAPTCHA検証APIのモック
@@ -22,7 +22,7 @@ test.describe("食事ログ記録フロー", () => {
       (window as any).grecaptcha = {
         ready: (callback: () => void) => callback(),
         execute: async () => {
-            return "mock-recaptcha-token";
+          return "mock-recaptcha-token";
         },
       };
     });
@@ -43,14 +43,17 @@ test.describe("食事ログ記録フロー", () => {
     // ここでも同様に、もし Mock Auth なら遷移待ちをスキップして強制移動する。
 
     if (process.env.CI && process.env.NEXT_PUBLIC_MOCK_AUTH === "true") {
-       // Mock Auth時はリダイレクトが発生しない(エラーになる)か、挙動が異なるため
-       // UI上の反応だけ確認して次へ進む（ここでは検証成功後に即座に次へ行くとする）
-       // 少しだけ待つ
-       await page.waitForTimeout(1000);
+      // Mock Auth時はリダイレクトが発生しない(エラーになる)か、挙動が異なるため
+      // UI上の反応だけ確認して次へ進む（ここでは検証成功後に即座に次へ行くとする）
+      // 少しだけ待つ
+      await page.waitForTimeout(1000);
     } else {
-       // 通常時は遷移を待つ
-       // ボタンクリック後、トップページ以外へ遷移したことを確認
-       await page.waitForURL((url) => url.pathname !== "/", { timeout: 10000, waitUntil: 'domcontentloaded' });
+      // 通常時は遷移を待つ
+      // ボタンクリック後、トップページ以外へ遷移したことを確認
+      await page.waitForURL((url) => url.pathname !== "/", {
+        timeout: 10000,
+        waitUntil: "domcontentloaded",
+      });
     }
 
     await page.evaluate(() => {

@@ -9,8 +9,9 @@
     "test:coverage": "pnpm -r run test:coverage",
     "clean:all": "rimraf frontend/.next frontend/out frontend/coverage frontend/test/results backend/dist backend/coverage shared/dist shared/coverage",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format:check": "prettier --check .",
-    "format": "prettier --write ."
+    "format:write": "prettier --write ."
   },
   "workspaces": [
     "frontend",
@@ -45,8 +46,11 @@
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{md,json}": [
-      "prettier -w"
+    "*.{md,json,yaml,yml,toml}": [
+      "prettier --write"
+    ],
+    "*.tf": [
+      "terraform fmt"
     ]
   }
 }
