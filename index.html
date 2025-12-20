@@ -13,17 +13,31 @@
         a:hover { background: #e0e0e0; border-color: #ccc; }
         .meta { font-size: 0.85rem; color: #666; margin-top: 2rem; }
     </style>
+
+<style id="injected-dark-mode-style">
+@media (prefers-color-scheme: dark) {
+  html {
+    background-color: white; /* Ensures inverted background is black */
+    filter: invert(1) hue-rotate(180deg);
+  }
+  /* Re-invert images so they look normal */
+  img, video, iframe, canvas, svg {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
+</style>
 </head>
 <body>
-    <h1>Smart Food Logger - Test Coverage Reports</h1>
-    <p>各モジュールのカバレッジレポート（Unit Test）へのリンクです。</p>
+    <h1>Smart Food Logger - Test Reports</h1>
+    <p>各モジュールのテストレポートへのリンクです。</p>
     <ul>
         <li><a href="./frontend/index.html">Frontend Coverage (Vitest)</a></li>
         <li><a href="./backend/index.html">Backend Coverage (Vitest)</a></li>
         <li><a href="./shared/index.html">Shared Coverage (Vitest)</a></li>
+        <li><a href="./frontend/playwright/index.html">Frontend E2E (Playwright)</a></li>
     </ul>
     <div class="meta">
-        Last updated: 2025-12-20 02:34:17 (Ref: 10df43d)
+        Last updated: 2025-12-20 03:07:47 (Ref: e49a09b)
     </div>
 </body>
 </html>
