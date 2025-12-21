@@ -109,7 +109,9 @@ describe("foodLogHandler", () => {
     await foodLogHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("Invalid ID token") }),
+      expect.objectContaining({
+        error: expect.stringContaining("Invalid ID token"),
+      }),
     );
   });
 
@@ -117,7 +119,7 @@ describe("foodLogHandler", () => {
     req = mockReq("POST", {}, { authorization: "Bearer valid-token" });
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
-    } as any);
+    } as import("firebase-admin/auth").DecodedIdToken);
 
     await foodLogHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(400); // ValidationError
@@ -131,7 +133,7 @@ describe("foodLogHandler", () => {
     );
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
-    } as any);
+    } as import("firebase-admin/auth").DecodedIdToken);
 
     await foodLogHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
@@ -141,13 +143,15 @@ describe("foodLogHandler", () => {
     req = mockReq("POST", validBody, { authorization: "Bearer valid-token" });
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
-    } as any);
+    } as import("firebase-admin/auth").DecodedIdToken);
     vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue(null);
 
     await foodLogHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining("No tokens found") }),
+      expect.objectContaining({
+        error: expect.stringContaining("No tokens found"),
+      }),
     );
   });
 
@@ -162,9 +166,10 @@ describe("foodLogHandler", () => {
       refreshToken: "refresh-token",
       expiresAt: Date.now() - 1000, // Expired
       fitbitUserId: "fitbit-user-id",
+      firebaseUids: ["test-uid"],
     };
     vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue(
-      expiredTokens as any,
+      expiredTokens,
     );
     vi.mocked(fitbitService.refreshFitbitAccessToken).mockResolvedValue(
       "new-access-token",
@@ -190,15 +195,16 @@ describe("foodLogHandler", () => {
     req = mockReq("POST", validBody, { authorization: "Bearer valid-token" });
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
-    } as any);
+    } as import("firebase-admin/auth").DecodedIdToken);
 
     const validTokens = {
       accessToken: "valid-access-token",
       expiresAt: Date.now() + 10000, // Valid
       fitbitUserId: "fitbit-user-id",
+      firebaseUids: ["test-uid"],
     };
     vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue(
-      validTokens as any,
+      validTokens,
     );
     vi.mocked(fitbitService.processAndLogFoods).mockResolvedValue([]);
 
@@ -217,15 +223,16 @@ describe("foodLogHandler", () => {
     req = mockReq("POST", validBody, { authorization: "Bearer valid-token" });
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
-    } as any);
+    } as import("firebase-admin/auth").DecodedIdToken);
 
     const tokensNoId = {
       accessToken: "valid-access-token",
       expiresAt: Date.now() + 10000,
+      firebaseUids: ["test-uid"],
       // fitbitUserId missing
     };
     vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue(
-      tokensNoId as any,
+      tokensNoId as any, // keeping as any here because it's intentionally missing property for test
     );
 
     await foodLogHandler(req, res);
@@ -241,15 +248,18 @@ describe("foodLogHandler", () => {
     req = mockReq("POST", validBody, { authorization: "Bearer valid-token" });
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
-    } as any);
+    } as import("firebase-admin/auth").DecodedIdToken);
     vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue({
       accessToken: "valid-access-token",
       expiresAt: Date.now() + 10000,
       fitbitUserId: "fitbit-user-id",
-    } as any);
+      firebaseUids: ["test-uid"],
+    });
 
     const mockFitbitResponse = [{ status: 201, data: {} }];
-    vi.mocked(fitbitService.processAndLogFoods).mockResolvedValue(mockFitbitResponse as any);
+    vi.mocked(fitbitService.processAndLogFoods).mockResolvedValue(
+      mockFitbitResponse as any,
+    );
 
     await foodLogHandler(req, res);
 
@@ -266,14 +276,17 @@ describe("foodLogHandler", () => {
     req = mockReq("POST", validBody, { authorization: "Bearer valid-token" });
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
-    } as any);
+    } as import("firebase-admin/auth").DecodedIdToken);
     vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue({
       accessToken: "valid-access-token",
       expiresAt: Date.now() + 10000,
       fitbitUserId: "fitbit-user-id",
-    } as any);
+      firebaseUids: ["test-uid"],
+    });
 
-    vi.mocked(fitbitService.processAndLogFoods).mockRejectedValue(new Error("Fitbit API Down"));
+    vi.mocked(fitbitService.processAndLogFoods).mockRejectedValue(
+      new Error("Fitbit API Down"),
+    );
 
     await foodLogHandler(req, res);
 
