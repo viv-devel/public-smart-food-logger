@@ -15,6 +15,10 @@ describe("getHeaderColor", () => {
     expect(getHeaderColor("local")).toBe("bg-blue-700");
   });
 
+  test("returns correct color for ci-test", () => {
+    expect(getHeaderColor("ci-test")).toBe("bg-green-700");
+  });
+
   test("returns default color for unknown env", () => {
     expect(getHeaderColor("unknown")).toBe("bg-red-700");
   });
