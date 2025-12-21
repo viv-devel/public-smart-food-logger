@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { getHeaderColor } from "./environment";
+import { getHeaderColor } from "@/utils/environment";
 
 describe("getHeaderColor", () => {
   test("returns correct color for PROD", () => {
@@ -25,5 +25,9 @@ describe("getHeaderColor", () => {
 
   test("returns default color for undefined env", () => {
     expect(getHeaderColor(undefined)).toBe("bg-red-700");
+  });
+
+  test("intentional failure for annotation check", () => {
+    expect(true).toBe(false);
   });
 });
