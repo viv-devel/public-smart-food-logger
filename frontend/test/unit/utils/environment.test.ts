@@ -26,8 +26,4 @@ describe("getHeaderColor", () => {
   test("returns default color for undefined env", () => {
     expect(getHeaderColor(undefined)).toBe("bg-red-700");
   });
-
-  test("intentional failure for annotation check", () => {
-    expect(true).toBe(false);
-  });
 });
