@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Footer } from "@/components/Footer";
 import HeaderMenu from "@/components/HeaderMenu";
+import { ToastProvider } from "@/components/Toast";
 import { getHeaderColor } from "@/utils/environment";
 
 import { FirebaseAuthProvider } from "./auth/FirebaseAuthProvider";
@@ -29,18 +30,22 @@ export default function RootLayout({
         <link rel="preconnect" href="https://apis.google.com" />
         <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
         <FirebaseAuthProvider>
-          <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
-            <header className={`p-4 border-b border-gray-700 ${headerBgClass}`}>
-              <div className="container mx-auto flex justify-between items-center">
-                <Link href="/">
-                  <h1 className="text-xl font-bold">Smart Food Logger AI</h1>
-                </Link>
-                <HeaderMenu />
-              </div>
-            </header>
-            <main className="grow container mx-auto p-8">{children}</main>
-            <Footer />
-          </div>
+          <ToastProvider>
+            <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
+              <header
+                className={`p-4 border-b border-gray-700 ${headerBgClass}`}
+              >
+                <div className="container mx-auto flex justify-between items-center">
+                  <Link href="/">
+                    <h1 className="text-xl font-bold">Smart Food Logger AI</h1>
+                  </Link>
+                  <HeaderMenu />
+                </div>
+              </header>
+              <main className="grow container mx-auto p-8">{children}</main>
+              <Footer />
+            </div>
+          </ToastProvider>
         </FirebaseAuthProvider>
       </body>
     </html>

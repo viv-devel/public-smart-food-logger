@@ -9,6 +9,7 @@ import { app } from "@/app/auth/firebaseConfig";
 import HowItWorksCarousel from "@/components/HowItWorksCarousel";
 import RecaptchaScript from "@/components/RecaptchaScript";
 import RedirectModal from "@/components/RedirectModal";
+import { useToast } from "@/components/Toast";
 import { useRecaptcha } from "@/hooks/useRecaptcha";
 
 /**
@@ -25,6 +26,7 @@ import { useRecaptcha } from "@/hooks/useRecaptcha";
 export default function LandingPageContent() {
   const { user, loading } = useFirebaseAuth();
   const { executeRecaptcha, verifyWithBackend } = useRecaptcha();
+  const { showToast } = useToast();
   const [isVerifying, setIsVerifying] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
 
@@ -123,8 +125,7 @@ export default function LandingPageContent() {
       return true;
     } catch (error) {
       console.error("匿名認証エラー:", error);
-      console.log("TODO: Implement toast notification for user feedback");
-      alert("匿名認証に失敗しました。再度お試しください。");
+      showToast("匿名認証に失敗しました。再度お試しください。", "error");
       return false;
     }
   };
@@ -146,14 +147,15 @@ export default function LandingPageContent() {
           setIsVerifying(false);
         }
       } else {
-        alert(
+        showToast(
           "セキュリティチェックに失敗しました。ページをリロードして再度お試しください。",
+          "error",
         );
         setIsVerifying(false);
       }
     } catch (error) {
       console.error("Verification failed:", error);
-      alert("エラーが発生しました。再度お試しください。");
+      showToast("エラーが発生しました。再度お試しください。", "error");
       setIsVerifying(false);
     }
   };
