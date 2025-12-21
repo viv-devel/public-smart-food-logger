@@ -65,7 +65,7 @@ jobs:
                   <li><a href="./shared/index.html">Shared Coverage (Vitest)</a></li>
               </ul>
               <div class="meta">
-                  Last updated: $(date '+%Y-%m-%d %H:%M:%S') (Ref: ${GITHUB_SHA::7})
+                  Last updated: $(TZ='Asia/Tokyo' date '+%Y/%m/%d %H:%M:%S (JST)') (Ref: ${GITHUB_SHA::7})
               </div>
           </body>
           </html>

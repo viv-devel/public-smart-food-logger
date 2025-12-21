@@ -2,10 +2,10 @@ const fs = require("fs");
 const path = require("path");
 
 /**
- * Recursively traverses a directory and adds dark mode CSS to all HTML files.
+ * Recursively traverses a directory and adds dark mode CSS/JS to all HTML files.
  * @param {string} dir - The directory to traverse.
  */
-function addDarkMode(dir) {
+function processFiles(dir) {
   if (!fs.existsSync(dir)) {
     console.warn(`Directory not found: ${dir}`);
     return;
@@ -14,56 +14,224 @@ function addDarkMode(dir) {
   const files = fs.readdirSync(dir);
   for (const file of files) {
     const fullPath = path.join(dir, file);
-
     const stat = fs.statSync(fullPath);
 
     if (stat.isDirectory()) {
-      addDarkMode(fullPath);
+      processFiles(fullPath);
     } else if (file.endsWith(".html")) {
-      // Read the file
-      let content = fs.readFileSync(fullPath, "utf8");
-
-      // Avoid double injection
-      if (content.includes('id="injected-dark-mode-style"')) {
-        continue;
-      }
-
-      // CSS to inject
-      // We use filter: invert(1) hue-rotate(180deg) for a generic dark mode.
-      // This works surprisingly well for white-background coverage reports.
-      // We explicitly set background-color: white on html so that when inverted it becomes black.
-      const darkModeStyle = `
-<style id="injected-dark-mode-style">
-@media (prefers-color-scheme: dark) {
-  html {
-    background-color: white; /* Ensures inverted background is black */
-    filter: invert(1) hue-rotate(180deg);
-  }
-  /* Re-invert images so they look normal */
-  img, video, iframe, canvas, svg {
-    filter: invert(1) hue-rotate(180deg);
-  }
-}
-</style>
-`;
-      // Inject before </head>
-      if (content.includes("</head>")) {
-        content = content.replace("</head>", `${darkModeStyle}</head>`);
-      } else if (content.includes("</body>")) {
-        // Fallback
-        content = content.replace("</body>", `${darkModeStyle}</body>`);
-      } else {
-        // Fallback append
-        content += darkModeStyle;
-      }
-
-      fs.writeFileSync(fullPath, content);
-      console.log(`Injected dark mode into: ${fullPath}`);
+      processHtmlFile(fullPath);
     }
   }
 }
 
-// Get directory from arguments
+/**
+ * Injects dark mode styles, scripts, and updates the timestamp in a single HTML file.
+ * @param {string} filePath
+ */
+function processHtmlFile(filePath) {
+  let content = fs.readFileSync(filePath, "utf8");
+
+  // Avoid double injection if possible (though we might overwrite styles)
+  // We'll check for our specific unique ID
+  if (content.includes('id="smart-food-logger-theme"')) {
+    console.log(`Skipping already processed file: ${filePath}`);
+    return;
+  }
+
+  // 1. Update Timestamp to JST
+  // Pattern: "at 2025-12-21T01:55:33.345Z"
+  // Note: istanbul reports might vary slightly but usually match this pattern in the footer.
+  const dateRegex = /at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)/;
+  const match = content.match(dateRegex);
+  if (match) {
+    try {
+      const dateStr = match[1];
+      const date = new Date(dateStr);
+
+      // Convert to JST
+      const formatter = new Intl.DateTimeFormat('ja-JP', {
+          timeZone: 'Asia/Tokyo',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+      });
+      // Intl output is like "2025/12/21 10:55:33"
+      const jstDate = formatter.format(date);
+      content = content.replace(match[0], `at ${jstDate} (JST)`);
+    } catch (e) {
+      console.warn(`Failed to convert date in ${filePath}:`, e);
+    }
+  }
+
+  // 2. Inject Fonts (Google Fonts - IBM Plex Mono)
+  const fontLinks = `
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+`;
+
+  // 3. Inject CSS
+  const styles = `
+<style id="smart-food-logger-theme">
+  /* Font Override for the whole page */
+  body, code, pre, td, th, .strong {
+    font-family: 'PlemolJP', 'PlemolJP35 Console NF', 'PlemolJP Console NF', 'IBM Plex Mono', 'Consolas', 'Courier New', monospace !important;
+  }
+
+  /* Dark Mode Styles */
+  body.dark-mode {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+  }
+
+  /* Link Colors */
+  body.dark-mode a { color: #4daafc; }
+  body.dark-mode a:visited { color: #c586c0; }
+
+  /* Header / Stats Areas */
+  body.dark-mode .pad1 {
+      color: #d4d4d4;
+  }
+  body.dark-mode .status-line {
+      opacity: 0.8;
+  }
+
+  /* Tables */
+  body.dark-mode .coverage-summary tr {
+      border-bottom: 1px solid #333;
+  }
+  body.dark-mode .coverage-summary th {
+      background-color: #252526;
+      color: #d4d4d4;
+      border-bottom: 1px solid #3e3e42;
+  }
+  body.dark-mode .coverage-summary td {
+      border-right: 1px solid #333;
+  }
+
+  /* Code Blocks & PrettyPrint (VS Code Dark Theme Approximation) */
+  body.dark-mode pre.prettyprint {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      color: #d4d4d4;
+  }
+  body.dark-mode .pln { color: #d4d4d4; }
+  body.dark-mode .str { color: #ce9178; } /* String */
+  body.dark-mode .kwd { color: #569cd6; } /* Keyword */
+  body.dark-mode .com { color: #6a9955; } /* Comment */
+  body.dark-mode .typ { color: #4ec9b0; } /* Type */
+  body.dark-mode .lit { color: #b5cea8; } /* Literal */
+  body.dark-mode .pun { color: #d4d4d4; } /* Punctuation */
+  body.dark-mode .opn { color: #ffd700; } /* Open Bracket */
+  body.dark-mode .clo { color: #ffd700; } /* Close Bracket */
+  body.dark-mode .tag { color: #569cd6; } /* HTML Tag */
+  body.dark-mode .atn { color: #9cdcfe; } /* Attribute Name */
+  body.dark-mode .atv { color: #ce9178; } /* Attribute Value */
+  body.dark-mode .dec { color: #dcdcaa; } /* Declaration */
+  body.dark-mode .var { color: #9cdcfe; } /* Variable */
+  body.dark-mode .fun { color: #dcdcaa; } /* Function */
+
+  /* Line numbers */
+  body.dark-mode span.cline-any {
+      color: #858585; /* Gray for line numbers */
+  }
+
+  /* Footer */
+  body.dark-mode .footer {
+      color: #888;
+  }
+  body.dark-mode .footer a {
+      color: #4daafc;
+  }
+</style>
+`;
+
+  // 4. Inject Toggle Script
+  const script = `
+<script>
+(function() {
+    var body = document.body;
+    var storageKey = 'coverage-theme';
+    var savedTheme = localStorage.getItem(storageKey);
+
+    // Create toggle button
+    var btn = document.createElement('button');
+    btn.id = 'theme-toggle';
+    btn.setAttribute('aria-label', 'Toggle Dark Mode');
+    btn.style.position = 'fixed';
+    btn.style.top = '10px';
+    btn.style.right = '10px';
+    btn.style.zIndex = '1000';
+    btn.style.padding = '8px 12px';
+    btn.style.fontSize = '16px';
+    btn.style.background = '#333';
+    btn.style.color = '#fff';
+    btn.style.border = '1px solid #555';
+    btn.style.borderRadius = '4px';
+    btn.style.cursor = 'pointer';
+    btn.style.fontFamily = 'system-ui, sans-serif';
+
+    function applyTheme(isDark) {
+        if (isDark) {
+            body.classList.add('dark-mode');
+            btn.innerHTML = 'Theme: 🌙';
+            btn.style.background = '#333';
+            btn.style.color = '#fff';
+            localStorage.setItem(storageKey, 'dark');
+        } else {
+            body.classList.remove('dark-mode');
+            btn.innerHTML = 'Theme: ☀️';
+            btn.style.background = '#f0f0f0';
+            btn.style.color = '#333';
+            localStorage.setItem(storageKey, 'light');
+        }
+    }
+
+    // Initial State
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme === 'dark') {
+        applyTheme(true);
+    } else if (savedTheme === 'light') {
+        applyTheme(false);
+    } else {
+        // Default to system preference
+        applyTheme(prefersDark);
+    }
+
+    btn.onclick = function() {
+        var isDark = body.classList.contains('dark-mode');
+        applyTheme(!isDark);
+    };
+
+    document.body.appendChild(btn);
+})();
+</script>
+`;
+
+  // Insert into <head> and <body>
+  // Fonts and Styles go in Head
+  if (content.includes("</head>")) {
+    content = content.replace("</head>", `${fontLinks}${styles}</head>`);
+  } else {
+    content += fontLinks + styles;
+  }
+
+  // Script goes at the end of Body
+  if (content.includes("</body>")) {
+    content = content.replace("</body>", `${script}</body>`);
+  } else {
+    content += script;
+  }
+
+  fs.writeFileSync(filePath, content);
+  console.log(`Processed: ${filePath}`);
+}
+
+// Main execution
 const targetDir = process.argv[2];
 
 if (!targetDir) {
@@ -71,6 +239,6 @@ if (!targetDir) {
   process.exit(1);
 }
 
-console.log(`Starting dark mode injection for directory: ${targetDir}`);
-addDarkMode(targetDir);
-console.log("Dark mode injection complete.");
+console.log(`Starting post-processing for directory: ${targetDir}`);
+processFiles(targetDir);
+console.log("Post-processing complete.");
