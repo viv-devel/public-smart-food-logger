@@ -39,14 +39,6 @@
   body.dark-mode .pad1 {
       color: #d4d4d4;
   }
-  body.dark-mode .status-line {
-      opacity: 0.8;
-  }
-
-  /* Tables */
-  body.dark-mode .coverage-summary tr {
-      border-bottom: 1px solid #333;
-  }
   body.dark-mode .coverage-summary th {
       background-color: #252526;
       color: #d4d4d4;
@@ -54,70 +46,6 @@
   }
   body.dark-mode .coverage-summary td {
       border-right: 1px solid #333;
-  }
-
-  /* 背景の白浮き防止 */
-  body.dark-mode .cover-empty {
-      background: #333;
-  }
-
-  /* ステータス背景色の最適化 (透過色にして眩しさを抑える) */
-  body.dark-mode .high, body.dark-mode .cline-yes {
-      background: rgba(77, 146, 33, 0.4) !important;
-  }
-  body.dark-mode .medium {
-      background: rgba(249, 205, 11, 0.3) !important;
-  }
-  body.dark-mode .low, body.dark-mode .cline-no {
-      background: rgba(194, 31, 57, 0.4) !important;
-  }
-
-  /* ソースコード表示の縞模様 */
-  body.dark-mode li.L1, body.dark-mode li.L3, body.dark-mode li.L5, body.dark-mode li.L7, body.dark-mode li.L9 {
-      background: #2a2a2a;
-  }
-
-  /* ナビゲーション・ヘッダー周り（黒文字問題の解消） */
-  /* パンくずリスト (優先度を上げて黒文字を上書き) */
-  body.dark-mode div.path a:link, body.dark-mode div.path a:visited {
-      color: #4daafc;
-  }
-
-  /* 説明テキスト (Press n or j...) */
-  body.dark-mode .quiet {
-      color: rgba(255, 255, 255, 0.7);
-  }
-
-  /* 統計数値 (グレー背景を修正) */
-  body.dark-mode .fraction {
-      background: #333;
-      color: #d4d4d4;
-  }
-
-  /* 検索入力フォーム */
-  body.dark-mode input[type="search"] {
-      background: #252526;
-      color: #d4d4d4;
-      border: 1px solid #3e3e42;
-      padding: 4px;
-  }
-
-  /* ソートアイコン (黒い画像を反転して白くする) */
-  body.dark-mode .coverage-summary .sorter {
-      filter: invert(1);
-  }
-
-  /* その他ハイライトの調整 */
-  /* 無視された行や分岐 */
-  body.dark-mode .cstat-skip, body.dark-mode .fstat-skip, body.dark-mode .cbranch-skip {
-      background: #444 !important;
-      color: #888 !important;
-  }
-
-  /* 未達箇所の強調 */
-  body.dark-mode .cbranch-no, body.dark-mode .cstat-no, body.dark-mode .fstat-no {
-      background: rgba(194, 31, 57, 0.6) !important;
-      color: #d4d4d4 !important;
   }
 
   /* Code Blocks & PrettyPrint (VS Code Dark Theme Approximation) */
@@ -153,6 +81,125 @@
   }
   body.dark-mode .footer a {
       color: #4daafc;
+  }
+
+  /* =========================================
+     基本背景・文字色・枠線の補正
+     ========================================= */
+  body.dark-mode .cover-empty {
+      background: #333;
+  }
+  body.dark-mode .coverage-summary tr {
+      border-bottom: 1px solid #333;
+  }
+  body.dark-mode .keyline-all {
+      border: 1px solid #444;
+  }
+
+  /* =========================================
+     モダンカラーパレット (High: Emerald, Med: Amber, Low: Rose)
+     ========================================= */
+
+  /* High / Yes (Emerald-500 equivalent: #10b981) */
+  body.dark-mode .high, body.dark-mode .cline-yes {
+      background: rgba(16, 185, 129, 0.25) !important;
+      /* ボーダーや文字色も合わせる場合は以下 */
+      /* color: #a7f3d0; */
+  }
+  body.dark-mode .status-line.high {
+      background: #10b981 !important;
+  }
+
+  /* Medium (Amber-500 equivalent: #f59e0b) */
+  body.dark-mode .medium {
+      background: rgba(245, 158, 11, 0.25) !important;
+  }
+  body.dark-mode .status-line.medium {
+      background: #f59e0b !important;
+  }
+
+  /* Low / No (Rose-500 equivalent: #f43f5e) */
+  body.dark-mode .low, body.dark-mode .cline-no {
+      background: rgba(244, 63, 94, 0.25) !important;
+  }
+  body.dark-mode .status-line.low {
+      background: #f43f5e !important;
+  }
+
+  /* カバレッジ不足箇所のハイライト (Rose系で視認性重視) */
+  body.dark-mode .cbranch-no, body.dark-mode .cstat-no, body.dark-mode .fstat-no {
+      background: rgba(244, 63, 94, 0.4) !important;
+      color: #e2e8f0 !important; /* 明るいグレー文字 */
+      border: 1px solid rgba(244, 63, 94, 0.5); /* 境界線を入れてくっきりさせる */
+  }
+
+  /* 対象外・スキップ行 (白浮き防止・Slate系) */
+  body.dark-mode span.cline-neutral {
+      background: #1e293b !important; /* Slate-800 */
+      color: #94a3b8 !important; /* Slate-400 */
+  }
+  body.dark-mode .cstat-skip, body.dark-mode .fstat-skip, body.dark-mode .cbranch-skip {
+      background: #334155 !important; /* Slate-700 */
+      color: #94a3b8 !important;
+  }
+  /* カバレッジ行のカラム背景補正 */
+  body.dark-mode td.line-coverage.quiet {
+      background-color: transparent !important;
+      color: #64748b; /* Slate-500 */
+  }
+
+  /* =========================================
+     ソースコード・行表示の調整
+     ========================================= */
+  /* 縞模様の背景を暗く (Carbon風) */
+  body.dark-mode li.L1, body.dark-mode li.L3, body.dark-mode li.L5, body.dark-mode li.L7, body.dark-mode li.L9 {
+      background: #252526;
+  }
+
+  /* =========================================
+     ナビゲーション・UIパーツの視認性確保
+     ========================================= */
+  /* パンくずリスト (Blue-400 equivalent: #60a5fa) */
+  body.dark-mode div.path a:link, body.dark-mode div.path a:visited {
+      color: #60a5fa;
+  }
+  /* 説明テキスト */
+  body.dark-mode .quiet {
+      color: rgba(255, 255, 255, 0.6);
+  }
+  /* 統計数値 (Slate-700背景) */
+  body.dark-mode .fraction {
+      background: #334155;
+      color: #f1f5f9;
+  }
+
+  /* 検索ボックス */
+  body.dark-mode input[type="search"] {
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 4px;
+  }
+  /* ソートアイコン (反転) */
+  body.dark-mode .coverage-summary .sorter {
+      filter: invert(1);
+  }
+
+  /* =========================================
+     トップページ / ディレクトリ一覧リンクの修正
+     ========================================= */
+  body.dark-mode ul li a {
+      background-color: #1e293b !important; /* Slate-800 */
+      color: #60a5fa; /* Blue-400 */
+      border: 1px solid #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+  }
+  body.dark-mode ul li a:hover {
+      background-color: #334155 !important; /* Slate-700 */
+      text-decoration: none;
   }
 </style>
 </head>
@@ -1177,7 +1224,7 @@ export async function processAndLogFoods(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025/12/21 11:39:52 (JST)
+                at 2025/12/21 11:58:35 (JST)
             </div>
         <script src="../../prettify.js"></script>
         <script>
