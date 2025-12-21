@@ -7,10 +7,10 @@ terraform {
 
   required_providers {
     # Google Cloud Platform (GCP)
-    # google = {
-    #   source  = "hashicorp/google"
-    #   version = "~> 7.0" # 最新バージョン 7.x 系を許容
-    # }
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 7.0"
+    }
 
     # GitHub (Variables, Secrets, ブランチ保護)
     github = {
@@ -19,10 +19,10 @@ terraform {
     }
 
     # Cloudflare (DNS レコード, Workers)
-    # cloudflare = {
-    #   source  = "cloudflare/cloudflare"
-    #   version = "~> 5.0" # 最新バージョン 5.x 系を許容
-    # }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0" # 最新バージョン 5.x 系は破壊的変更が多いため一旦4系にする
+    }
 
     # Netlify (サイト設定, 環境変数)
     netlify = {

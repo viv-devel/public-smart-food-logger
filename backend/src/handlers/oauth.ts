@@ -5,17 +5,61 @@ import { exchangeCodeForTokens } from "../services/fitbitService.js";
 import { MethodNotAllowedError, ValidationError } from "../utils/errors.js";
 
 /**
+ * リダイレクトURIが許可リストに含まれているか検証する
+ *
+ * @param uri 検証対象のURI
+ * @returns 許可されている場合は true
+ */
+const isValidRedirectUri = (uri: string): boolean => {
+  try {
+    const url = new URL(uri);
+
+    // プロトコルチェック (localhost以外はhttps必須)
+    const isLocalhost =
+      url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (url.protocol !== "https:" && !isLocalhost) {
+      return false;
+    }
+    // localhostは常に許可する (開発環境での動作確認のため)
+    if (isLocalhost) {
+      return true;
+    }
+
+    // 環境変数から設定を読み込む
+    const allowedOrigins = (process.env.ALLOWED_REDIRECT_ORIGINS || "")
+      .split(";")
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0);
+
+    const allowedPattern = process.env.ALLOWED_REDIRECT_PATTERN;
+
+    // 1. 完全一致チェック (オリジンベース)
+    if (allowedOrigins.includes(url.origin)) {
+      return true;
+    }
+
+    // 2. 正規表現チェック (必要な場合)
+    // セキュリティのため、URL全体ではなくオリジンに対して検証を行う
+    if (allowedPattern) {
+      const regex = new RegExp(allowedPattern);
+      if (regex.test(url.origin)) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch {
+    return false; // URLパースエラー等は無効とみなす
+  }
+};
+
+/**
  * Fitbit OAuth 2.0 認証のコールバック処理を行う Cloud Function。
  *
  * @param req Express互換のリクエストオブジェクト
  * @param res Express互換のレスポンスオブジェクト
  */
 export const oauthHandler: HttpFunction = async (req, res) => {
-  // 必要な環境変数のチェック
-  if (!process.env.FITBIT_REDIRECT_URI) {
-    throw new Error("FITBIT_REDIRECT_URI 環境変数が設定されていません。");
-  }
-
   // CORSプリフライトリクエストに対応するためのヘッダーを設定
   res.set("Access-Control-Allow-Origin", "*");
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -31,6 +75,13 @@ export const oauthHandler: HttpFunction = async (req, res) => {
     // 環境変数からFitbit認証情報を取得
     const clientId = process.env.FITBIT_CLIENT_ID;
     const clientSecret = process.env.FITBIT_CLIENT_SECRET;
+
+    // 必要な環境変数のチェック
+    if (!process.env.OAUTH_FITBIT_REDIRECT_URI) {
+      throw new Error(
+        "OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。",
+      );
+    }
 
     if (!clientId || !clientSecret) {
       throw new Error(
@@ -75,6 +126,9 @@ export const oauthHandler: HttpFunction = async (req, res) => {
       );
 
       if (redirectUri) {
+        if (!isValidRedirectUri(redirectUri)) {
+          throw new ValidationError("Invalid redirect URI.");
+        }
         const redirectUrl = new URL(redirectUri);
         // クエリパラメータでFitbitユーザーIDの代わりにFirebase UIDを使用
         redirectUrl.searchParams.set("uid", firebaseUid);

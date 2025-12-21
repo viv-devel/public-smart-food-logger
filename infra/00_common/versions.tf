@@ -6,5 +6,8 @@ terraform {
     netlify = {
       source = "netlify/netlify"
     }
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+    }
   }
 }

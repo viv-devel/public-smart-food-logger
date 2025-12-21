@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { getHeaderColor } from "./environment";
+import { getHeaderColor } from "@/utils/environment";
 
 describe("getHeaderColor", () => {
   test("returns correct color for PROD", () => {
@@ -13,6 +13,10 @@ describe("getHeaderColor", () => {
 
   test("returns correct color for local", () => {
     expect(getHeaderColor("local")).toBe("bg-blue-700");
+  });
+
+  test("returns correct color for ci-test", () => {
+    expect(getHeaderColor("ci-test")).toBe("bg-green-700");
   });
 
   test("returns default color for unknown env", () => {

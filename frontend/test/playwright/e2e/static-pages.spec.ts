@@ -57,7 +57,7 @@ test.describe("静的ページ", () => {
     await expect(
       page.getByRole("heading", {
         level: 2,
-        name: "Smart Food Logger AI - プライバシーポリシー",
+        name: "プライバシーポリシー",
       }),
     ).toBeVisible();
   });
@@ -69,7 +69,7 @@ test.describe("静的ページ", () => {
     await expect(
       page.getByRole("heading", {
         level: 2,
-        name: "Smart Food Logger AI - 利用規約",
+        name: "利用規約",
       }),
     ).toBeVisible();
   });

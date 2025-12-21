@@ -15,7 +15,6 @@ import {
   MethodNotAllowedError,
   ValidationError,
 } from "../utils/errors.js";
-
 /**
  * 食事ログの記録リクエストを処理する Cloud Function。
  *
@@ -72,7 +71,7 @@ export const foodLogHandler: HttpFunction = async (req, res) => {
         !Array.isArray(nutritionData.foods)
       ) {
         throw new ValidationError(
-          'Invalid JSON body. Required: meal_type, log_date, log_time, and a non-empty "foods" array.',
+          'Invalid JSON body. Required: a non-empty "foods" array.',
         );
       }
 

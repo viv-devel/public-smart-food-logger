@@ -1,0 +1,81 @@
+name: Deploy Coverage Report
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy-coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      ENVIRONMENT: ci-test
+      NEXT_PUBLIC_MOCK_AUTH: "true"
+      NEXT_PUBLIC_FITBIT_CLIENT_ID: "mock-client-id"
+      NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY: "mock-site-key"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+
+      - name: Build Shared
+        run: pnpm --filter shared run build
+
+      - name: Run Coverage
+        run: pnpm -r run test:coverage
+
+      - name: Prepare Coverage Report
+        run: |
+          mkdir -p _site/frontend
+          mkdir -p _site/backend
+          mkdir -p _site/shared
+          cp -r frontend/coverage/* _site/frontend/
+          cp -r backend/coverage/* _site/backend/
+          cp -r shared/coverage/* _site/shared/
+
+      - name: Create Index Page
+        run: |
+          cat <<EOF > _site/index.html
+          <!DOCTYPE html>
+          <html lang="ja">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Test Coverage Reports</title>
+              <style>
+                  body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+                  h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+                  ul { list-style-type: none; padding: 0; }
+                  li { margin: 1rem 0; }
+                  a { display: block; padding: 1rem; background: #f5f5f5; color: #333; text-decoration: none; border-radius: 4px; transition: background 0.2s; border: 1px solid #ddd; }
+                  a:hover { background: #e0e0e0; border-color: #ccc; }
+                  .meta { font-size: 0.85rem; color: #666; margin-top: 2rem; }
+              </style>
+          </head>
+          <body>
+              <h1>Smart Food Logger - Test Reports</h1>
+              <p>各モジュールのテストレポートへのリンクです。</p>
+              <ul>
+                  <li><a href="./frontend/index.html">Frontend Coverage (Vitest)</a></li>
+                  <li><a href="./backend/index.html">Backend Coverage (Vitest)</a></li>
+                  <li><a href="./shared/index.html">Shared Coverage (Vitest)</a></li>
+              </ul>
+              <div class="meta">
+                  Last updated: $(TZ='Asia/Tokyo' date '+%Y/%m/%d %H:%M:%S (JST)') (Ref: ${GITHUB_SHA::7})
+              </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Inject Dark Mode Support
+        run: node scripts/inject-dark-mode.js _site
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site

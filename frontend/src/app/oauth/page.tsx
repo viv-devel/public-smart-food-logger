@@ -44,10 +44,10 @@ function FitbitOAuthContent() {
         throw new Error("NEXT_PUBLIC_FITBIT_CLIENT_ID is not defined.");
       }
       const backendRedirectUri =
-        process.env.NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI;
+        process.env.NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI;
       if (!backendRedirectUri) {
         throw new Error(
-          "NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI is not defined.",
+          "NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI is not defined.",
         );
       }
       const scope = "nutrition";

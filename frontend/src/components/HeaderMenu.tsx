@@ -20,6 +20,15 @@ import { useFirebaseAuth } from "@/app/auth/FirebaseAuthProvider";
 export default function HeaderMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useFirebaseAuth();
+  const [isFitbitAuthCompleted, setIsFitbitAuthCompleted] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsFitbitAuthCompleted(
+        localStorage.getItem("fitbitAuthCompleted") === "true",
+      );
+    }
+  }, [isOpen]); // メニューが開くときに再確認
 
   // Prevent scrolling when menu is open
   useEffect(() => {
@@ -155,7 +164,7 @@ export default function HeaderMenu() {
 
                   <div className="my-4 border-t border-gray-800" />
 
-                  {user && (
+                  {user && isFitbitAuthCompleted && (
                     <Link
                       href="/register"
                       className="block px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
@@ -196,7 +205,7 @@ export default function HeaderMenu() {
                     プライバシーポリシー
                   </Link>
 
-                  {user && (
+                  {user && isFitbitAuthCompleted && (
                     <>
                       <div className="my-4 border-t border-gray-800" />
                       <button
