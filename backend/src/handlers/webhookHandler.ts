@@ -69,10 +69,35 @@ const handleOAuthCallback = async (req: any, res: any) => {
   );
 
   if (redirectUri) {
-    const redirectUrl = new URL(redirectUri);
-    redirectUrl.searchParams.set("uid", firebaseUid);
-    res.redirect(302, redirectUrl.toString());
-    return;
+    // Basic validation to prevent open redirect
+    try {
+      const url = new URL(redirectUri);
+      if (url.protocol !== "https:" && url.hostname !== "localhost") {
+        throw new Error("Invalid protocol");
+      }
+      // Simple check against env var if possible, otherwise just simple protocol check for now as minimal fix
+      // Or I can copy the logic from oauth.ts since duplication is allowed.
+      const allowedOrigins = (process.env.ALLOWED_REDIRECT_ORIGINS || "")
+        .split(";")
+        .map((o) => o.trim())
+        .filter((o) => o.length > 0);
+
+      const isAllowed =
+        allowedOrigins.includes(url.origin) ||
+        url.hostname === "localhost" ||
+        url.hostname === "127.0.0.1";
+
+      if (!isAllowed) {
+        throw new ValidationError("Invalid redirect URI.");
+      }
+
+      const redirectUrl = new URL(redirectUri);
+      redirectUrl.searchParams.set("uid", firebaseUid);
+      res.redirect(302, redirectUrl.toString());
+      return;
+    } catch (e) {
+      throw new ValidationError("Invalid redirect URI.");
+    }
   }
   res
     .status(200)
