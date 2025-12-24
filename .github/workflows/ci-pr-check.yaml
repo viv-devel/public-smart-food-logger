@@ -105,7 +105,7 @@ jobs:
           name: backend-coverage
           path: backend/coverage
 
-  test-frontend:
+  test-frontend-unit:
     needs: [check-changes, code-quality]
     if: ${{ needs.check-changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
@@ -126,8 +126,6 @@ jobs:
       - name: Build Shared
         run: pnpm --filter shared run build
 
-      # Note: Running E2E tests in CI might require more setup (e.g. installing browsers)
-      # For PR checks, we usually run unit/integration tests.
       - name: Test Frontend (Unit)
         run: pnpm --filter frontend run test
 
@@ -138,6 +136,33 @@ jobs:
           pnpm --filter frontend run test:coverage --no-color | tee frontend_coverage.txt
           cat frontend_coverage.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Frontend Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+
+  test-frontend-e2e:
+    needs: [check-changes, code-quality]
+    if: ${{ needs.check-changes.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ci
+    env:
+      NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI }}
+      NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI }}
+      NEXT_PUBLIC_PORTAL_URL: ${{ vars.NEXT_PUBLIC_PORTAL_URL }}
+      NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
+      NEXT_PUBLIC_ENVIRONMENT: ci-test
+      NEXT_PUBLIC_MOCK_AUTH: "true"
+      NEXT_PUBLIC_FITBIT_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_FITBIT_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+
+      - name: Build Shared
+        run: pnpm --filter shared run build
 
       - name: Setup Playwright
         uses: ./.github/actions/setup-playwright
@@ -167,9 +192,3 @@ jobs:
           name: playwright-report
           path: frontend/test/results/playwright-report
           retention-days: 30
-
-      - name: Upload Frontend Coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-coverage
-          path: frontend/coverage
