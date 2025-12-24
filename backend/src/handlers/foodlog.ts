@@ -15,6 +15,67 @@ import {
   MethodNotAllowedError,
   ValidationError,
 } from "../utils/errors.js";
+
+/**
+ * トークンを検証し、Fitbitアクセストークンを取得するヘルパー関数。
+ * 必要に応じてトークンをリフレッシュします。
+ */
+const verifyAndGetFitbitToken = async (
+  authHeader: string | undefined,
+): Promise<{
+  accessToken: string;
+  fitbitUserId: string;
+  firebaseUid: string;
+}> => {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new AuthenticationError(
+      "Unauthorized: Authorization header is missing or invalid.",
+    );
+  }
+  const idToken = authHeader.split("Bearer ")[1];
+
+  // IDトークンを検証してFirebase UIDを取得
+  const decodedToken = await verifyFirebaseIdToken(idToken);
+  const firebaseUid = decodedToken.uid;
+
+  const tokens = await getTokensFromFirestore(firebaseUid);
+  if (!tokens) {
+    throw new AuthenticationError(
+      `No tokens found for user ${firebaseUid}. Please complete the OAuth flow.`,
+    );
+  }
+
+  const clientId = process.env.FITBIT_CLIENT_ID;
+  const clientSecret = process.env.FITBIT_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error(
+      "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
+    );
+  }
+
+  let accessToken;
+  // トークンの有効期限が切れているかチェックし、必要であればリフレッシュ
+  if (new Date().getTime() >= tokens.expiresAt) {
+    console.log(`Token for user ${firebaseUid} has expired. Refreshing...`);
+    accessToken = await refreshFitbitAccessToken(
+      firebaseUid,
+      clientId,
+      clientSecret,
+    );
+  } else {
+    accessToken = tokens.accessToken;
+  }
+
+  // FirestoreからFitbitユーザーIDを使用
+  const fitbitUserId = tokens.fitbitUserId;
+  if (!fitbitUserId) {
+    throw new FitbitApiError("Fitbit user ID not found in the database.", 500);
+  }
+
+  return { accessToken, fitbitUserId, firebaseUid };
+};
+
 /**
  * 食事ログの記録リクエストを処理する Cloud Function。
  *
@@ -39,29 +100,11 @@ export const foodLogHandler: HttpFunction = async (req, res) => {
   }
 
   try {
-    // 環境変数からFitbit認証情報を取得
-    const clientId = process.env.FITBIT_CLIENT_ID;
-    const clientSecret = process.env.FITBIT_CLIENT_SECRET;
-
-    if (!clientId || !clientSecret) {
-      throw new Error(
-        "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
-      );
-    }
-
     // メインロジック: 食事ログのリクエストを処理 (認証が必要)
     if (req.method === "POST") {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new AuthenticationError(
-          "Unauthorized: Authorization header is missing or invalid.",
-        );
-      }
-      const idToken = authHeader.split("Bearer ")[1];
-
-      // IDトークンを検証してFirebase UIDを取得
-      const decodedToken = await verifyFirebaseIdToken(idToken);
-      const firebaseUid = decodedToken.uid;
+      const { accessToken, fitbitUserId } = await verifyAndGetFitbitToken(
+        req.headers.authorization,
+      );
 
       const nutritionData = req.body as CreateFoodLogRequest;
 
@@ -72,35 +115,6 @@ export const foodLogHandler: HttpFunction = async (req, res) => {
       ) {
         throw new ValidationError(
           'Invalid JSON body. Required: a non-empty "foods" array.',
-        );
-      }
-
-      const tokens = await getTokensFromFirestore(firebaseUid);
-      if (!tokens) {
-        throw new AuthenticationError(
-          `No tokens found for user ${firebaseUid}. Please complete the OAuth flow.`,
-        );
-      }
-
-      let accessToken;
-      // トークンの有効期限が切れているかチェックし、必要であればリフレッシュ
-      if (new Date().getTime() >= tokens.expiresAt) {
-        console.log(`Token for user ${firebaseUid} has expired. Refreshing...`);
-        accessToken = await refreshFitbitAccessToken(
-          firebaseUid,
-          clientId,
-          clientSecret,
-        );
-      } else {
-        accessToken = tokens.accessToken;
-      }
-
-      // FirestoreからFitbitユーザーIDを使用
-      const fitbitUserId = tokens.fitbitUserId;
-      if (!fitbitUserId) {
-        throw new FitbitApiError(
-          "Fitbit user ID not found in the database.",
-          500,
         );
       }
 

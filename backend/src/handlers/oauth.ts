@@ -54,6 +54,79 @@ const isValidRedirectUri = (uri: string): boolean => {
 };
 
 /**
+ * Stateパラメータをデコードし、Firebase UIDとリダイレクトURIを取得するヘルパー関数
+ *
+ * @param state クエリパラメータから取得したstate文字列
+ * @returns デコードされたオブジェクト { firebaseUid, redirectUri }
+ */
+const decodeState = (
+  state: string,
+): { firebaseUid: string; redirectUri: string } => {
+  if (!state) {
+    throw new ValidationError("Invalid request: state parameter is missing.");
+  }
+
+  let firebaseUid, redirectUri;
+  try {
+    const decodedState = JSON.parse(
+      Buffer.from(state, "base64").toString("utf8"),
+    );
+    firebaseUid = decodedState.firebaseUid;
+    redirectUri = decodedState.redirectUri;
+  } catch (e: any) {
+    throw new ValidationError(
+      `Invalid state: could not decode state parameter. Error: ${e.message}`,
+    );
+  }
+
+  if (!firebaseUid) {
+    throw new ValidationError("Invalid state: Firebase UID is missing.");
+  }
+
+  return { firebaseUid, redirectUri };
+};
+
+/**
+ * OAuth認証リクエストを処理する関数
+ *
+ * @param req リクエストオブジェクト
+ * @param res レスポンスオブジェクト
+ * @param clientId FitbitクライアントID
+ * @param clientSecret Fitbitクライアントシークレット
+ */
+const handleOAuthRequest = async (
+  req: any,
+  res: any,
+  clientId: string,
+  clientSecret: string,
+) => {
+  const { firebaseUid, redirectUri } = decodeState(req.query.state as string);
+
+  await exchangeCodeForTokens(
+    clientId,
+    clientSecret,
+    req.query.code as string,
+    firebaseUid,
+  );
+
+  if (redirectUri) {
+    if (!isValidRedirectUri(redirectUri)) {
+      throw new ValidationError("Invalid redirect URI.");
+    }
+    const redirectUrl = new URL(redirectUri);
+    // クエリパラメータでFitbitユーザーIDの代わりにFirebase UIDを使用
+    redirectUrl.searchParams.set("uid", firebaseUid);
+    res.redirect(302, redirectUrl.toString());
+    return;
+  }
+  res
+    .status(200)
+    .send(
+      `Authorization successful! User UID: ${firebaseUid}. You can close this page.`,
+    );
+};
+
+/**
  * Fitbit OAuth 2.0 認証のコールバック処理を行う Cloud Function。
  *
  * @param req Express互換のリクエストオブジェクト
@@ -91,55 +164,7 @@ export const oauthHandler: HttpFunction = async (req, res) => {
 
     // OAuthコールバック: 認証コードをトークンと交換
     if (req.method === "GET" && req.query.code) {
-      const state = req.query.state as string;
-      if (!state) {
-        throw new ValidationError(
-          "Invalid request: state parameter is missing.",
-        );
-      }
-
-      let firebaseUid, redirectUri;
-      try {
-        // stateパラメータは、フロントエンドでBase64エンコードされたJSON文字列。
-        // これにより、OAuthフローを介して複数の情報（ここではUIDとリダイレクト先）を安全に渡すことができる。
-        // 仕様: { firebaseUid: string; redirectUri: string; }
-        const decodedState = JSON.parse(
-          Buffer.from(state, "base64").toString("utf8"),
-        );
-        firebaseUid = decodedState.firebaseUid;
-        redirectUri = decodedState.redirectUri;
-      } catch (e: any) {
-        throw new ValidationError(
-          `Invalid state: could not decode state parameter. Error: ${e.message}`,
-        );
-      }
-
-      if (!firebaseUid) {
-        throw new ValidationError("Invalid state: Firebase UID is missing.");
-      }
-
-      await exchangeCodeForTokens(
-        clientId,
-        clientSecret,
-        req.query.code as string,
-        firebaseUid,
-      );
-
-      if (redirectUri) {
-        if (!isValidRedirectUri(redirectUri)) {
-          throw new ValidationError("Invalid redirect URI.");
-        }
-        const redirectUrl = new URL(redirectUri);
-        // クエリパラメータでFitbitユーザーIDの代わりにFirebase UIDを使用
-        redirectUrl.searchParams.set("uid", firebaseUid);
-        res.redirect(302, redirectUrl.toString());
-        return;
-      }
-      res
-        .status(200)
-        .send(
-          `Authorization successful! User UID: ${firebaseUid}. You can close this page.`,
-        );
+      await handleOAuthRequest(req, res, clientId, clientSecret);
       return;
     }
 

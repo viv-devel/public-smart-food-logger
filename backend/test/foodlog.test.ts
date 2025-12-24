@@ -120,6 +120,13 @@ describe("foodLogHandler", () => {
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
     } as import("firebase-admin/auth").DecodedIdToken);
+    // Needed because auth check is now before validation
+    vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue({
+      accessToken: "valid-access-token",
+      expiresAt: Date.now() + 10000,
+      fitbitUserId: "fitbit-user-id",
+      firebaseUids: ["test-uid"],
+    });
 
     await foodLogHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(400); // ValidationError
@@ -134,6 +141,13 @@ describe("foodLogHandler", () => {
     vi.mocked(firebaseRepo.verifyFirebaseIdToken).mockResolvedValue({
       uid: "test-uid",
     } as import("firebase-admin/auth").DecodedIdToken);
+    // Needed because auth check is now before validation
+    vi.mocked(firebaseRepo.getTokensFromFirestore).mockResolvedValue({
+      accessToken: "valid-access-token",
+      expiresAt: Date.now() + 10000,
+      fitbitUserId: "fitbit-user-id",
+      firebaseUids: ["test-uid"],
+    });
 
     await foodLogHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
