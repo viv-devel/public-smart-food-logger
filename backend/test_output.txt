@@ -1,0 +1,76 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.14 [39m[90mC:/Users/viv_v/VSCodeWorkspace/public-smart-food-logger/backend[39m
+
+ [32m✓[39m test/health.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m test/errors.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+stderr | test/recaptcha.test.ts > Recaptcha Tests > verifyRecaptcha (Utility) > should throw Error if RECAPTCHA_V3_SECRET_KEY is missing (Fail Closed)
+RECAPTCHA_V3_SECRET_KEY is not set.
+
+[90mstdout[2m | test/recaptcha.test.ts[2m > [22m[2mRecaptcha Tests[2m > [22m[2mverifyRecaptcha (Utility)[2m > [22m[2mshould return false if API returns success: false
+[22m[39m{"severity":"INFO","component":"recaptcha","token_verification":{"success":false,"expected_action":"TEST","threshold":0.5,"error_codes":["invalid-input"]}}
+
+stderr | test/recaptcha.test.ts > Recaptcha Tests > verifyRecaptcha (Utility) > should return false if API returns success: false
+reCAPTCHA verification failed: [ 'invalid-input' ]
+
+[90mstdout[2m | test/recaptcha.test.ts[2m > [22m[2mRecaptcha Tests[2m > [22m[2mverifyRecaptcha (Utility)[2m > [22m[2mshould return false if action mismatch
+[22m[39m{"severity":"INFO","component":"recaptcha","token_verification":{"success":true,"score":0.9,"action":"OTHER_ACTION","expected_action":"TEST","threshold":0.5}}
+
+stderr | test/recaptcha.test.ts > Recaptcha Tests > verifyRecaptcha (Utility) > should return false if action mismatch
+reCAPTCHA action mismatch: expected 'TEST', got 'OTHER_ACTION'
+
+[90mstdout[2m | test/recaptcha.test.ts[2m > [22m[2mRecaptcha Tests[2m > [22m[2mverifyRecaptcha (Utility)[2m > [22m[2mshould return false if score too low
+[22m[39m{"severity":"INFO","component":"recaptcha","token_verification":{"success":true,"score":0.1,"action":"TEST","expected_action":"TEST","threshold":0.5}}
+
+stderr | test/recaptcha.test.ts > Recaptcha Tests > verifyRecaptcha (Utility) > should return false if score too low
+reCAPTCHA score too low: 0.1 < 0.5 (action: TEST)
+
+[90mstdout[2m | test/recaptcha.test.ts[2m > [22m[2mRecaptcha Tests[2m > [22m[2mverifyRecaptcha (Utility)[2m > [22m[2mshould return true if valid
+[22m[39m{"severity":"INFO","component":"recaptcha","token_verification":{"success":true,"score":0.9,"action":"TEST","expected_action":"TEST","threshold":0.5}}
+
+[90mstdout[2m | test/recaptcha.test.ts[2m > [22m[2mRecaptcha Tests[2m > [22m[2mrecaptchaVerifier (HttpFunction)[2m > [22m[2mshould verify successfully with valid token and action
+[22m[39m{"severity":"INFO","component":"recaptcha","token_verification":{"success":true,"score":0.9,"action":"AUTHENTICATE","expected_action":"AUTHENTICATE","threshold":0.3}}
+
+[90mstdout[2m | test/recaptcha.test.ts[2m > [22m[2mRecaptcha Tests[2m > [22m[2mrecaptchaVerifier (HttpFunction)[2m > [22m[2mshould use default threshold if action is missing/unknown
+[22m[39m{"severity":"INFO","component":"recaptcha","token_verification":{"success":true,"score":0.4,"action":"","expected_action":"","threshold":0.3}}
+
+[90mstdout[2m | test/recaptcha.test.ts[2m > [22m[2mRecaptcha Tests[2m > [22m[2mrecaptchaVerifier (HttpFunction)[2m > [22m[2mshould return success: false if verification fails
+[22m[39m{"severity":"INFO","component":"recaptcha","token_verification":{"success":false,"expected_action":"AUTHENTICATE","threshold":0.3,"error_codes":["invalid-input-response"]}}
+
+stderr | test/recaptcha.test.ts > Recaptcha Tests > recaptchaVerifier (HttpFunction) > should return success: false if verification fails
+reCAPTCHA verification failed: [ 'invalid-input-response' ]
+
+ [32m✓[39m test/recaptcha.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m test/firebaseRepository.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/fitbitService.test.ts [ test/fitbitService.test.ts ]
+ FAIL  test/foodlog.test.ts [ test/foodlog.test.ts ]
+ FAIL  test/oauth.test.ts [ test/oauth.test.ts ]
+ FAIL  test/webhookHandler.test.ts [ test/webhookHandler.test.ts ]
+Error: Failed to resolve entry for package "@smart-food-logger/shared". The package may have incorrect main/module/exports specified in its package.json.
+  Plugin: vite:import-analysis
+  File: C:/Users/viv_v/VSCodeWorkspace/public-smart-food-logger/backend/src/services/fitbitService.ts:8:7
+  1  |  import {
+  2  |    MEAL_TYPE_MAP
+  3  |  } from "@smart-food-logger/shared";
+     |          ^
+  4  |  import { Buffer } from "buffer";
+  5  |  import fetch from "node-fetch";
+ ❯ packageEntryFailure ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:33464:32
+ ❯ resolvePackageEntry ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:33461:2
+ ❯ tryNodeResolve ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:33364:70
+ ❯ ResolveIdContext.handler ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:33203:16
+ ❯ EnvironmentPluginContainer.resolveId ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:29365:56
+ ❯ TransformPluginContext.resolve ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:29577:13
+ ❯ normalizeUrl ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:27759:22
+ ❯ ../node_modules/.pnpm/vite@7.2.4_@types+node@24.1_13e19ce498b470112d7ce5fefc18decb/node_modules/vite/dist/node/chunks/config.js:27825:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+
+[2m Test Files [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (8)[39m
+[2m      Tests [22m [1m[32m36 passed[39m[22m[90m (36)[39m
+[2m   Start at [22m 19:03:42
+[2m   Duration [22m 514ms[2m (transform 666ms, setup 87ms, import 419ms, tests 35ms, environment 1ms)[22m
+
