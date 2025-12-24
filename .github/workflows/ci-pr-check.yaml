@@ -146,12 +146,17 @@ jobs:
 
       - name: Test Frontend (E2E)
         run: |
+          set -o pipefail
+          set +e
           pnpm --filter frontend run test:e2e:ci | tee playwright_output.txt
+          EXIT_CODE=$?
+          set -e
           echo "## Playwright E2E Results" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          # Extract the summary line (usually the last line or close to it)
-          grep -E "passed|failed|flaky|skipped" playwright_output.txt | tail -n 1 >> $GITHUB_STEP_SUMMARY || echo "No summary found" >> $GITHUB_STEP_SUMMARY
+          # Extract the summary lines
+          grep -E "passed|failed|flaky|skipped" playwright_output.txt >> $GITHUB_STEP_SUMMARY || echo "No summary found" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+          exit $EXIT_CODE
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/playwright
 

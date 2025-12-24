@@ -77,7 +77,7 @@ test.describe("食事ログ記録フロー", () => {
     await page.getByRole("button", { name: "Fitbitに記録する" }).click();
 
     // エラーコンテナが表示されることを確認
-    const errorContainer = page.locator(".bg-red-900\\/50");
+    const errorContainer = page.locator("main").getByRole("alert");
     await expect(errorContainer).toBeVisible();
 
     // エラーメッセージの内容を確認 (部分一致)
@@ -102,7 +102,7 @@ test.describe("食事ログ記録フロー", () => {
     await page.getByRole("button", { name: "Fitbitに記録する" }).click();
 
     // エラーコンテナが表示されることを確認
-    const errorContainer = page.locator(".bg-red-900\\/50");
+    const errorContainer = page.locator("main").getByRole("alert");
     await expect(errorContainer).toBeVisible();
 
     // エラーメッセージの内容を確認
