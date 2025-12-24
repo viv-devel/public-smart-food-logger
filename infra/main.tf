@@ -26,7 +26,6 @@ module "common" {
   NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI  = var.netlify_env_vars["NEXT_PUBLIC_FITBIT_BACKEND_REDIRECT_URI"]
   NEXT_PUBLIC_FITBIT_CLIENT_ID             = var.netlify_env_vars["NEXT_PUBLIC_FITBIT_CLIENT_ID"]
   NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI = var.netlify_env_vars["NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI"]
-  NEXT_PUBLIC_RECAPTCHA_SITE_KEY           = var.netlify_env_vars["NEXT_PUBLIC_RECAPTCHA_SITE_KEY"]
   FOOD_LOG_URL                             = var.netlify_env_vars["FOOD_LOG_URL"]
   NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI    = var.netlify_env_vars["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
   NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY        = var.netlify_env_vars["NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY"]
@@ -42,9 +41,8 @@ module "ci" {
   NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI"]
   NEXT_PUBLIC_MOCK_AUTH                    = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_MOCK_AUTH"]
 
-  FITBIT_CLIENT_ID               = var.github_env_vars["ci"]["secrets"]["FITBIT_CLIENT_ID"]
-  FITBIT_CLIENT_SECRET           = var.github_env_vars["ci"]["secrets"]["FITBIT_CLIENT_SECRET"]
-  NEXT_PUBLIC_RECAPTCHA_SITE_KEY = var.github_env_vars["ci"]["secrets"]["NEXT_PUBLIC_RECAPTCHA_SITE_KEY"]
+  FITBIT_CLIENT_ID     = var.github_env_vars["ci"]["secrets"]["FITBIT_CLIENT_ID"]
+  FITBIT_CLIENT_SECRET = var.github_env_vars["ci"]["secrets"]["FITBIT_CLIENT_SECRET"]
 
   FOOD_LOG_URL                          = var.github_env_vars["ci"]["variables"]["FOOD_LOG_URL"]
   NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI = var.github_env_vars["ci"]["variables"]["NEXT_PUBLIC_OAUTH_FITBIT_REDIRECT_URI"]
