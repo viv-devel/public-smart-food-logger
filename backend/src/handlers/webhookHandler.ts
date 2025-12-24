@@ -19,6 +19,143 @@ import {
 } from "../utils/errors.js";
 
 /**
+ * Health check request handler.
+ */
+const handleHealthCheck = (res: any) => {
+  res.status(200).json({ status: "OK", message: "Health check passed" });
+};
+
+/**
+ * OAuth callback request handler.
+ * Exchanges the authorization code for tokens.
+ */
+const handleOAuthCallback = async (req: any, res: any) => {
+  const clientId = process.env.FITBIT_CLIENT_ID;
+  const clientSecret = process.env.FITBIT_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error(
+      "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
+    );
+  }
+
+  const state = req.query.state as string;
+  if (!state) {
+    throw new ValidationError("Invalid request: state parameter is missing.");
+  }
+
+  let firebaseUid, redirectUri;
+  try {
+    const decodedState = JSON.parse(
+      Buffer.from(state, "base64").toString("utf8"),
+    );
+    firebaseUid = decodedState.firebaseUid;
+    redirectUri = decodedState.redirectUri;
+  } catch (e: any) {
+    throw new ValidationError(
+      `Invalid state: could not decode state parameter. Error: ${e.message}`,
+    );
+  }
+
+  if (!firebaseUid) {
+    throw new ValidationError("Invalid state: Firebase UID is missing.");
+  }
+
+  await exchangeCodeForTokens(
+    clientId,
+    clientSecret,
+    req.query.code as string,
+    firebaseUid,
+  );
+
+  if (redirectUri) {
+    const redirectUrl = new URL(redirectUri);
+    redirectUrl.searchParams.set("uid", firebaseUid);
+    res.redirect(302, redirectUrl.toString());
+    return;
+  }
+  res
+    .status(200)
+    .send(
+      `Authorization successful! User UID: ${firebaseUid}. You can close this page.`,
+    );
+};
+
+/**
+ * Food log request handler.
+ * Verifies the ID token, refreshes Fitbit token if needed, and logs food.
+ */
+const handleFoodLog = async (req: any, res: any) => {
+  const clientId = process.env.FITBIT_CLIENT_ID;
+  const clientSecret = process.env.FITBIT_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error(
+      "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
+    );
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new AuthenticationError(
+      "Unauthorized: Authorization header is missing or invalid.",
+    );
+  }
+  const idToken = authHeader.split("Bearer ")[1];
+
+  const decodedToken = await verifyFirebaseIdToken(idToken);
+  const firebaseUid = decodedToken.uid;
+
+  const nutritionData = req.body as CreateFoodLogRequest;
+
+  if (
+    !nutritionData ||
+    !nutritionData.foods ||
+    !Array.isArray(nutritionData.foods)
+  ) {
+    throw new ValidationError(
+      'Invalid JSON body. Required: meal_type, log_date, log_time, and a non-empty "foods" array.',
+    );
+  }
+
+  const tokens = await getTokensFromFirestore(firebaseUid);
+  if (!tokens) {
+    throw new AuthenticationError(
+      `No tokens found for user ${firebaseUid}. Please complete the OAuth flow.`,
+    );
+  }
+
+  let accessToken;
+  if (new Date().getTime() >= tokens.expiresAt) {
+    console.log(`Token for user ${firebaseUid} has expired. Refreshing...`);
+    accessToken = await refreshFitbitAccessToken(
+      firebaseUid,
+      clientId,
+      clientSecret,
+    );
+  } else {
+    accessToken = tokens.accessToken;
+  }
+
+  const fitbitUserId = tokens.fitbitUserId;
+  if (!fitbitUserId) {
+    throw new FitbitApiError("Fitbit user ID not found in the database.", 500);
+  }
+
+  const fitbitResponses = await processAndLogFoods(
+    accessToken,
+    nutritionData,
+    fitbitUserId,
+  );
+
+  res.status(200).json({
+    message: "All foods logged successfully to Fitbit.",
+    loggedData: nutritionData,
+    fitbitResponses: fitbitResponses,
+  });
+};
+
+/**
  * Fitbit API連携の中核を担うHTTP Cloud Function。
  * 1. GET (クエリなし): ヘルスチェック
  * 2. GET (codeクエリあり): Fitbit OAuth 2.0認証のコールバック処理
@@ -57,140 +194,22 @@ export const fitbitWebhookHandler: HttpFunction = async (req, res) => {
     return;
   }
 
-  // Health Check: codeパラメータがない単純なGETリクエスト
-  if (req.method === "GET" && !req.query.code) {
-    res.status(200).json({ status: "OK", message: "Health check passed" });
-    return;
-  }
-
   try {
-    // 環境変数からFitbit認証情報を取得
-    const clientId = process.env.FITBIT_CLIENT_ID;
-    const clientSecret = process.env.FITBIT_CLIENT_SECRET;
-
-    if (!clientId || !clientSecret) {
-      throw new Error(
-        "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
-      );
+    // Health Check: codeパラメータがない単純なGETリクエスト
+    if (req.method === "GET" && !req.query.code) {
+      handleHealthCheck(res);
+      return;
     }
 
     // OAuthコールバック: 認証コードをトークンと交換
     if (req.method === "GET" && req.query.code) {
-      const state = req.query.state as string;
-      if (!state) {
-        throw new ValidationError(
-          "Invalid request: state parameter is missing.",
-        );
-      }
-
-      let firebaseUid, redirectUri;
-      try {
-        // stateパラメータは、フロントエンドでBase64エンコードされたJSON文字列。
-        // これにより、OAuthフローを介して複数の情報（ここではUIDとリダイレクト先）を安全に渡すことができる。
-        // 仕様: { firebaseUid: string; redirectUri: string; }
-        const decodedState = JSON.parse(
-          Buffer.from(state, "base64").toString("utf8"),
-        );
-        firebaseUid = decodedState.firebaseUid;
-        redirectUri = decodedState.redirectUri;
-      } catch (e: any) {
-        throw new ValidationError(
-          `Invalid state: could not decode state parameter. Error: ${e.message}`,
-        );
-      }
-
-      if (!firebaseUid) {
-        throw new ValidationError("Invalid state: Firebase UID is missing.");
-      }
-
-      await exchangeCodeForTokens(
-        clientId,
-        clientSecret,
-        req.query.code as string,
-        firebaseUid,
-      );
-
-      if (redirectUri) {
-        const redirectUrl = new URL(redirectUri);
-        // クエリパラメータでFitbitユーザーIDの代わりにFirebase UIDを使用
-        redirectUrl.searchParams.set("uid", firebaseUid);
-        res.redirect(302, redirectUrl.toString());
-        return;
-      }
-      res
-        .status(200)
-        .send(
-          `Authorization successful! User UID: ${firebaseUid}. You can close this page.`,
-        );
+      await handleOAuthCallback(req, res);
       return;
     }
 
     // メインロジック: 食事ログのリクエストを処理 (認証が必要)
     if (req.method === "POST") {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new AuthenticationError(
-          "Unauthorized: Authorization header is missing or invalid.",
-        );
-      }
-      const idToken = authHeader.split("Bearer ")[1];
-
-      // IDトークンを検証してFirebase UIDを取得
-      const decodedToken = await verifyFirebaseIdToken(idToken);
-      const firebaseUid = decodedToken.uid;
-
-      const nutritionData = req.body as CreateFoodLogRequest;
-
-      if (
-        !nutritionData ||
-        !nutritionData.foods ||
-        !Array.isArray(nutritionData.foods)
-      ) {
-        throw new ValidationError(
-          'Invalid JSON body. Required: meal_type, log_date, log_time, and a non-empty "foods" array.',
-        );
-      }
-
-      const tokens = await getTokensFromFirestore(firebaseUid);
-      if (!tokens) {
-        throw new AuthenticationError(
-          `No tokens found for user ${firebaseUid}. Please complete the OAuth flow.`,
-        );
-      }
-
-      let accessToken;
-      // トークンの有効期限が切れているかチェックし、必要であればリフレッシュ
-      if (new Date().getTime() >= tokens.expiresAt) {
-        console.log(`Token for user ${firebaseUid} has expired. Refreshing...`);
-        accessToken = await refreshFitbitAccessToken(
-          firebaseUid,
-          clientId,
-          clientSecret,
-        );
-      } else {
-        accessToken = tokens.accessToken;
-      }
-
-      // FirestoreからFitbitユーザーIDを使用
-      const fitbitUserId = tokens.fitbitUserId;
-      if (!fitbitUserId) {
-        throw new FitbitApiError(
-          "Fitbit user ID not found in the database.",
-          500,
-        );
-      }
-
-      const fitbitResponses = await processAndLogFoods(
-        accessToken,
-        nutritionData,
-        fitbitUserId,
-      );
-
-      res.status(200).json({
-        message: "All foods logged successfully to Fitbit.",
-        loggedData: nutritionData,
-        fitbitResponses: fitbitResponses,
-      });
+      await handleFoodLog(req, res);
       return;
     }
 

@@ -19,6 +19,67 @@ import {
   ValidationError,
 } from "../utils/errors.js";
 
+// 栄養素のキーを、sharedパッケージで定義されたFoodItemのキーからFitbit APIのパラメータ名に変換する。
+const NUTRITION_MAP: { [key: string]: string } = {
+  caloriesFromFat: "caloriesFromFat",
+  totalFat_g: "totalFat",
+  transFat_g: "transFat",
+  saturatedFat_g: "saturatedFat",
+  cholesterol_mg: "cholesterol",
+  sodium_mg: "sodium",
+  potassium_mg: "potassium",
+  totalCarbohydrate_g: "totalCarbohydrate",
+  dietaryFiber_g: "dietaryFiber",
+  sugars_g: "sugars",
+  protein_g: "protein",
+  vitaminA_iu: "vitaminA",
+  vitaminB6: "vitaminB6",
+  vitaminB12: "vitaminB12",
+  vitaminC_mg: "vitaminC",
+  vitaminD_iu: "vitaminD",
+  vitaminE_iu: "vitaminE",
+  biotin_mg: "biotin",
+  folicAcid_mg: "folicAcid",
+  niacin_mg: "niacin",
+  pantothenicAcid_mg: "pantothenicAcid",
+  riboflavin_mg: "riboflavin",
+  thiamin_mg: "thiamin",
+  calcium_g: "calcium",
+  copper_g: "copper",
+  iron_mg: "iron",
+  magnesium_mg: "magnesium",
+  phosphorus_g: "phosphorus",
+  iodine_mcg: "iodine",
+  zinc_mg: "zinc",
+};
+
+/**
+ * 文字列の単位（"g", "ml"など）をFitbit APIが要求する数値IDに変換します。
+ * マッピングに存在しない単位が来た場合は、汎用的な「serving」をデフォルト値として使用し、警告をログに出力します。
+ * @param unit 変換する単位の文字列。
+ * @returns 対応するFitbitの単位ID。
+ */
+export const getUnitId = (unit: string): number => {
+  // 頻出する単位とそのバリエーションをFitbitのIDにマッピング
+  const unitMap: { [key: string]: number } = {
+    g: 1, // gram
+    gram: 1,
+    grams: 1,
+    ml: 147, // milliliter
+    milliliter: 147,
+    milliliters: 147,
+    oz: 13, // ounce
+    "fl oz": 19, // fluidounce
+    serving: 86, // serving
+    個: 86, // 日本語の「個」もservingとして扱う
+  };
+  const lowerCaseUnit = unit ? unit.toLowerCase() : "";
+  if (unitMap[lowerCaseUnit]) return unitMap[lowerCaseUnit];
+  // 未知の単位に対するフォールバック
+  console.warn(`Unknown unit "${unit}". Defaulting to 'serving'(86).`);
+  return 86;
+};
+
 /**
  * Fitbitの認証フローの一部として、認可コードをアクセストークンと交換します。
  * この関数は、ユーザーがFitbitでの認証を成功させた後、コールバックURL（`webhookHandler`）から呼び出されます。
@@ -117,67 +178,16 @@ export async function refreshFitbitAccessToken(
 }
 
 /**
- * 複数の食品情報をFitbitに記録するメインロジック。
- * Fitbit APIの仕様上、食品を「作成」してから「記録」するという2段階のプロセスが必要です。
- * 1. **食品の作成**: 提供された栄養情報（カロリー、タンパク質など）を元に、ユーザーのプライベート食品データベースに新しい食品を作成します。
- *    - この段階で、各食品にユニークな `foodId` がFitbitによって割り当てられます。
- *    - APIはバッチ処理をサポートしていないため、各食品を直列で1つずつ作成します。
- * 2. **食事ログの記録**: 作成した食品の `foodId` を使用し、指定された日時、食事の種類（朝食など）で食事ログを記録します。
- *    - こちらも同様に、各食品を1つずつ記録します。
- *
- * @param accessToken 有効なFitbit APIアクセストークン。
- * @param nutritionData 記録する食品の配列と、食事の種類、日時を含むリクエストオブジェクト。
- * @param fitbitUserId 操作対象のFitbitユーザーID。
- * @returns Fitbit APIからのレスポンスオブジェクトの配列を含むPromise。
+ * 食品をFitbitに作成するヘルパー関数
  */
-export async function processAndLogFoods(
+async function createFoods(
   accessToken: string,
-  nutritionData: CreateFoodLogRequest,
+  foods: FoodItem[],
   fitbitUserId: string,
-): Promise<any[]> {
-  const mealTypeId: MealTypeId =
-    (MEAL_TYPE_MAP as any)[nutritionData.meal_type] || MEAL_TYPE_MAP.Anytime;
-
-  /**
-   * 文字列の単位（"g", "ml"など）をFitbit APIが要求する数値IDに変換します。
-   * マッピングに存在しない単位が来た場合は、汎用的な「serving」をデフォルト値として使用し、警告をログに出力します。
-   * @param unit 変換する単位の文字列。
-   * @returns 対応するFitbitの単位ID。
-   */
-  const getUnitId = (unit: string): number => {
-    // 頻出する単位とそのバリエーションをFitbitのIDにマッピング
-    const unitMap: { [key: string]: number } = {
-      g: 1, // gram
-      gram: 1,
-      grams: 1,
-      ml: 147, // milliliter
-      milliliter: 147,
-      milliliters: 147,
-      oz: 13, // ounce
-      "fl oz": 19, // fluidounce
-      serving: 86, // serving
-      個: 86, // 日本語の「個」もservingとして扱う
-    };
-    const lowerCaseUnit = unit ? unit.toLowerCase() : "";
-    if (unitMap[lowerCaseUnit]) return unitMap[lowerCaseUnit];
-    // 未知の単位に対するフォールバック
-    console.warn(`Unknown unit "${unit}". Defaulting to 'serving'(86).`);
-    return 86;
-  };
-
-  if (
-    !nutritionData.foods ||
-    !Array.isArray(nutritionData.foods) ||
-    nutritionData.foods.length === 0
-  ) {
-    throw new ValidationError(
-      'Invalid input: "foods" array is missing or empty.',
-    );
-  }
-
-  // フェーズ1: 全ての食品をFitbitに「作成」する (直列実行)
+): Promise<(FoodItem & { foodId: number; unitId: number })[]> {
   const createdFoods: (FoodItem & { foodId: number; unitId: number })[] = [];
-  for (const food of nutritionData.foods) {
+
+  for (const food of foods) {
     if (!food.foodName || !food.amount || !food.unit) {
       throw new ValidationError(
         `Missing required field for food log: ${food.foodName || "Unknown Food"}.`,
@@ -201,42 +211,7 @@ export async function processAndLogFoods(
       food.description || `Logged via Gemini: ${food.foodName}`,
     );
 
-    // 栄養素のキーを、sharedパッケージで定義されたFoodItemのキーからFitbit APIのパラメータ名に変換する。
-    // これにより、フロントエンドとバックエンド（およびFitbit）間でのデータ構造の違いを吸収する。
-    const nutritionMap: { [key: string]: string } = {
-      caloriesFromFat: "caloriesFromFat",
-      totalFat_g: "totalFat",
-      transFat_g: "transFat",
-      saturatedFat_g: "saturatedFat",
-      cholesterol_mg: "cholesterol",
-      sodium_mg: "sodium",
-      potassium_mg: "potassium",
-      totalCarbohydrate_g: "totalCarbohydrate",
-      dietaryFiber_g: "dietaryFiber",
-      sugars_g: "sugars",
-      protein_g: "protein",
-      vitaminA_iu: "vitaminA",
-      vitaminB6: "vitaminB6",
-      vitaminB12: "vitaminB12",
-      vitaminC_mg: "vitaminC",
-      vitaminD_iu: "vitaminD",
-      vitaminE_iu: "vitaminE",
-      biotin_mg: "biotin",
-      folicAcid_mg: "folicAcid",
-      niacin_mg: "niacin",
-      pantothenicAcid_mg: "pantothenicAcid",
-      riboflavin_mg: "riboflavin",
-      thiamin_mg: "thiamin",
-      calcium_g: "calcium",
-      copper_g: "copper",
-      iron_mg: "iron",
-      magnesium_mg: "magnesium",
-      phosphorus_g: "phosphorus",
-      iodine_mcg: "iodine",
-      zinc_mg: "zinc",
-    };
-
-    for (const [foodKey, apiParam] of Object.entries(nutritionMap)) {
+    for (const [foodKey, apiParam] of Object.entries(NUTRITION_MAP)) {
       const value = food[foodKey as keyof FoodItem];
       if (value !== undefined && value !== null) {
         createFoodParams.append(apiParam, value.toString());
@@ -256,7 +231,7 @@ export async function processAndLogFoods(
     );
 
     const createFoodResult =
-      (await createFoodResponse.json()) as CreateFoodResponse; // 型アサーション
+      (await createFoodResponse.json()) as CreateFoodResponse;
 
     if (!createFoodResponse.ok) {
       console.error("Fitbit create food error response:", createFoodResult);
@@ -275,8 +250,21 @@ export async function processAndLogFoods(
     createdFoods.push({ ...food, foodId, unitId });
   }
 
-  // フェーズ2: 作成した全ての食品を「ログ記録」する (直列実行)
+  return createdFoods;
+}
+
+/**
+ * 作成された食品をログに記録するヘルパー関数
+ */
+async function logFoods(
+  accessToken: string,
+  createdFoods: (FoodItem & { foodId: number; unitId: number })[],
+  nutritionData: CreateFoodLogRequest,
+  fitbitUserId: string,
+  mealTypeId: MealTypeId,
+): Promise<LogFoodResponse[]> {
   const logResults: LogFoodResponse[] = [];
+
   for (const createdFood of createdFoods) {
     const logFoodParams = new URLSearchParams({
       foodId: createdFood.foodId.toString(),
@@ -319,4 +307,53 @@ export async function processAndLogFoods(
   }
 
   return logResults;
+}
+
+/**
+ * 複数の食品情報をFitbitに記録するメインロジック。
+ * Fitbit APIの仕様上、食品を「作成」してから「記録」するという2段階のプロセスが必要です。
+ * 1. **食品の作成**: 提供された栄養情報（カロリー、タンパク質など）を元に、ユーザーのプライベート食品データベースに新しい食品を作成します。
+ *    - この段階で、各食品にユニークな `foodId` がFitbitによって割り当てられます。
+ *    - APIはバッチ処理をサポートしていないため、各食品を直列で1つずつ作成します。
+ * 2. **食事ログの記録**: 作成した食品の `foodId` を使用し、指定された日時、食事の種類（朝食など）で食事ログを記録します。
+ *    - こちらも同様に、各食品を1つずつ記録します。
+ *
+ * @param accessToken 有効なFitbit APIアクセストークン。
+ * @param nutritionData 記録する食品の配列と、食事の種類、日時を含むリクエストオブジェクト。
+ * @param fitbitUserId 操作対象のFitbitユーザーID。
+ * @returns Fitbit APIからのレスポンスオブジェクトの配列を含むPromise。
+ */
+export async function processAndLogFoods(
+  accessToken: string,
+  nutritionData: CreateFoodLogRequest,
+  fitbitUserId: string,
+): Promise<any[]> {
+  const mealTypeId: MealTypeId =
+    (MEAL_TYPE_MAP as any)[nutritionData.meal_type] || MEAL_TYPE_MAP.Anytime;
+
+  if (
+    !nutritionData.foods ||
+    !Array.isArray(nutritionData.foods) ||
+    nutritionData.foods.length === 0
+  ) {
+    throw new ValidationError(
+      'Invalid input: "foods" array is missing or empty.',
+    );
+  }
+
+  // フェーズ1: 全ての食品をFitbitに「作成」する (直列実行)
+  const createdFoods = await createFoods(
+    accessToken,
+    nutritionData.foods,
+    fitbitUserId,
+  );
+
+  // フェーズ2: 作成した全ての食品を「ログ記録」する (直列実行)
+  return logFoods(
+    accessToken,
+    createdFoods,
+    nutritionData,
+    fitbitUserId,
+    mealTypeId,
+  );
 }
