@@ -35,7 +35,7 @@ describe("Toast Component", () => {
     render(
       <ToastProvider>
         <TestComponent />
-      </ToastProvider>
+      </ToastProvider>,
     );
 
     const button = screen.getByText("Show Toast");
@@ -50,7 +50,7 @@ describe("Toast Component", () => {
     render(
       <ToastProvider>
         <TestComponent />
-      </ToastProvider>
+      </ToastProvider>,
     );
 
     fireEvent.click(screen.getByText("Show Toast"));

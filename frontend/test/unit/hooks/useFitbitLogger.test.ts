@@ -96,7 +96,9 @@ describe("useFitbitLogger", () => {
     });
 
     expect(result.current.isError).toBe(true);
-    expect(result.current.statusMessage).toContain("JSONの形式が正しくありません");
+    expect(result.current.statusMessage).toContain(
+      "JSONの形式が正しくありません",
+    );
     expect(console.error).toHaveBeenCalled();
     expect(mockLogToFitbit).not.toHaveBeenCalled();
   });

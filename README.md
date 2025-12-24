@@ -1,5 +1,10 @@
 # Smart Food Logger
 
+[![Build Status](https://github.com/viv-devel/public-smart-food-logger/actions/workflows/deploy-coverage.yaml/badge.svg?branch=develop)](https://github.com/viv-devel/public-smart-food-logger/actions/workflows/deploy-coverage.yaml)
+[![CodeFactor](https://www.codefactor.io/repository/github/viv-devel/public-smart-food-logger/badge)](https://www.codefactor.io/repository/github/viv-devel/public-smart-food-logger)
+[![License](https://img.shields.io/github/license/viv-devel/public-smart-food-logger)](LICENSE)
+[![Coverage](https://img.shields.io/endpoint?url=https://viv-devel.github.io/public-smart-food-logger/coverage.json)](https://viv-devel.github.io/public-smart-food-logger/)
+
 **Smart Food Logger** は、食事の写真を AI (Gemini) で解析し、栄養情報を自動で Fitbit に記録するアプリケーションです。
 
 > **Note**: このプロジェクトは、Google Gemini および Claude Sonnet の支援を受けて開発されました。
