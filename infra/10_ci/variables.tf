@@ -13,5 +13,4 @@ variable "NEXT_PUBLIC_RECAPTCHA_BACKEND_URL" { type = string }
 # Secrets
 variable "FITBIT_CLIENT_ID" { type = string }
 variable "FITBIT_CLIENT_SECRET" { type = string }
-variable "NEXT_PUBLIC_RECAPTCHA_SITE_KEY" { type = string }
 variable "RECAPTCHA_V3_SECRET_KEY" { type = string }
