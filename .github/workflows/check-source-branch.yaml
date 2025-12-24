@@ -1,0 +1,26 @@
+name: Check Source Branch
+
+on:
+  pull_request:
+    branches:
+      - main # ターゲットがmainブランチの時だけ実行
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if branch is develop or hotfix
+        env:
+          SOURCE_BRANCH: ${{ github.head_ref }}
+        run: |
+          # マージ元のブランチ名を取得
+          echo "Source branch is ${SOURCE_BRANCH}"
+
+          # develop または hotfix/* で始まる名前以外はエラーにする
+          if [[ "${SOURCE_BRANCH}" == "develop" || "${SOURCE_BRANCH}" == hotfix/* ]]; then
+            echo "Branch check passed!"
+            exit 0
+          else
+            echo "Error: Only 'develop' or 'hotfix/*' branches can be merged into main."
+            exit 1
+          fi

@@ -48,7 +48,7 @@ jobs:
       deploy_recaptcha: ${{ steps.filter.outputs.deploy_recaptcha }}
       deploy_oauth: ${{ steps.filter.outputs.deploy_oauth }}
       deploy_foodlog: ${{ steps.filter.outputs.deploy_foodlog }}
-      deploy_fitbit_legacy: ${{ steps.filter.outputs.deploy_fitbit_legacy }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -86,71 +86,6 @@ jobs:
               - 'backend/src/index.ts'
               - 'shared/**'
               - '.github/workflows/cd-backend.yaml'
-            deploy_fitbit_legacy:
-              - 'backend/src/handlers/webhookHandler.ts'
-              - 'backend/src/services/**'
-              - 'backend/src/repositories/**'
-              - 'backend/src/utils/**'
-              - 'backend/package.json'
-              - 'backend/src/index.ts'
-              - 'shared/**'
-              - '.github/workflows/cd-backend.yaml'
-
-  deploy_fitbit_legacy:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_fitbit_legacy == 'true' }}
-    runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-    permissions:
-      contents: read
-      id-token: write
-      statuses: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
-      - name: Authorize GCP
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: "${{ secrets.GCP_SA_KEY }}"
-
-      - name: Deploy Cloud Function
-        run: |
-          gcloud functions deploy fitbitwebhookhandler \
-            --gen2 \
-            --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
-            --source=backend \
-            --entry-point=fitbitWebhookHandler \
-            --trigger-http \
-            --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
-            --project=${{ secrets.PROJECT_ID }}
-
-      - name: Define Context
-        if: always()
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "CONTEXT_MSG=Production (main)" >> $GITHUB_ENV
-          else
-            echo "CONTEXT_MSG=Staging (develop)" >> $GITHUB_ENV
-          fi
-
-      - name: Discord Notification
-        if: always() && env.DISCORD_WEBHOOK_ID != ''
-        uses: appleboy/discord-action@v1.2.0
-        with:
-          webhook_id: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-          message: |
-            ${{ job.status == 'success' && '✅' || '🚨' }} [${{ job.status }}] ${{ github.repository }} - ${{ env.CONTEXT_MSG }}
-            Job: deploy_fitbit_legacy
-            Workflow: ${{ github.workflow }}
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        env:
-          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_health:
     needs: [build, filter_changes]

@@ -58,24 +58,24 @@ function getChangedFilesFromGit() {
   }
 }
 
-function getChangedFilesFromGitHub(prNumber) {
+function fetchGitHubPage(url) {
   return new Promise((resolve, reject) => {
-    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${prNumber}/files?per_page=100`;
     const options = {
       headers: {
         "User-Agent": "Netlify-Ignore-Script",
-        // 'Authorization': `token ${process.env.GITHUB_TOKEN}` // Optional if rate limited
       },
     };
+
+    if (process.env.GITHUB_TOKEN) {
+      options.headers["Authorization"] = `token ${process.env.GITHUB_TOKEN}`;
+    }
 
     console.log(`Fetching: ${url}`);
     https
       .get(url, options, (res) => {
         if (res.statusCode !== 200) {
-          console.error(`GitHub API failed with status ${res.statusCode}`);
-          // If rate limited (403) or other error, force build
-          console.log("Forcing build for safety.");
-          process.exit(1);
+          reject(new Error(`GitHub API failed with status ${res.statusCode}`));
+          return;
         }
 
         let data = "";
@@ -83,24 +83,44 @@ function getChangedFilesFromGitHub(prNumber) {
         res.on("end", () => {
           try {
             const files = JSON.parse(data);
-            // Handle pagination if needed? For now, if 100 files changed, we just check those 100.
-            // Ideally we should handle it, but for safety:
-            if (files.length === 100) {
-              console.log("Warning: 100+ files changed. Checking first 100.");
-            }
-            const filenames = files.map((f) => f.filename);
-            resolve(filenames);
+            resolve(files);
           } catch (e) {
-            console.error("Failed to parse GitHub response:", e);
-            process.exit(1);
+            reject(e);
           }
         });
       })
-      .on("error", (e) => {
-        console.error("GitHub API request error:", e);
-        process.exit(1);
-      });
+      .on("error", (e) => reject(e));
   });
+}
+
+async function getChangedFilesFromGitHub(prNumber) {
+  let page = 1;
+  let allFilenames = [];
+
+  try {
+    while (true) {
+      const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${prNumber}/files?per_page=100&page=${page}`;
+      const files = await fetchGitHubPage(url);
+
+      if (!Array.isArray(files)) {
+        throw new Error("GitHub API response is not an array");
+      }
+
+      const filenames = files.map((f) => f.filename);
+      allFilenames = allFilenames.concat(filenames);
+
+      if (files.length < 100) {
+        break;
+      }
+      page++;
+    }
+  } catch (error) {
+    console.error("Error fetching from GitHub:", error);
+    console.log("Forcing build for safety.");
+    process.exit(1);
+  }
+
+  return allFilenames;
 }
 
 function checkChanges(files) {

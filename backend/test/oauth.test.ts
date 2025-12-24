@@ -207,7 +207,9 @@ describe("oauthHandler", () => {
     ).toString("base64");
     req.query = { code: "valid-code", state };
 
-    (exchangeCodeForTokens as any).mockRejectedValue(new Error("Unknown error"));
+    (exchangeCodeForTokens as any).mockRejectedValue(
+      new Error("Unknown error"),
+    );
 
     await oauthHandler(req, res);
 
