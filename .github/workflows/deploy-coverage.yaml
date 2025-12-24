@@ -28,6 +28,9 @@ jobs:
       - name: Run Coverage
         run: pnpm -r run test:coverage
 
+      - name: Generate Coverage Badge JSON
+        run: node scripts/generate-coverage-json.js
+
       - name: Prepare Coverage Report
         run: |
           mkdir -p _site/frontend
@@ -36,6 +39,7 @@ jobs:
           cp -r frontend/coverage/* _site/frontend/
           cp -r backend/coverage/* _site/backend/
           cp -r shared/coverage/* _site/shared/
+          cp coverage.json _site/coverage.json
 
       - name: Create Index Page
         run: |

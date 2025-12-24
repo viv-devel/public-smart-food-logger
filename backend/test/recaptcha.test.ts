@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { recaptchaVerifier, verifyRecaptcha, RECAPTCHA_THRESHOLDS } from "../src/recaptcha";
+import {
+  recaptchaVerifier,
+  verifyRecaptcha,
+  RECAPTCHA_THRESHOLDS,
+} from "../src/recaptcha";
 import { Request, Response } from "express";
 import fetch from "node-fetch";
 
@@ -43,7 +47,9 @@ describe("Recaptcha Tests", () => {
     });
 
     it("should return true and log error on network exception (Fail Open)", async () => {
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       vi.mocked(fetch).mockRejectedValue(new Error("Network Error"));
 
       const result = await verifyRecaptcha("token", "TEST", 0.5);
@@ -57,7 +63,10 @@ describe("Recaptcha Tests", () => {
 
     it("should return false if API returns success: false", async () => {
       vi.mocked(fetch).mockResolvedValue({
-        json: async () => ({ success: false, "error-codes": ["invalid-input"] }),
+        json: async () => ({
+          success: false,
+          "error-codes": ["invalid-input"],
+        }),
       } as any);
 
       const result = await verifyRecaptcha("token", "TEST", 0.5);
@@ -66,7 +75,11 @@ describe("Recaptcha Tests", () => {
 
     it("should return false if action mismatch", async () => {
       vi.mocked(fetch).mockResolvedValue({
-        json: async () => ({ success: true, action: "OTHER_ACTION", score: 0.9 }),
+        json: async () => ({
+          success: true,
+          action: "OTHER_ACTION",
+          score: 0.9,
+        }),
       } as any);
 
       const result = await verifyRecaptcha("token", "TEST", 0.5);
@@ -99,8 +112,14 @@ describe("Recaptcha Tests", () => {
       await recaptchaVerifier(req as Request, res as Response);
 
       expect(res.set).toHaveBeenCalledWith("Access-Control-Allow-Origin", "*");
-      expect(res.set).toHaveBeenCalledWith("Access-Control-Allow-Methods", "POST, OPTIONS");
-      expect(res.set).toHaveBeenCalledWith("Access-Control-Allow-Headers", "Content-Type");
+      expect(res.set).toHaveBeenCalledWith(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS",
+      );
+      expect(res.set).toHaveBeenCalledWith(
+        "Access-Control-Allow-Headers",
+        "Content-Type",
+      );
       expect(res.set).toHaveBeenCalledWith("Access-Control-Max-Age", "3600");
     });
 
@@ -127,7 +146,10 @@ describe("Recaptcha Tests", () => {
       await recaptchaVerifier(req as Request, res as Response);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({ success: false, error: "reCAPTCHA token missing" });
+      expect(res.json).toHaveBeenCalledWith({
+        success: false,
+        error: "reCAPTCHA token missing",
+      });
     });
 
     it("should verify successfully with valid token and action", async () => {
@@ -139,7 +161,7 @@ describe("Recaptcha Tests", () => {
         json: async () => ({
           success: true,
           action: "AUTHENTICATE",
-          score: 0.9 // > 0.3 threshold
+          score: 0.9, // > 0.3 threshold
         }),
       } as any);
 
@@ -159,7 +181,7 @@ describe("Recaptcha Tests", () => {
         json: async () => ({
           success: true,
           action: "",
-          score: 0.4 // > 0.3
+          score: 0.4, // > 0.3
         }),
       } as any);
 
@@ -177,7 +199,7 @@ describe("Recaptcha Tests", () => {
       vi.mocked(fetch).mockResolvedValue({
         json: async () => ({
           success: false,
-          "error-codes": ["invalid-input-response"]
+          "error-codes": ["invalid-input-response"],
         }),
       } as any);
 
@@ -195,12 +217,17 @@ describe("Recaptcha Tests", () => {
       delete process.env.RECAPTCHA_V3_SECRET_KEY;
 
       // Suppress console.error for this test
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       await recaptchaVerifier(req as Request, res as Response);
 
       expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ success: false, error: "Verification failed" });
+      expect(res.json).toHaveBeenCalledWith({
+        success: false,
+        error: "Verification failed",
+      });
 
       consoleSpy.mockRestore();
     });
