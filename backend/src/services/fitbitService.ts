@@ -61,23 +61,29 @@ const NUTRITION_MAP: { [key: string]: string } = {
  */
 export const getUnitId = (unit: string): number => {
   // 頻出する単位とそのバリエーションをFitbitのIDにマッピング
+  // Reference: Fitbit API `get-food-units` endpoint (Retrieved 2025-12-29 with Accept-Locale: ja_JP)
+  // See: backend/units_master.tsv for full list
   const unitMap: { [key: string]: number } = {
-    g: 1, // gram
-    gram: 1,
-    grams: 1,
-    ml: 147, // milliliter
-    milliliter: 147,
-    milliliters: 147,
-    oz: 13, // ounce
-    "fl oz": 19, // fluidounce
-    serving: 86, // serving
-    個: 86, // 日本語の「個」もservingとして扱う
+    g: 147, // gram (ID: 147)
+    gram: 147,
+    grams: 147,
+    ml: 209, // milliliter (ID: 209)
+    milliliter: 209,
+    milliliters: 209,
+    oz: 13, // ounce (ID: 13)
+    "fl oz": 19, // fluidounce (ID: 19)
+    cup: 91, // cup (ID: 91)
+    serving: 304, // serving / 食分 (ID: 304)
+    servings: 304,
+    "1食分": 304,
+    人前: 304,
+    個: 304, // "個" often implies 1 serving. Physical unit ID is 5, but 304 is safer for generic pieces.
   };
   const lowerCaseUnit = unit ? unit.toLowerCase() : "";
   if (unitMap[lowerCaseUnit]) return unitMap[lowerCaseUnit];
   // 未知の単位に対するフォールバック
-  console.warn(`Unknown unit "${unit}". Defaulting to 'serving'(86).`);
-  return 86;
+  console.warn(`Unknown unit "${unit}". Defaulting to 'serving'(304).`);
+  return 304;
 };
 
 /**
