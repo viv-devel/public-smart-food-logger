@@ -345,7 +345,7 @@ describe("Fitbit API Functions", () => {
       // Verify calls for the first food (Apple)
       const createFoodParams1 = new URLSearchParams();
       createFoodParams1.append("name", "Apple");
-      createFoodParams1.append("defaultFoodMeasurementUnitId", "86");
+      createFoodParams1.append("defaultFoodMeasurementUnitId", "304");
       createFoodParams1.append("defaultServingSize", "1");
       createFoodParams1.append("calories", "95");
       createFoodParams1.append("formType", "DRY");
@@ -366,7 +366,7 @@ describe("Fitbit API Functions", () => {
       const logFoodParams1 = new URLSearchParams({
         foodId: "mockFoodId_Apple",
         mealTypeId: "1", // Breakfast
-        unitId: "86",
+        unitId: "304",
         amount: "1",
         date: "2023-01-01",
         time: "08:00",
@@ -387,7 +387,7 @@ describe("Fitbit API Functions", () => {
       // Verify calls for the second food (Orange Juice)
       const createFoodParams2 = new URLSearchParams();
       createFoodParams2.append("name", "Orange Juice");
-      createFoodParams2.append("defaultFoodMeasurementUnitId", "147"); // ml
+      createFoodParams2.append("defaultFoodMeasurementUnitId", "209"); // ml
       createFoodParams2.append("defaultServingSize", "200");
       createFoodParams2.append("calories", "90");
       createFoodParams2.append("formType", "DRY");
@@ -411,7 +411,7 @@ describe("Fitbit API Functions", () => {
       const logFoodParams2 = new URLSearchParams({
         foodId: "mockFoodId_Juice",
         mealTypeId: "1", // Breakfast
-        unitId: "147",
+        unitId: "209",
         amount: "200",
         date: "2023-01-01",
         time: "08:00",
@@ -631,7 +631,7 @@ describe("Fitbit API Functions", () => {
 
       const createFoodParams = new URLSearchParams();
       createFoodParams.append("name", "Unknown Food");
-      createFoodParams.append("defaultFoodMeasurementUnitId", "86"); // Default unitId
+      createFoodParams.append("defaultFoodMeasurementUnitId", "304"); // Default unitId
       createFoodParams.append("defaultServingSize", "1");
       createFoodParams.append("calories", "100");
       createFoodParams.append("formType", "DRY");
@@ -652,7 +652,7 @@ describe("Fitbit API Functions", () => {
       const logFoodParams = new URLSearchParams({
         foodId: "mockFoodId_Unknown",
         mealTypeId: "1",
-        unitId: "86", // Default unitId
+        unitId: "304", // Default unitId
         amount: "1",
         date: "2023-01-01",
         time: "08:00",
