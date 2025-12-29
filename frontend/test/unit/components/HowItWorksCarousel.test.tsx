@@ -2,6 +2,23 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import HowItWorksCarousel from "@/components/HowItWorksCarousel";
 
+// Define types for motion props to avoid 'any'
+// Define types for motion props using React.ComponentProps
+type MotionDivProps = Omit<React.ComponentProps<"div">, "onDragEnd"> & {
+  onDragEnd?: (
+    event: unknown,
+    info: {
+      offset: { x: number; y: number };
+      velocity: { x: number; y: number };
+    },
+  ) => void;
+  onTap?: (event: unknown, info: unknown) => void;
+  whileTap?: unknown;
+  drag?: unknown;
+  dragConstraints?: unknown;
+  dragElastic?: unknown;
+};
+
 // Mock framer-motion components
 vi.mock("framer-motion", () => ({
   motion: {
@@ -16,9 +33,9 @@ vi.mock("framer-motion", () => ({
       dragConstraints,
       dragElastic,
       ...props
-    }: any) => {
+    }: MotionDivProps) => {
       // Map onTap to onClick for testing
-      const handleClick = (e: any) => {
+      const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (onClick) onClick(e);
         if (onTap) onTap(e, {});
       };
@@ -53,22 +70,39 @@ vi.mock("framer-motion", () => ({
               }
             />
           )}
+          {onDragEnd && (
+            <button
+              data-testid="trigger-weak-drag"
+              onClick={() =>
+                onDragEnd(null, {
+                  offset: { x: 20, y: 0 },
+                  velocity: { x: 50, y: 0 },
+                })
+              }
+            />
+          )}
         </div>
       );
     },
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   PanInfo: {},
 }));
 
 // Mock Next.js Image
 vi.mock("next/image", () => ({
-  default: ({ fill, priority, ...props }: any) => (
-    <img
-      {...props}
-      alt={props.alt}
-      data-priority={priority ? "true" : "false"}
-    />
+  default: ({
+    fill,
+    priority,
+    alt,
+    ...props
+  }: React.ComponentProps<"img"> & {
+    fill?: boolean;
+    priority?: boolean;
+  }) => (
+    <img {...props} alt={alt} data-priority={priority ? "true" : "false"} />
   ),
 }));
 
@@ -190,6 +224,31 @@ describe("HowItWorksCarousel", () => {
     // Swipe Right (Prev)
     const dragRightBtn = screen.getByTestId("trigger-drag-right");
     fireEvent.click(dragRightBtn);
+    expect(screen.getByText("AIに食事を伝える")).toBeDefined();
+  });
+
+  it("does not navigate on weak swipes below threshold", () => {
+    render(<HowItWorksCarousel />);
+
+    // Trigger a weak swipe that should not cause navigation
+    const weakDragButton = screen.getByTestId("trigger-weak-drag");
+    fireEvent.click(weakDragButton);
+
+    // Should stay on Step 1
+    expect(screen.getByText("AIに食事を伝える")).toBeDefined();
+  });
+
+  it("handles boundary swipes correctly", () => {
+    render(<HowItWorksCarousel />);
+
+    // At step 1, swipe right should loop to step 3 (last step)
+    const dragRightBtn = screen.getByTestId("trigger-drag-right");
+    fireEvent.click(dragRightBtn); // 1 -> 3
+    expect(screen.getByText("Fitbitで栄養をチェック")).toBeDefined();
+
+    // Swipe left should go to step 1 (first step)
+    const dragLeftBtn = screen.getByTestId("trigger-drag-left");
+    fireEvent.click(dragLeftBtn); // 3 -> 1
     expect(screen.getByText("AIに食事を伝える")).toBeDefined();
   });
 });
