@@ -272,4 +272,32 @@ describe("HeaderMenu", () => {
       expect(screen.queryByText("アプリトップ")).toBeNull();
     });
   });
+
+  it("closes menu when clicking other links (Instructions, Tips, Terms, Privacy)", async () => {
+    (useFirebaseAuth as Mock).mockReturnValue({ user: null });
+    render(<HeaderMenu />);
+
+    const links = [
+      "設定手順",
+      "使い方のヒント",
+      "利用規約",
+      "プライバシーポリシー",
+    ];
+
+    for (const linkText of links) {
+      // Open menu
+      fireEvent.click(screen.getByTestId("header-menu-button"));
+      await waitFor(() => {
+        expect(screen.getByText(linkText)).toBeDefined();
+      });
+
+      // Click link
+      fireEvent.click(screen.getByText(linkText));
+
+      // Menu should close
+      await waitFor(() => {
+        expect(screen.queryByText(linkText)).toBeNull();
+      });
+    }
+  });
 });
