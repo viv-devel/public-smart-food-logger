@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { ToastProvider, useToast } from "@/components/Toast";
 
 // Mock framer-motion components
@@ -21,29 +21,51 @@ vi.mock("framer-motion", async () => {
 });
 
 // Test component to trigger toast
-const TestComponent = () => {
+const TestComponent = ({
+  type = "success",
+}: {
+  type?: "success" | "error" | "info";
+}) => {
   const { showToast } = useToast();
   return (
-    <button onClick={() => showToast("Test Message", "success")}>
-      Show Toast
-    </button>
+    <button onClick={() => showToast("Test Message", type)}>Show Toast</button>
+  );
+};
+
+// Component to trigger multiple toasts
+const MultiToastComponent = () => {
+  const { showToast } = useToast();
+  return (
+    <div>
+      <button onClick={() => showToast("First Toast", "success")}>First</button>
+      <button onClick={() => showToast("Second Toast", "info")}>Second</button>
+    </div>
   );
 };
 
 describe("Toast Component", () => {
-  it("renders toast when showToast is called", async () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    { type: "success", className: "bg-green-600" },
+    { type: "error", className: "bg-red-600" },
+    { type: "info", className: "bg-blue-600" },
+  ] as const)("renders $type toast correctly", async ({ type, className }) => {
     render(
       <ToastProvider>
-        <TestComponent />
+        <TestComponent type={type} />
       </ToastProvider>,
     );
 
-    const button = screen.getByText("Show Toast");
-    fireEvent.click(button);
+    fireEvent.click(screen.getByText("Show Toast"));
+    const toast = await screen.findByText("Test Message");
+    expect(toast).toBeDefined();
 
-    // Wait for the toast to appear
-    const toastMessage = await screen.findByText("Test Message");
-    expect(toastMessage).toBeDefined();
+    const toastContainer = toast.closest("div");
+    expect(toastContainer?.className).toContain(className);
   });
 
   it("removes toast when close button is clicked", async () => {
@@ -54,18 +76,57 @@ describe("Toast Component", () => {
     );
 
     fireEvent.click(screen.getByText("Show Toast"));
-    const toastMessage = await screen.findByText("Test Message");
-    expect(toastMessage).toBeDefined();
+    await screen.findByText("Test Message");
 
     const closeButton = screen.getByLabelText("Close");
     fireEvent.click(closeButton);
 
-    // Since we mocked AnimatePresence, removal should be instant or on next render
-    // We can use waitForElementToBeRemoved but sometimes it's tricky with mocks
-    // Let's just check if it's gone
-    // We need to wait a tick because state update is async
     await act(async () => {});
-
     expect(screen.queryByText("Test Message")).toBeNull();
+  });
+
+  it("auto-dismisses toast after 5 seconds", async () => {
+    vi.useFakeTimers();
+    render(
+      <ToastProvider>
+        <TestComponent />
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByText("Show Toast"));
+    // With fake timers, we should assert immediately or manually advance if waiting is needed.
+    // Since state update is triggered by click (inside act), it should be visible.
+    expect(screen.getByText("Test Message")).toBeDefined();
+
+    // Advance timer by 5 seconds
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    // Validating removal
+    expect(screen.queryByText("Test Message")).toBeNull();
+  });
+
+  it("renders multiple toasts", async () => {
+    render(
+      <ToastProvider>
+        <MultiToastComponent />
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByText("First"));
+    fireEvent.click(screen.getByText("Second"));
+
+    expect(await screen.findByText("First Toast")).toBeDefined();
+    expect(await screen.findByText("Second Toast")).toBeDefined();
+  });
+
+  it("throws error when useToast is used outside ToastProvider", () => {
+    // Suppress console.error for this test to avoid noise
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => {
+      render(<TestComponent />);
+    }).toThrow("useToast must be used within a ToastProvider");
   });
 });

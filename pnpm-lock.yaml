@@ -91,6 +91,9 @@ importers:
       '@smart-food-logger/shared':
         specifier: workspace:*
         version: link:../shared
+      '@types/express':
+        specifier: ^4.17.25
+        version: 4.17.25
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.1
@@ -5833,7 +5836,7 @@ snapshots:
   '@grpc/grpc-js@1.9.15':
     dependencies:
       '@grpc/proto-loader': 0.7.15
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@grpc/proto-loader@0.7.15':
     dependencies:
@@ -6628,7 +6631,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.14(@opentelemetry/api@1.9.0)(@types/node@24.10.1)(@vitest/ui@4.0.14)(jiti@2.6.1)(jsdom@27.2.0)(lightningcss@1.30.2)(yaml@2.8.1)
+      vitest: 4.0.14(@opentelemetry/api@1.9.0)(@types/node@20.19.25)(@vitest/ui@4.0.14)(jiti@2.6.1)(jsdom@27.2.0)(lightningcss@1.30.2)(yaml@2.8.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -9046,7 +9049,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       long: 5.3.2
 
   proxy-addr@2.0.7:

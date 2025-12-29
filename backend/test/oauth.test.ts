@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { oauthHandler } from "../src/handlers/oauth.js";
 import { exchangeCodeForTokens } from "../src/services/fitbitService.js";
-import { Request, Response } from "express";
+
+// Infer types directly from the handler to ensure compatibility
+type HandlerRequest = Parameters<typeof oauthHandler>[0];
+type HandlerResponse = Parameters<typeof oauthHandler>[1];
 
 // Mock dependencies
 vi.mock("../src/services/fitbitService.js", () => ({
@@ -10,26 +13,26 @@ vi.mock("../src/services/fitbitService.js", () => ({
 
 // Create mocks for Request and Response
 const mockReq = (method = "GET", query = {}) => {
-  const req: Partial<Request> = {
+  const req: Partial<HandlerRequest> = {
     method,
     query,
   };
-  return req as Request;
+  return req as unknown as HandlerRequest;
 };
 
 const mockRes = () => {
-  const res: Partial<Response> = {};
+  const res: Partial<HandlerResponse> = {};
   res.set = vi.fn().mockReturnValue(res);
   res.status = vi.fn().mockReturnValue(res);
   res.send = vi.fn().mockReturnValue(res);
   res.json = vi.fn().mockReturnValue(res);
   res.redirect = vi.fn().mockReturnValue(res);
-  return res as Response;
+  return res as unknown as HandlerResponse;
 };
 
 describe("oauthHandler", () => {
-  let req: Request;
-  let res: Response;
+  let req: HandlerRequest;
+  let res: HandlerResponse;
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -143,6 +146,41 @@ describe("oauthHandler", () => {
     expect(res.redirect).toHaveBeenCalledWith(
       302,
       expect.stringContaining(`uid=${firebaseUid}`),
+    );
+  });
+
+  it("should successfully exchange code and redirect using regex pattern", async () => {
+    const validUri =
+      "https://deploy-preview-123--valid-app.netlify.app/callback";
+    const firebaseUid = "test-uid";
+    const state = Buffer.from(
+      JSON.stringify({ firebaseUid, redirectUri: validUri }),
+    ).toString("base64");
+    req.query = { code: "valid-code", state };
+
+    await oauthHandler(req, res);
+
+    expect(exchangeCodeForTokens).toHaveBeenCalled();
+    expect(res.redirect).toHaveBeenCalledWith(
+      302,
+      expect.stringContaining(validUri),
+    );
+  });
+
+  it("should successfully exchange code and redirect using localhost", async () => {
+    const validUri = "http://localhost:3000/callback";
+    const firebaseUid = "test-uid";
+    const state = Buffer.from(
+      JSON.stringify({ firebaseUid, redirectUri: validUri }),
+    ).toString("base64");
+    req.query = { code: "valid-code", state };
+
+    await oauthHandler(req, res);
+
+    expect(exchangeCodeForTokens).toHaveBeenCalled();
+    expect(res.redirect).toHaveBeenCalledWith(
+      302,
+      expect.stringContaining(validUri),
     );
   });
 
