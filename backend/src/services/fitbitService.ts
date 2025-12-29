@@ -55,7 +55,7 @@ const NUTRITION_MAP: { [key: string]: string } = {
 
 // 頻出する単位とそのバリエーションをFitbitのIDにマッピング
 // Reference: Fitbit API `get-food-units` endpoint (Retrieved 2025-12-29 with Accept-Locale: ja_JP)
-// See: backend/units_master.tsv for full list
+// See: docs/ref-fitbit/units_master.tsv for full list
 const UNIT_MAP: { [key: string]: number } = {
   g: 147, // gram (ID: 147)
   gram: 147,
