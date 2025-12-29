@@ -670,5 +670,58 @@ describe("Fitbit API Functions", () => {
         },
       );
     });
+
+    test("should include optional nutrition data in create food params", async () => {
+      const nutritionDataWithDetails: any = {
+        meal_type: "Breakfast",
+        log_date: "2023-01-01",
+        log_time: "08:00",
+        foods: [
+          {
+            foodName: "Rich Food",
+            amount: 100,
+            unit: "g",
+            calories: 200,
+            protein_g: 10.5,
+            totalFat_g: 5.2,
+            totalCarbohydrate_g: 30.1,
+            sodium_mg: 150,
+          },
+        ],
+      };
+
+      (fetch as unknown as Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ food: { foodId: "mockFoodId_Rich" } }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ log: { logId: "mockLogId_Rich" } }),
+        });
+
+      await processAndLogFoods(
+        mockAccessToken,
+        nutritionDataWithDetails,
+        mockFitbitUserId,
+      );
+
+      // Verify create params contain nutrition data
+      const calls = (fetch as unknown as Mock).mock.calls;
+      const createCall = calls.find((call: any[]) =>
+        call[0].includes("/foods.json"),
+      );
+
+      if (!createCall) {
+        throw new Error("Create food API call not found");
+      }
+
+      const body = new URLSearchParams(createCall[1].body);
+
+      expect(body.get("protein")).toBe("10.5");
+      expect(body.get("totalFat")).toBe("5.2");
+      expect(body.get("totalCarbohydrate")).toBe("30.1");
+      expect(body.get("sodium")).toBe("150");
+    });
   });
 });

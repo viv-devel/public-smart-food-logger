@@ -31,6 +31,28 @@ vi.mock("framer-motion", () => ({
           {...props}
         >
           {children}
+          {onDragEnd && (
+            <button
+              data-testid="trigger-drag-right"
+              onClick={() =>
+                onDragEnd(null, {
+                  offset: { x: 100, y: 0 },
+                  velocity: { x: 200, y: 0 },
+                })
+              }
+            />
+          )}
+          {onDragEnd && (
+            <button
+              data-testid="trigger-drag-left"
+              onClick={() =>
+                onDragEnd(null, {
+                  offset: { x: -100, y: 0 },
+                  velocity: { x: -200, y: 0 },
+                })
+              }
+            />
+          )}
         </div>
       );
     },
@@ -152,8 +174,22 @@ describe("HowItWorksCarousel", () => {
 
   it("pagination buttons work", () => {
     render(<HowItWorksCarousel />);
-    const buttons = screen.getAllByRole("button");
-    fireEvent.click(buttons[2]); // Go to Step 3
+    const step3Button = screen.getByLabelText("Go to step 3");
+    fireEvent.click(step3Button);
     expect(screen.getByText("Fitbitで栄養をチェック")).toBeDefined();
+  });
+
+  it("handles swipes correctly", () => {
+    render(<HowItWorksCarousel />);
+
+    // Swipe Left (Next)
+    const dragLeftBtn = screen.getByTestId("trigger-drag-left");
+    fireEvent.click(dragLeftBtn);
+    expect(screen.getByText("JSONを貼り付けて記録")).toBeDefined();
+
+    // Swipe Right (Prev)
+    const dragRightBtn = screen.getByTestId("trigger-drag-right");
+    fireEvent.click(dragRightBtn);
+    expect(screen.getByText("AIに食事を伝える")).toBeDefined();
   });
 });
