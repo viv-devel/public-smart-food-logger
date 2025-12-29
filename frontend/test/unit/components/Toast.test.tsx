@@ -49,27 +49,14 @@ describe("Toast Component", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders success toast correctly", async () => {
+  it.each([
+    { type: "success", className: "bg-green-600" },
+    { type: "error", className: "bg-red-600" },
+    { type: "info", className: "bg-blue-600" },
+  ] as const)("renders $type toast correctly", async ({ type, className }) => {
     render(
       <ToastProvider>
-        <TestComponent type="success" />
-      </ToastProvider>,
-    );
-
-    fireEvent.click(screen.getByText("Show Toast"));
-    const toast = await screen.findByText("Test Message");
-    expect(toast).toBeDefined();
-
-    // Check for success styling (green implementation)
-    // Note: class check depends on implementation details, but ensures branch coverage
-    const toastContainer = toast.closest("div");
-    expect(toastContainer?.className).toContain("bg-green-600");
-  });
-
-  it("renders error toast correctly", async () => {
-    render(
-      <ToastProvider>
-        <TestComponent type="error" />
+        <TestComponent type={type} />
       </ToastProvider>,
     );
 
@@ -78,22 +65,7 @@ describe("Toast Component", () => {
     expect(toast).toBeDefined();
 
     const toastContainer = toast.closest("div");
-    expect(toastContainer?.className).toContain("bg-red-600");
-  });
-
-  it("renders info toast correctly", async () => {
-    render(
-      <ToastProvider>
-        <TestComponent type="info" />
-      </ToastProvider>,
-    );
-
-    fireEvent.click(screen.getByText("Show Toast"));
-    const toast = await screen.findByText("Test Message");
-    expect(toast).toBeDefined();
-
-    const toastContainer = toast.closest("div");
-    expect(toastContainer?.className).toContain("bg-blue-600");
+    expect(toastContainer?.className).toContain(className);
   });
 
   it("removes toast when close button is clicked", async () => {
@@ -156,7 +128,5 @@ describe("Toast Component", () => {
     expect(() => {
       render(<TestComponent />);
     }).toThrow("useToast must be used within a ToastProvider");
-
-    consoleSpy.mockRestore();
   });
 });
