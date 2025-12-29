@@ -9,6 +9,7 @@ import {
   test,
   vi,
 } from "vitest";
+import type { CreateFoodLogRequest } from "@smart-food-logger/shared";
 
 import {
   getTokensFromFirestore,
@@ -672,7 +673,7 @@ describe("Fitbit API Functions", () => {
     });
 
     test("should include optional nutrition data in create food params", async () => {
-      const nutritionDataWithDetails: any = {
+      const nutritionDataWithDetails: CreateFoodLogRequest = {
         meal_type: "Breakfast",
         log_date: "2023-01-01",
         log_time: "08:00",
@@ -707,10 +708,8 @@ describe("Fitbit API Functions", () => {
       );
 
       // Verify create params contain nutrition data
-      const calls = (fetch as unknown as Mock).mock.calls;
-      const createCall = calls.find((call: any[]) =>
-        call[0].includes("/foods.json"),
-      );
+      const calls = (fetch as unknown as Mock).mock.calls as [string, any][];
+      const createCall = calls.find((call) => call[0].includes("/foods.json"));
 
       if (!createCall) {
         throw new Error("Create food API call not found");
