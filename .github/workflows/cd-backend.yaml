@@ -152,7 +152,7 @@ jobs:
             --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
-            --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=healthChecker \
+
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},NODE_ENV=production,FUNCTION_TARGET=healthChecker" \
             --project=${{ secrets.PROJECT_ID }}
 
@@ -206,7 +206,7 @@ jobs:
             --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
-            --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=recaptchaVerifier \
+
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production,FUNCTION_TARGET=recaptchaVerifier" \
             --project=${{ secrets.PROJECT_ID }}
 
@@ -260,7 +260,7 @@ jobs:
             --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
-            --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=oauthHandler \
+
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},ALLOWED_REDIRECT_ORIGINS=${{ vars.ALLOWED_REDIRECT_ORIGINS }},ALLOWED_REDIRECT_PATTERN=${{ vars.ALLOWED_REDIRECT_PATTERN }},NODE_ENV=production,FUNCTION_TARGET=oauthHandler" \
             --project=${{ secrets.PROJECT_ID }}
 
@@ -314,7 +314,7 @@ jobs:
             --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
-            --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=foodLogHandler \
+
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production,FUNCTION_TARGET=foodLogHandler" \
             --project=${{ secrets.PROJECT_ID }}
 
