@@ -62,8 +62,14 @@ jobs:
       - name: Check for changes
         id: filter
         run: |
+          # github.event.before のフォールバック (workflow_dispatch 対応)
+          BEFORE_REF="${{ github.event.before }}"
+          if [ -z "$BEFORE_REF" ] || [ "$BEFORE_REF" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE_REF="HEAD~1"
+          fi
+
           # ワークフロー自体の変更チェック
-          WORKFLOW_CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^\.github/workflows/cd-backend\.yaml$' || true)
+          WORKFLOW_CHANGED=$(git diff --name-only "$BEFORE_REF" "${{ github.sha }}" | grep -E '^\.github/workflows/cd-backend\.yaml$' || true)
 
           if [ -n "$WORKFLOW_CHANGED" ]; then
             echo "Workflow changed. Deploying all functions for safety."

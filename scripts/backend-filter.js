@@ -89,10 +89,12 @@ function getChangedFiles() {
 function matchesPattern(filePath, pattern) {
   if (typeof pattern === "string") {
     // Glob パターンを正規表現に変換
+    // **を先にプレースホルダーに置き換えて、*の置換から保護する
     const regexPattern = pattern
       .replace(/\./g, "\\.")
-      .replace(/\*\*/g, ".*")
-      .replace(/\*/g, "[^/]*");
+      .replace(/\*\*/g, "__GLOBSTAR__")
+      .replace(/\*/g, "[^/]*")
+      .replace(/__GLOBSTAR__/g, ".*");
     return new RegExp(`^${regexPattern}$`).test(filePath);
   }
   return pattern.test(filePath);
