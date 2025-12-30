@@ -17,6 +17,6 @@ export default defineConfig({
     "firebase-admin",
     "node-fetch",
     "@google-cloud/functions-framework",
-    "zod", // Prevent bundling zod (used by shared package)
+    "zod",
   ],
 });

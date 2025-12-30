@@ -7,11 +7,7 @@ import { AuthenticationError } from "../utils/errors.js";
 // `admin.apps.length === 0` のチェックは、SDKが複数回初期化されるのを防ぐための定石です。
 // 重複初期化はエラーを引き起こすため、このガード句が重要になります。
 if (admin.apps.length === 0) {
-  admin.initializeApp({
-    // GCPプロジェクトIDは、Cloud Functionsの実行環境では自動的に設定されます。
-    // ローカルでのテストなど、環境変数がない場合は `firebase-admin` が `GOOGLE_APPLICATION_CREDENTIALS` を参照します。
-    projectId: process.env.GCP_PROJECT,
-  });
+  admin.initializeApp();
 }
 
 const db = admin.firestore();
