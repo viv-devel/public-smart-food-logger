@@ -22,13 +22,13 @@
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.0.0",
+    "@smart-food-logger/shared": "workspace:*",
     "firebase-admin": "^13.6.0",
     "node-fetch": "^3.3.2",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@smart-food-logger/shared": "workspace:*",
     "@types/express": "^4.17.25",
     "@types/node": "^24.10.1",
     "@typescript-eslint/parser": "^8.47.0",

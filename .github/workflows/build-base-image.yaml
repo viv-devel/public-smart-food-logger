@@ -1,0 +1,72 @@
+name: Build Backend Base Image
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches: [main, develop]
+    paths:
+      - "backend/package.json"
+      - "backend/Dockerfile.base"
+      - "shared/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+
+      - name: Build Shared
+        run: pnpm --filter shared run build
+
+      - name: Prepare Base Image Context
+        run: |
+          mkdir -p base-context
+
+          # ルートのワークスペース設定ファイルをコピー
+          cp pnpm-lock.yaml base-context/
+          cp package.json base-context/
+
+          # pnpm-workspace.yaml をコピーし、frontendを除外するように修正
+          # (frontendディレクトリが存在しないため、警告やエラーを避ける)
+          grep -v "frontend" pnpm-workspace.yaml > base-context/pnpm-workspace.yaml
+
+          # backend パッケージをコピー
+          mkdir -p base-context/backend
+          cp backend/package.json base-context/backend/
+          cp backend/Dockerfile.base base-context/ # Ensure Dockerfile.base is copied to context root
+
+          # shared パッケージをコピー
+          mkdir -p base-context/shared
+          cp shared/package.json base-context/shared/
+          cp -r shared/dist base-context/shared/
+
+      - name: Authorize GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and Push Base Image
+        run: |
+          cd base-context
+          gcloud builds submit \
+            --project=${{ secrets.PROJECT_ID }} \
+            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest \
+            --file=Dockerfile.base \
+            .
+
+      - name: Tag with Git SHA
+        run: |
+          gcloud artifacts docker tags add \
+            asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest \
+            asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:${{ github.sha }}
