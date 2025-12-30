@@ -50,6 +50,10 @@ jobs:
           # We must DELETE it to force pnpm to generate a clean, standalone lockfile based on the pruned package.json.
           rm -f pnpm-lock.yaml
 
+          # ALSO CRITICAL: Remove the node_modules created by 'pnpm deploy' as it contains the symlinks triggering the error.
+          # We want a fresh install based strictly on the pruned package.json.
+          rm -rf node_modules
+
           # Re-generate a clean lockfile for the production dependencies
           pnpm install --lockfile-only --no-frozen-lockfile --ignore-workspace
           # Remove node_modules to keep the artifact slim (GCP will reinstall based on lockfile)
