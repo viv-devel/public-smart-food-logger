@@ -4,6 +4,10 @@
   "description": "Fitbit food logging logic for Gemini custom Gem.",
   "type": "module",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
   "scripts": {
     "start": "functions-framework --target=healthChecker",
     "gcp-build": "node -e \"console.log('Skipping build on GCP')\"",
