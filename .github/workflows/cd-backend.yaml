@@ -1,5 +1,4 @@
 name: CD - Backend
-# Force deploy to verify bundle optimization and index.ts removal (PR #108, #109)
 
 on:
   workflow_dispatch:

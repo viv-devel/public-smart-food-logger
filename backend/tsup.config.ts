@@ -2,6 +2,7 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: [
+    "src/index.ts",
     "src/recaptcha.ts",
     "src/health.ts",
     "src/handlers/oauth.ts",
