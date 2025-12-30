@@ -146,7 +146,8 @@ jobs:
             --entry-point=healthChecker \
             --trigger-http \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --set-build-env-vars=NODE_ENV=production \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},NODE_ENV=production" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
@@ -202,7 +203,8 @@ jobs:
             --entry-point=recaptchaVerifier \
             --trigger-http \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }}" \
+            --set-build-env-vars=NODE_ENV=production \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
@@ -258,7 +260,8 @@ jobs:
             --entry-point=oauthHandler \
             --trigger-http \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},ALLOWED_REDIRECT_ORIGINS=${{ vars.ALLOWED_REDIRECT_ORIGINS }},ALLOWED_REDIRECT_PATTERN=${{ vars.ALLOWED_REDIRECT_PATTERN }}" \
+            --set-build-env-vars=NODE_ENV=production \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},ALLOWED_REDIRECT_ORIGINS=${{ vars.ALLOWED_REDIRECT_ORIGINS }},ALLOWED_REDIRECT_PATTERN=${{ vars.ALLOWED_REDIRECT_PATTERN }},NODE_ENV=production" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
@@ -314,7 +317,8 @@ jobs:
             --entry-point=foodLogHandler \
             --trigger-http \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }}" \
+            --set-build-env-vars=NODE_ENV=production \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
