@@ -151,7 +151,6 @@ jobs:
           gcloud functions deploy healthchecker \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
             --source=backend \
             --entry-point=healthChecker \
             --trigger-http \
@@ -212,7 +211,6 @@ jobs:
           gcloud functions deploy recaptchaverifier \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
             --source=backend \
             --entry-point=recaptchaVerifier \
             --trigger-http \
@@ -273,7 +271,6 @@ jobs:
           gcloud functions deploy oauthhandler \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
             --source=backend \
             --entry-point=oauthHandler \
             --trigger-http \
@@ -334,7 +331,6 @@ jobs:
           gcloud functions deploy foodloghandler \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
             --source=backend \
             --entry-point=foodLogHandler \
             --trigger-http \
