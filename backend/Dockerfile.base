@@ -1,0 +1,19 @@
+FROM node:20-slim
+
+# pnpm をグローバルにインストール
+RUN npm install -g pnpm@10.24.0
+
+WORKDIR /app
+
+# shared パッケージを先に配置
+COPY shared-dist ./node_modules/@smart-food-logger/shared/dist
+COPY shared-package.json ./node_modules/@smart-food-logger/shared/package.json
+
+# backend の依存関係をインストール
+COPY backend-package.json ./package.json
+
+# sharedは既に配置済みなので、他の依存関係のみインストール
+RUN pnpm install --prod --no-lockfile
+
+# pnpm ストアをクリーンアップしてイメージサイズを削減
+RUN pnpm store prune

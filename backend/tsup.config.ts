@@ -12,11 +12,11 @@ export default defineConfig({
   clean: true,
   target: "node20",
   splitting: false,
-  noExternal: ["@smart-food-logger/shared"],
   external: [
     "firebase-admin",
     "node-fetch",
     "@google-cloud/functions-framework",
-    "zod", // Prevent bundling zod (used by shared package)
+    "zod",
+    "@smart-food-logger/shared",
   ],
 });
