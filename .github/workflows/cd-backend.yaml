@@ -35,8 +35,10 @@ jobs:
           pnpm --filter backend deploy backend-deploy --prod
           # pnpm deploy might not copy 'dist' if it's ignored by git. Copy it manually.
           cp -r backend/dist backend-deploy/
-          # Copy .gcloudignore to ensure proper filtering during gcloud deploy
-          cp backend/.gcloudignore backend-deploy/
+          # Copy .gcloudignore if it exists to ensure proper filtering during gcloud deploy
+          if [ -f backend/.gcloudignore ]; then
+            cp backend/.gcloudignore backend-deploy/
+          fi
           # Remove node_modules to keep the artifact slim (GCP will reinstall based on lockfile)
           rm -rf backend-deploy/node_modules
 
