@@ -151,11 +151,9 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy healthchecker \
-            --gen2 \
+          gcloud run deploy healthchecker \
             --region=${{ secrets.FUNCTION_REGION }} \
             --image=${{ needs.build.outputs.image_uri }} \
-            --trigger-http \
             --allow-unauthenticated \
 
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},NODE_ENV=production,FUNCTION_TARGET=healthChecker" \
@@ -205,11 +203,9 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy recaptchaverifier \
-            --gen2 \
+          gcloud run deploy recaptchaverifier \
             --region=${{ secrets.FUNCTION_REGION }} \
             --image=${{ needs.build.outputs.image_uri }} \
-            --trigger-http \
             --allow-unauthenticated \
 
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production,FUNCTION_TARGET=recaptchaVerifier" \
@@ -259,11 +255,9 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy oauthhandler \
-            --gen2 \
+          gcloud run deploy oauthhandler \
             --region=${{ secrets.FUNCTION_REGION }} \
             --image=${{ needs.build.outputs.image_uri }} \
-            --trigger-http \
             --allow-unauthenticated \
 
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},ALLOWED_REDIRECT_ORIGINS=${{ vars.ALLOWED_REDIRECT_ORIGINS }},ALLOWED_REDIRECT_PATTERN=${{ vars.ALLOWED_REDIRECT_PATTERN }},NODE_ENV=production,FUNCTION_TARGET=oauthHandler" \
@@ -313,11 +307,9 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy foodloghandler \
-            --gen2 \
+          gcloud run deploy foodloghandler \
             --region=${{ secrets.FUNCTION_REGION }} \
             --image=${{ needs.build.outputs.image_uri }} \
-            --trigger-http \
             --allow-unauthenticated \
 
             --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production,FUNCTION_TARGET=foodLogHandler" \
