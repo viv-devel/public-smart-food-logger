@@ -14,6 +14,10 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
+// Git コミット参照の定数
+const BEFORE_COMMIT = process.env.GITHUB_EVENT_BEFORE || "HEAD~1";
+const AFTER_COMMIT = process.env.GITHUB_SHA || "HEAD";
+
 // 各関数の依存関係マップ
 const FUNCTION_DEPENDENCIES = {
   health: {
@@ -63,12 +67,9 @@ const IGNORED_FILES = [
  * Git diff で変更されたファイルのリストを取得
  */
 function getChangedFiles() {
-  const beforeCommit = process.env.GITHUB_EVENT_BEFORE || "HEAD~1";
-  const afterCommit = process.env.GITHUB_SHA || "HEAD";
-
   try {
     const output = execSync(
-      `git diff --name-only ${beforeCommit} ${afterCommit}`,
+      `git diff --name-only ${BEFORE_COMMIT} ${AFTER_COMMIT}`,
       {
         encoding: "utf8",
         stdio: ["pipe", "pipe", "pipe"],
@@ -112,18 +113,15 @@ function checkPackageJsonChanges(changedFiles, requiredPackages) {
   }
 
   try {
-    const beforeCommit = process.env.GITHUB_EVENT_BEFORE || "HEAD~1";
-    const afterCommit = process.env.GITHUB_SHA || "HEAD";
-
     // 変更前後の package.json を取得
     const beforeContent = execSync(
-      `git show ${beforeCommit}:${packageJsonPath}`,
+      `git show ${BEFORE_COMMIT}:${packageJsonPath}`,
       {
         encoding: "utf8",
       },
     );
     const afterContent = execSync(
-      `git show ${afterCommit}:${packageJsonPath}`,
+      `git show ${AFTER_COMMIT}:${packageJsonPath}`,
       {
         encoding: "utf8",
       },
@@ -139,7 +137,7 @@ function checkPackageJsonChanges(changedFiles, requiredPackages) {
     // 必要なパッケージのいずれかが変更されたかチェック
     for (const pkg of requiredPackages) {
       if (beforeDeps[pkg] !== afterDeps[pkg]) {
-        console.log(
+        console.error(
           `Package ${pkg} changed: ${beforeDeps[pkg]} -> ${afterDeps[pkg]}`,
         );
         return true;
@@ -190,22 +188,12 @@ function main() {
   console.error(`Checking ${functionName}...`);
   console.error(`Changed files (after filtering): ${relevantFiles.length}`);
 
-  // 1. 関数固有のファイルの変更をチェック
+  // 1. & 2. 関数固有のファイルとsharedディレクトリの変更をチェック
+  const allPatterns = [...deps.files, ...deps.sharedDirs];
   for (const file of relevantFiles) {
-    for (const pattern of deps.files) {
+    for (const pattern of allPatterns) {
       if (matchesPattern(file, pattern)) {
-        console.error(`  ✓ File changed: ${file}`);
-        console.log("true");
-        return;
-      }
-    }
-  }
-
-  // 2. shared ディレクトリの変更をチェック
-  for (const file of relevantFiles) {
-    for (const pattern of deps.sharedDirs) {
-      if (matchesPattern(file, pattern)) {
-        console.error(`  ✓ Shared file changed: ${file}`);
+        console.error(`  ✓ Relevant file changed: ${file}`);
         console.log("true");
         return;
       }
