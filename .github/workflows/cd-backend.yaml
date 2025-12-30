@@ -80,6 +80,11 @@ jobs:
     secrets: inherit
 
   build:
+    needs: [filter_changes, build_base]
+    if: |
+      always() && 
+      !contains(needs.*.result, 'failure') && 
+      !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
