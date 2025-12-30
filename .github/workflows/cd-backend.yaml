@@ -90,8 +90,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    outputs:
-      image_uri: ${{ steps.build-image.outputs.image_uri }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -128,7 +127,7 @@ jobs:
             backend
 
           docker push "${IMAGE_URI}"
-          echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          docker push "${IMAGE_URI}"
 
   deploy_health:
     needs: [build, filter_changes, build_base]
@@ -153,7 +152,7 @@ jobs:
         run: |
           gcloud run deploy healthchecker \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --image=${{ needs.build.outputs.image_uri }} \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
             --port=8080 \
             --memory=256Mi \
             --max-instances=100 \
@@ -207,7 +206,7 @@ jobs:
         run: |
           gcloud run deploy recaptchaverifier \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --image=${{ needs.build.outputs.image_uri }} \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
             --port=8080 \
             --memory=256Mi \
             --max-instances=100 \
@@ -261,7 +260,7 @@ jobs:
         run: |
           gcloud run deploy oauthhandler \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --image=${{ needs.build.outputs.image_uri }} \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
             --port=8080 \
             --memory=256Mi \
             --max-instances=100 \
@@ -315,7 +314,7 @@ jobs:
         run: |
           gcloud run deploy foodloghandler \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --image=${{ needs.build.outputs.image_uri }} \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
             --port=8080 \
             --memory=256Mi \
             --max-instances=100 \
