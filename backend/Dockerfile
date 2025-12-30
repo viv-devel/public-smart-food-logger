@@ -8,4 +8,4 @@ COPY dist ./dist
 COPY package.json ./
 
 # エントリーポイント（Cloud Functionsが使用）
-CMD ["npx", "@google-cloud/functions-framework", "--target=${FUNCTION_TARGET}"]
+CMD ["npx", "@google-cloud/functions-framework"]
