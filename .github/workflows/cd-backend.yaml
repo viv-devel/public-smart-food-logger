@@ -81,6 +81,12 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image_uri: ${{ steps.build-image.outputs.image_uri }}
     steps:
       - uses: actions/checkout@v4
 
@@ -93,34 +99,31 @@ jobs:
       - name: Build Backend
         run: pnpm --filter backend run build
 
-      - name: Prepare Deployment Directory
-        run: |
-          pnpm --filter backend deploy backend-deploy --prod --legacy
-          # ビルド済みdistをコピー
-          cp -r backend/dist backend-deploy/
-          # Dockerfileをコピー
-          cp backend/Dockerfile backend-deploy/
-          # .gcloudignoreをコピー
-          if [ -f backend/.gcloudignore ]; then
-            cp backend/.gcloudignore backend-deploy/
-          fi
-
-          cd backend-deploy
-          npm pkg delete devDependencies
-
-          # Dockerビルドでは不要（ベースイメージで依存関係を解決済み）
-          rm -f pnpm-lock.yaml
-          rm -rf node_modules
-
-          # 検証
-          echo "Files in deployment directory:"
-          ls -F
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Authorize GCP
+        uses: google-github-actions/auth@v2
         with:
-          name: backend-dist
-          path: backend-deploy
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
+
+      - name: Build and Push App Image
+        id: build-image
+        run: |
+          IMAGE_URI="asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }}"
+          BASE_IMAGE="asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest"
+
+          docker build \
+            --build-arg BASE_IMAGE="${BASE_IMAGE}" \
+            --tag "${IMAGE_URI}" \
+            --file backend/Dockerfile \
+            backend
+
+          docker push "${IMAGE_URI}"
+          echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
 
   deploy_health:
     needs: [build, filter_changes, build_base]
@@ -136,11 +139,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -151,8 +149,7 @@ jobs:
           gcloud functions deploy healthchecker \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --source=backend \
-            --entry-point=healthChecker \
+            --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
             --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=healthChecker \
@@ -196,11 +193,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -211,8 +203,7 @@ jobs:
           gcloud functions deploy recaptchaverifier \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --source=backend \
-            --entry-point=recaptchaVerifier \
+            --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
             --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=recaptchaVerifier \
@@ -256,11 +247,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -271,8 +257,7 @@ jobs:
           gcloud functions deploy oauthhandler \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --source=backend \
-            --entry-point=oauthHandler \
+            --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
             --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=oauthHandler \
@@ -316,11 +301,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -331,8 +311,7 @@ jobs:
           gcloud functions deploy foodloghandler \
             --gen2 \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --source=backend \
-            --entry-point=foodLogHandler \
+            --image=${{ needs.build.outputs.image_uri }} \
             --trigger-http \
             --allow-unauthenticated \
             --set-build-env-vars=NODE_ENV=production,FUNCTION_TARGET=foodLogHandler \
