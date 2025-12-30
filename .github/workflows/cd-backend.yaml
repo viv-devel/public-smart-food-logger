@@ -71,8 +71,8 @@ jobs:
           # ワークフロー自体の変更チェック
           WORKFLOW_CHANGED=$(git diff --name-only "$BEFORE_REF" "${{ github.sha }}" | grep -E '^\.github/workflows/cd-backend\.yaml$' || true)
 
-          if [ -n "$WORKFLOW_CHANGED" ]; then
-            echo "Workflow changed. Deploying all functions for safety."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ -n "$WORKFLOW_CHANGED" ]; then
+            echo "Workflow dispatch or workflow changed. Deploying all functions for safety."
             echo "deploy_health=true" >> $GITHUB_OUTPUT
             echo "deploy_recaptcha=true" >> $GITHUB_OUTPUT
             echo "deploy_oauth=true" >> $GITHUB_OUTPUT
