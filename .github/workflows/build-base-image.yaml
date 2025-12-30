@@ -2,6 +2,7 @@ name: Build Backend Base Image
 
 on:
   workflow_dispatch:
+  workflow_call:
   push:
     branches: [main, develop]
     paths:
@@ -28,16 +29,24 @@ jobs:
       - name: Prepare Base Image Context
         run: |
           mkdir -p base-context
-          cp backend/package.json base-context/backend-package.json
-          cp backend/Dockerfile.base base-context/
 
-          # shared の成果物をコピー
-          cp -r shared/dist base-context/shared-dist
-          cp shared/package.json base-context/shared-package.json
+          # ルートのワークスペース設定ファイルをコピー
+          cp pnpm-lock.yaml base-context/
+          cp package.json base-context/
 
-          # workspace:* プロトコルを削除（Dockerビルドでは使用できないため）
-          cd base-context
-          npm pkg delete dependencies.@smart-food-logger/shared
+          # pnpm-workspace.yaml をコピーし、frontendを除外するように修正
+          # (frontendディレクトリが存在しないため、警告やエラーを避ける)
+          grep -v "frontend" pnpm-workspace.yaml > base-context/pnpm-workspace.yaml
+
+          # backend パッケージをコピー
+          mkdir -p base-context/backend
+          cp backend/package.json base-context/backend/
+          cp backend/Dockerfile.base base-context/ # Ensure Dockerfile.base is copied to context root
+
+          # shared パッケージをコピー
+          mkdir -p base-context/shared
+          cp shared/package.json base-context/shared/
+          cp -r shared/dist base-context/shared/
 
       - name: Authorize GCP
         uses: google-github-actions/auth@v2

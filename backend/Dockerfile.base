@@ -1,19 +1,39 @@
-FROM node:20-slim
+# --- Builder Stage ---
+FROM node:20-slim AS builder
 
 # pnpm をグローバルにインストール
 RUN npm install -g pnpm@10.24.0
 
 WORKDIR /app
 
-# shared パッケージを先に配置
-COPY shared-dist ./node_modules/@smart-food-logger/shared/dist
-COPY shared-package.json ./node_modules/@smart-food-logger/shared/package.json
+# ワークスペース設定とロックファイルをコピー
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
 
-# backend の依存関係をインストール
-COPY backend-package.json ./package.json
+# backend パッケージをコピー
+COPY backend/package.json ./backend/package.json
 
-# sharedは既に配置済みなので、他の依存関係のみインストール
-RUN pnpm install --prod --no-lockfile
+# shared パッケージとビルド成果物をコピー
+COPY shared/package.json ./shared/package.json
+COPY shared/dist ./shared/dist
 
-# pnpm ストアをクリーンアップしてイメージサイズを削減
-RUN pnpm store prune
+# 依存関係をインストール
+# - lockファイルを使用するためバージョン再現性あり
+# - backendとsharedのみが対象となる
+RUN pnpm install --frozen-lockfile --filter backend
+
+# 本番用デプロイディレクトリを作成
+# - sharedなどのワークスペース依存も解決され、フラットなnode_modulesが生成される
+RUN pnpm --filter backend deploy /app/deployed --prod --legacy
+
+# --- Final Stage ---
+# 最終イメージには必要なものだけを持たせる
+FROM node:20-slim
+
+WORKDIR /app
+
+# Builderステージからデプロイ済みの依存関係のみをコピー
+# deployコマンドにより、node_modulesは整理されている
+COPY --from=builder /app/deployed/node_modules ./node_modules
+

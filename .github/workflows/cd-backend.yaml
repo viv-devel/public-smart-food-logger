@@ -14,6 +14,71 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  filter_changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deploy_health: ${{ steps.filter.outputs.deploy_health }}
+      deploy_recaptcha: ${{ steps.filter.outputs.deploy_recaptcha }}
+      deploy_oauth: ${{ steps.filter.outputs.deploy_oauth }}
+      deploy_foodlog: ${{ steps.filter.outputs.deploy_foodlog }}
+      dependencies: ${{ steps.filter_deps.outputs.dependencies }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 全履歴を取得（git diff用）
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check for dependency changes
+        id: filter_deps
+        uses: dorny/paths-filter@v3.0.2
+        with:
+          filters: |
+            dependencies:
+              - 'backend/package.json'
+              - 'backend/Dockerfile.base'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'shared/**'
+
+      - name: Check for logic changes
+        id: filter
+        run: |
+          # github.event.before のフォールバック (workflow_dispatch 対応)
+          BEFORE_REF="${{ github.event.before }}"
+          if [ -z "$BEFORE_REF" ] || [ "$BEFORE_REF" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE_REF="HEAD~1"
+          fi
+
+          # ワークフロー自体の変更チェック
+          WORKFLOW_CHANGED=$(git diff --name-only "$BEFORE_REF" "${{ github.sha }}" | grep -E '^\.github/workflows/cd-backend\.yaml$' || true)
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ -n "$WORKFLOW_CHANGED" ]; then
+            echo "Workflow dispatch or workflow changed. Deploying all functions for safety."
+            echo "deploy_health=true" >> $GITHUB_OUTPUT
+            echo "deploy_recaptcha=true" >> $GITHUB_OUTPUT
+            echo "deploy_oauth=true" >> $GITHUB_OUTPUT
+            echo "deploy_foodlog=true" >> $GITHUB_OUTPUT
+          else
+            # 各関数ごとに個別チェック
+            echo "deploy_health=$(node scripts/backend-filter.js health 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+            echo "deploy_recaptcha=$(node scripts/backend-filter.js recaptcha 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+            echo "deploy_oauth=$(node scripts/backend-filter.js oauth 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+            echo "deploy_foodlog=$(node scripts/backend-filter.js foodlog 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+          fi
+
+  build_base:
+    needs: filter_changes
+    if: ${{ needs.filter_changes.outputs.dependencies == 'true' || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/build-base-image.yaml
+    secrets: inherit
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -57,55 +122,13 @@ jobs:
           name: backend-dist
           path: backend-deploy
 
-  filter_changes:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      deploy_health: ${{ steps.filter.outputs.deploy_health }}
-      deploy_recaptcha: ${{ steps.filter.outputs.deploy_recaptcha }}
-      deploy_oauth: ${{ steps.filter.outputs.deploy_oauth }}
-      deploy_foodlog: ${{ steps.filter.outputs.deploy_foodlog }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # 全履歴を取得（git diff用）
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Check for changes
-        id: filter
-        run: |
-          # github.event.before のフォールバック (workflow_dispatch 対応)
-          BEFORE_REF="${{ github.event.before }}"
-          if [ -z "$BEFORE_REF" ] || [ "$BEFORE_REF" = "0000000000000000000000000000000000000000" ]; then
-            BEFORE_REF="HEAD~1"
-          fi
-
-          # ワークフロー自体の変更チェック
-          WORKFLOW_CHANGED=$(git diff --name-only "$BEFORE_REF" "${{ github.sha }}" | grep -E '^\.github/workflows/cd-backend\.yaml$' || true)
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ -n "$WORKFLOW_CHANGED" ]; then
-            echo "Workflow dispatch or workflow changed. Deploying all functions for safety."
-            echo "deploy_health=true" >> $GITHUB_OUTPUT
-            echo "deploy_recaptcha=true" >> $GITHUB_OUTPUT
-            echo "deploy_oauth=true" >> $GITHUB_OUTPUT
-            echo "deploy_foodlog=true" >> $GITHUB_OUTPUT
-          else
-            # 各関数ごとに個別チェック
-            echo "deploy_health=$(node scripts/backend-filter.js health 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
-            echo "deploy_recaptcha=$(node scripts/backend-filter.js recaptcha 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
-            echo "deploy_oauth=$(node scripts/backend-filter.js oauth 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
-            echo "deploy_foodlog=$(node scripts/backend-filter.js foodlog 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
-          fi
-
   deploy_health:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_health == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_health == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -161,8 +184,12 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_recaptcha:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_recaptcha == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_recaptcha == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -218,8 +245,12 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_oauth:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_oauth == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_oauth == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -275,8 +306,12 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_foodlog:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_foodlog == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_foodlog == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
