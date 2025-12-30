@@ -21,12 +21,12 @@ const AFTER_COMMIT = process.env.GITHUB_SHA || "HEAD";
 // 各関数の依存関係マップ
 const FUNCTION_DEPENDENCIES = {
   health: {
-    files: ["backend/src/health.ts"],
+    files: ["backend/src/health.ts", "backend/tsup.config.ts"],
     packages: [], // 依存なし
     sharedDirs: [], // shared を使用しない
   },
   recaptcha: {
-    files: ["backend/src/recaptcha.ts"],
+    files: ["backend/src/recaptcha.ts", "backend/tsup.config.ts"],
     packages: ["node-fetch"],
     sharedDirs: [], // shared を使用しない
   },
@@ -35,6 +35,7 @@ const FUNCTION_DEPENDENCIES = {
       "backend/src/handlers/oauth.ts",
       "backend/src/services/**",
       "backend/src/utils/**",
+      "backend/tsup.config.ts",
     ],
     packages: ["firebase-admin", "node-fetch"],
     sharedDirs: [], // 型のみの参照なのでデプロイ不要
@@ -45,6 +46,7 @@ const FUNCTION_DEPENDENCIES = {
       "backend/src/services/**",
       "backend/src/repositories/**",
       "backend/src/utils/**",
+      "backend/tsup.config.ts",
     ],
     packages: ["firebase-admin", "node-fetch", "zod"],
     sharedDirs: [
@@ -56,12 +58,7 @@ const FUNCTION_DEPENDENCIES = {
 };
 
 // 無視するファイル
-const IGNORED_FILES = [
-  /^backend\/src\/index\.ts$/,
-  /^backend\/test\//,
-  /^shared\/test\//,
-  /\.md$/,
-];
+const IGNORED_FILES = [/^backend\/test\//, /^shared\/test\//, /\.md$/];
 
 /**
  * Git diff で変更されたファイルのリストを取得
@@ -132,11 +129,22 @@ function checkPackageJsonChanges(changedFiles, requiredPackages) {
     const beforePkg = JSON.parse(beforeContent);
     const afterPkg = JSON.parse(afterContent);
 
-    // dependencies のみチェック (devDependencies は無視)
+    // 特定のルートフィールドの変更をチェック
+    const checkFields = ["main", "type"];
+
+    for (const field of checkFields) {
+      if (
+        JSON.stringify(beforePkg[field]) !== JSON.stringify(afterPkg[field])
+      ) {
+        console.error(`  ✓ Root field '${field}' changed`);
+        return true;
+      }
+    }
+
+    // 必要なパッケージのいずれかが変更されたかチェック
     const beforeDeps = beforePkg.dependencies || {};
     const afterDeps = afterPkg.dependencies || {};
 
-    // 必要なパッケージのいずれかが変更されたかチェック
     for (const pkg of requiredPackages) {
       if (beforeDeps[pkg] !== afterDeps[pkg]) {
         console.error(

@@ -15,6 +15,7 @@ const SIGNIFICANT_PATHS = [
 const IGNORED_PATHS = [
   /^frontend\/test\//,
   /^shared\/test\//,
+  /^scripts\/backend-filter\.js$/,
   /\.md$/,
   /^frontend\/\.env\.local\.example$/,
   /^frontend\/vitest\.config\.ts$/,
