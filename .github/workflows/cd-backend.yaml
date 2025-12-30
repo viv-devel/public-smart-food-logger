@@ -32,7 +32,7 @@ jobs:
         # pnpm deploy creates a pruned directory with only production dependencies.
         # It also generates a dedicated pnpm-lock.yaml for this isolated package.
         run: |
-          pnpm --filter backend deploy backend-deploy --prod --legacy
+          pnpm --filter backend deploy backend-deploy --prod
           # pnpm deploy might not copy 'dist' if it's ignored by git. Copy it manually.
           cp -r backend/dist backend-deploy/
           # Copy .gcloudignore if it exists to ensure proper filtering during gcloud deploy
