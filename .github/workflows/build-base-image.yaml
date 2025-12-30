@@ -42,7 +42,7 @@ jobs:
           # backend パッケージをコピー
           mkdir -p base-context/backend
           cp backend/package.json base-context/backend/
-          cp backend/Dockerfile.base base-context/ # Ensure Dockerfile.base is copied to context root
+          cp backend/Dockerfile.base base-context/Dockerfile # Rename to Dockerfile for gcloud builds submit
 
           # shared パッケージをコピー
           mkdir -p base-context/shared
@@ -63,7 +63,6 @@ jobs:
           gcloud builds submit \
             --project=${{ secrets.PROJECT_ID }} \
             --tag=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest \
-            --file=Dockerfile.base \
             .
 
       - name: Tag with Git SHA
