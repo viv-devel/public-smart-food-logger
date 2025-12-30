@@ -28,16 +28,23 @@ jobs:
       - name: Build Backend
         run: pnpm --filter backend run build
 
-      - name: Remove devDependencies for Deployment
+      - name: Prepare Deployment Directory
+        # pnpm deploy creates a pruned directory with only production dependencies.
+        # It also generates a dedicated pnpm-lock.yaml for this isolated package.
         run: |
-          cd backend
-          npm pkg delete devDependencies
+          pnpm --filter backend deploy backend-deploy --prod
+          # pnpm deploy might not copy 'dist' if it's ignored by git. Copy it manually.
+          cp -r backend/dist backend-deploy/
+          # Copy .gcloudignore to ensure proper filtering during gcloud deploy
+          cp backend/.gcloudignore backend-deploy/
+          # Remove node_modules to keep the artifact slim (GCP will reinstall based on lockfile)
+          rm -rf backend-deploy/node_modules
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-dist
-          path: backend
+          path: backend-deploy
 
   filter_changes:
     runs-on: ubuntu-latest
