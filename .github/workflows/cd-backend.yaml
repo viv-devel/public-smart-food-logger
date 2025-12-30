@@ -32,21 +32,26 @@ jobs:
         # pnpm deploy creates a pruned directory with only production dependencies.
         # It also generates a dedicated pnpm-lock.yaml for this isolated package.
         run: |
-          pnpm --filter backend deploy backend-deploy --prod
+          pnpm --filter backend deploy backend-deploy --prod --legacy
           # pnpm deploy might not copy 'dist' if it's ignored by git. Copy it manually.
           cp -r backend/dist backend-deploy/
           # Copy .gcloudignore if it exists to ensure proper filtering during gcloud deploy
           if [ -f backend/.gcloudignore ]; then
             cp backend/.gcloudignore backend-deploy/
           fi
-          # Ensure devDependencies are removed to avoid "workspace:" protocol errors in npm-based environments
+          # IMPORTANT: Generate a standalone pnpm-lock.yaml for GCP Buildpacks to detect pnpm.
+          # pnpm deploy doesn't always provide a lockfile in the destination.
           cd backend-deploy
+          pnpm install --lockfile-only --no-frozen-lockfile
+          # Ensure devDependencies are removed to avoid "workspace:" protocol errors in npm-based environments
           npm pkg delete devDependencies
-          # Verification
-          echo "Final package.json content:"
-          cat package.json
           # Remove node_modules to keep the artifact slim (GCP will reinstall based on lockfile)
           rm -rf node_modules
+          # Verification and Debugging
+          echo "Final package.json content:"
+          cat package.json
+          echo "Files in deployment directory (pnpm-lock.yaml MUST be here):"
+          ls -F
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
