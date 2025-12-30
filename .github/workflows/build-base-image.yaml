@@ -57,13 +57,16 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Configure Docker
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
+
       - name: Build and Push Base Image
         run: |
           cd base-context
-          gcloud builds submit \
-            --project=${{ secrets.PROJECT_ID }} \
-            --tag=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest \
+          docker build \
+            --tag asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest \
             .
+          docker push asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest
 
       - name: Tag with Git SHA
         run: |
