@@ -42,7 +42,7 @@ jobs:
           # IMPORTANT: Generate a standalone pnpm-lock.yaml for GCP Buildpacks to detect pnpm.
           # pnpm deploy doesn't always provide a lockfile in the destination.
           cd backend-deploy
-          pnpm install --lockfile-only
+          pnpm install --lockfile-only --no-frozen-lockfile
           # Ensure devDependencies are removed to avoid "workspace:" protocol errors in npm-based environments
           npm pkg delete devDependencies
           # Remove node_modules to keep the artifact slim (GCP will reinstall based on lockfile)
