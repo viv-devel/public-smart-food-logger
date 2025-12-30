@@ -129,8 +129,8 @@ function checkPackageJsonChanges(changedFiles, requiredPackages) {
     const beforePkg = JSON.parse(beforeContent);
     const afterPkg = JSON.parse(afterContent);
 
-    // dependencies または特定のフィールドの変更をチェック
-    const checkFields = ["dependencies", "main", "type"];
+    // 特定のルートフィールドの変更をチェック
+    const checkFields = ["main", "type"];
 
     for (const field of checkFields) {
       if (
