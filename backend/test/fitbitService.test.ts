@@ -350,7 +350,10 @@ describe("Fitbit API Functions", () => {
       createFoodParams1.append("defaultServingSize", "1");
       createFoodParams1.append("calories", "95");
       createFoodParams1.append("formType", "DRY");
-      createFoodParams1.append("description", "Logged via Gemini: Apple");
+      createFoodParams1.append(
+        "description",
+        "Logged via Gemini: Apple [via sfl]",
+      );
 
       expect(fetch).toHaveBeenCalledWith(
         `https://api.fitbit.com/1/user/${mockFitbitUserId}/foods.json`,
@@ -394,7 +397,7 @@ describe("Fitbit API Functions", () => {
       createFoodParams2.append("formType", "DRY");
       createFoodParams2.append(
         "description",
-        "Logged via Gemini: Orange Juice",
+        "Logged via Gemini: Orange Juice [via sfl]",
       );
 
       expect(fetch).toHaveBeenCalledWith(
@@ -674,7 +677,10 @@ describe("Fitbit API Functions", () => {
       createFoodParams.append("defaultServingSize", "1");
       createFoodParams.append("calories", "100");
       createFoodParams.append("formType", "DRY");
-      createFoodParams.append("description", "Logged via Gemini: Unknown Food");
+      createFoodParams.append(
+        "description",
+        "Logged via Gemini: Unknown Food [via sfl]",
+      );
 
       expect(fetch).toHaveBeenCalledWith(
         `https://api.fitbit.com/1/user/${mockFitbitUserId}/foods.json`,
