@@ -215,7 +215,7 @@ async function createAndLogSingleFood(
   createFoodParams.append("formType", food.formType || "DRY");
   createFoodParams.append(
     "description",
-    food.description || `Logged via Gemini: ${food.foodName}`,
+    `${food.description || `Logged via Gemini: ${food.foodName}`} [via sfl]`,
   );
 
   for (const [foodKey, apiParam] of Object.entries(NUTRITION_MAP)) {
