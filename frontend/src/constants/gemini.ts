@@ -102,10 +102,10 @@ const OutputSchema = z.object({
 
 **【分割出力の例 (20件を超える場合)】**
 \`\`\`json
-{ "meal_type": "Lunch", "foods": [ ...20 items... ] }
+{ "meal_type": "Lunch", "log_date": "2025-11-01", "log_time": "12:30:00", "foods": [ ...20 items... ] }
 \`\`\`
 \`\`\`json
-{ "meal_type": "Lunch", "foods": [ ...remaining items... ] }
+{ "meal_type": "Lunch", "log_date": "2025-11-01", "log_time": "12:30:00", "foods": [ ...remaining items... ] }
 \`\`\``;
 
 /**
