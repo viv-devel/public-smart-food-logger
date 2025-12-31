@@ -135,6 +135,25 @@ export default function FitbitViaGeminiRegisterPage() {
         Geminiが出力した食事記録（JSON）を貼り付けて、「Fitbitに記録する」ボタンを押してください。
       </p>
 
+      <div className="mb-6">
+        <a
+          href="https://gemini.google.com/gem/1nU-eE5mBUL2lEnrIkhKlMXBp_09vMk1M?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium hover:underline"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg>
+          共有 Gem (Smart Food Logger AI) はこちら
+        </a>
+      </div>
+
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label
