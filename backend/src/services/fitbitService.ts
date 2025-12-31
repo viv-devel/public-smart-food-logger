@@ -328,8 +328,12 @@ export async function processAndLogFoods(
     );
   }
 
-  // Promise.allを使用して、各食品の（作成→記録）処理を並列実行する
-  const logResults = await Promise.all(
+  // Promise.allSettledを使用して、各食品の（作成→記録）処理を並列実行し、
+  // 部分的な失敗を許容する。
+  // Note: Fitbit API has a rate limit (150 requests/hour).
+  // For typical meals (a few items), parallel execution is fine,
+  // but for large batches, we might need to throttle or chunk requests.
+  const results = await Promise.allSettled(
     nutritionData.foods.map((food) =>
       createAndLogSingleFood(
         accessToken,
@@ -341,5 +345,26 @@ export async function processAndLogFoods(
     ),
   );
 
-  return logResults;
+  const successfulLogs: LogFoodResponse[] = [];
+  const errors: any[] = [];
+
+  results.forEach((result) => {
+    if (result.status === "fulfilled") {
+      successfulLogs.push(result.value);
+    } else {
+      console.error("Failed to process food item:", result.reason);
+      errors.push(result.reason);
+    }
+  });
+
+  // 全ての食品の処理が失敗した場合はエラーを投げる
+  if (successfulLogs.length === 0 && nutritionData.foods.length > 0) {
+    // 最初のエラーを投げるか、一般的なエラーメッセージにする
+    throw (
+      errors[0] || new FitbitApiError("All food items failed to be logged.")
+    );
+  }
+
+  // 部分的な成功を含む結果を返す
+  return successfulLogs;
 }
