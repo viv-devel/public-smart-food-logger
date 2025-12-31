@@ -564,7 +564,7 @@ describe("Fitbit API Functions", () => {
       expect(fetch).toHaveBeenCalledTimes(2); // Create food and log food APIs called
     });
 
-    test("should stop processing if a subsequent food creation fails", async () => {
+    test("should return successful logs and ignore failures when processing multiple items", async () => {
       // 1件目の作成は成功、2件目の作成は失敗するようにfetchをモック
       (fetch as unknown as Mock)
         .mockResolvedValueOnce({
@@ -579,19 +579,57 @@ describe("Fitbit API Functions", () => {
         });
 
       // 2つの食品を含むデータで関数を実行
+      // Promise.allSettledを使用しているため、一部失敗でも成功分が返る
+      const results = await processAndLogFoods(
+        mockAccessToken,
+        mockNutritionData,
+        mockFitbitUserId,
+      );
+
+      // 成功したAppleのみが含まれる
+      expect(results).toHaveLength(1);
+      // default mock implementation for log food returns { log: { logId: "mockLogId" } }
+      expect(results[0]).toEqual({
+        log: {
+          logId: "mockLogId",
+        },
+      });
+
+      // 並列実行のため、以下のAPIコールが発生する:
+      // 1. Create Apple (Success) -> Mock 1
+      // 2. Create Orange Juice (Failure) -> Mock 2
+      // 3. Log Apple (Success, triggered immediately after Create Apple) -> Default Mock
+
+      // Log APIが呼ばれていることを確認
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/foods/log.json"),
+        expect.any(Object),
+      );
+    });
+
+    test("should throw error if ALL items fail", async () => {
+      // 1件目の作成失敗、2件目の作成失敗
+      (fetch as unknown as Mock)
+        .mockResolvedValueOnce({
+          ok: false,
+          json: () =>
+            Promise.resolve({ errors: [{ message: "Failed on first item" }] }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          json: () =>
+            Promise.resolve({ errors: [{ message: "Failed on second item" }] }),
+        });
+
       await expect(
         processAndLogFoods(
           mockAccessToken,
           mockNutritionData,
           mockFitbitUserId,
         ),
-      ).rejects.toThrow(
-        'Failed to create food "Orange Juice": Failed on second item',
-      );
+      ).rejects.toThrow(FitbitApiError);
 
-      // 1回目の作成(成功)と2回目の作成(失敗)で、APIは2回呼ばれる
-      expect(fetch).toHaveBeenCalledTimes(2);
-      // log food APIは一度も呼ばれないことを確認
+      // Log APIは一度も呼ばれない
       expect(fetch).not.toHaveBeenCalledWith(
         expect.stringContaining("/foods/log.json"),
         expect.any(Object),

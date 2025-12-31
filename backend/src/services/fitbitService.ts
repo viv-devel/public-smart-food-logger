@@ -185,135 +185,115 @@ export async function refreshFitbitAccessToken(
 }
 
 /**
- * 食品をFitbitに作成するヘルパー関数
+ * 単一の食品をFitbitに作成し、その後ログに記録するヘルパー関数
  */
-async function createFoods(
+async function createAndLogSingleFood(
   accessToken: string,
-  foods: FoodItem[],
-  fitbitUserId: string,
-): Promise<(FoodItem & { foodId: number; unitId: number })[]> {
-  const createdFoods: (FoodItem & { foodId: number; unitId: number })[] = [];
-
-  for (const food of foods) {
-    if (!food.foodName || !food.amount || !food.unit) {
-      throw new ValidationError(
-        `Missing required field for food log: ${food.foodName || "Unknown Food"}.`,
-      );
-    }
-
-    const unitId = getUnitId(food.unit);
-
-    const createFoodParams = new URLSearchParams();
-    createFoodParams.append("name", food.foodName);
-    createFoodParams.append("defaultFoodMeasurementUnitId", unitId.toString());
-    createFoodParams.append("defaultServingSize", food.amount.toString());
-    createFoodParams.append(
-      "calories",
-      Math.round(food.calories || 0).toString(),
-    );
-
-    createFoodParams.append("formType", food.formType || "DRY");
-    createFoodParams.append(
-      "description",
-      food.description || `Logged via Gemini: ${food.foodName}`,
-    );
-
-    for (const [foodKey, apiParam] of Object.entries(NUTRITION_MAP)) {
-      const value = food[foodKey as keyof FoodItem];
-      if (value !== undefined && value !== null) {
-        createFoodParams.append(apiParam, value.toString());
-      }
-    }
-
-    const createFoodResponse = await fetch(
-      `https://api.fitbit.com/1/user/${fitbitUserId}/foods.json`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: createFoodParams.toString(),
-      },
-    );
-
-    const createFoodResult =
-      (await createFoodResponse.json()) as CreateFoodResponse;
-
-    if (!createFoodResponse.ok) {
-      console.error("Fitbit create food error response:", createFoodResult);
-      const errorMessage =
-        (createFoodResult as any).errors && (createFoodResult as any).errors[0]
-          ? (createFoodResult as any).errors[0].message
-          : "Unknown error";
-      throw new FitbitApiError(
-        `Failed to create food "${food.foodName}": ${errorMessage}`,
-      );
-    }
-    const foodId = createFoodResult.food.foodId;
-    console.log(
-      `Successfully created food: ${food.foodName} (Food ID: ${foodId})`,
-    );
-    createdFoods.push({ ...food, foodId, unitId });
-  }
-
-  return createdFoods;
-}
-
-/**
- * 作成された食品をログに記録するヘルパー関数
- */
-async function logFoods(
-  accessToken: string,
-  createdFoods: (FoodItem & { foodId: number; unitId: number })[],
+  food: FoodItem,
   nutritionData: CreateFoodLogRequest,
   fitbitUserId: string,
   mealTypeId: MealTypeId,
-): Promise<LogFoodResponse[]> {
-  const logResults: LogFoodResponse[] = [];
-
-  for (const createdFood of createdFoods) {
-    const logFoodParams = new URLSearchParams({
-      foodId: createdFood.foodId.toString(),
-      mealTypeId: mealTypeId.toString(),
-      unitId: createdFood.unitId.toString(),
-      amount: createdFood.amount.toString(),
-      date: nutritionData.log_date,
-      time: nutritionData.log_time,
-    }).toString();
-
-    const logFoodResponse = await fetch(
-      `https://api.fitbit.com/1/user/${fitbitUserId}/foods/log.json`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: logFoodParams,
-      },
+): Promise<LogFoodResponse> {
+  if (!food.foodName || !food.amount || !food.unit) {
+    throw new ValidationError(
+      `Missing required field for food log: ${food.foodName || "Unknown Food"}.`,
     );
-
-    if (!logFoodResponse.ok) {
-      const errorData: any = await logFoodResponse.json();
-      console.error("Fitbit log food error response:", errorData);
-      const errorMessage =
-        errorData.errors && errorData.errors[0]
-          ? errorData.errors[0].message
-          : "Unknown error";
-      throw new FitbitApiError(
-        `Failed to log food "${createdFood.foodName}": ${errorMessage}`,
-      );
-    }
-
-    const logResult = (await logFoodResponse.json()) as LogFoodResponse;
-    console.log(
-      `Successfully logged food: ${createdFood.foodName} for user ${fitbitUserId}`,
-    );
-    logResults.push(logResult);
   }
 
-  return logResults;
+  // --- Phase 1: Create Food ---
+  const unitId = getUnitId(food.unit);
+
+  const createFoodParams = new URLSearchParams();
+  createFoodParams.append("name", food.foodName);
+  createFoodParams.append("defaultFoodMeasurementUnitId", unitId.toString());
+  createFoodParams.append("defaultServingSize", food.amount.toString());
+  createFoodParams.append(
+    "calories",
+    Math.round(food.calories || 0).toString(),
+  );
+
+  createFoodParams.append("formType", food.formType || "DRY");
+  createFoodParams.append(
+    "description",
+    food.description || `Logged via Gemini: ${food.foodName}`,
+  );
+
+  for (const [foodKey, apiParam] of Object.entries(NUTRITION_MAP)) {
+    const value = food[foodKey as keyof FoodItem];
+    if (value !== undefined && value !== null) {
+      createFoodParams.append(apiParam, value.toString());
+    }
+  }
+
+  const createFoodResponse = await fetch(
+    `https://api.fitbit.com/1/user/${fitbitUserId}/foods.json`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: createFoodParams.toString(),
+    },
+  );
+
+  const createFoodResult =
+    (await createFoodResponse.json()) as CreateFoodResponse;
+
+  if (!createFoodResponse.ok) {
+    console.error("Fitbit create food error response:", createFoodResult);
+    const errorMessage =
+      (createFoodResult as any).errors && (createFoodResult as any).errors[0]
+        ? (createFoodResult as any).errors[0].message
+        : "Unknown error";
+    throw new FitbitApiError(
+      `Failed to create food "${food.foodName}": ${errorMessage}`,
+    );
+  }
+  const foodId = createFoodResult.food.foodId;
+  console.log(
+    `Successfully created food: ${food.foodName} (Food ID: ${foodId})`,
+  );
+
+  // --- Phase 2: Log Food ---
+  const logFoodParams = new URLSearchParams({
+    foodId: foodId.toString(),
+    mealTypeId: mealTypeId.toString(),
+    unitId: unitId.toString(),
+    amount: food.amount.toString(),
+    date: nutritionData.log_date,
+    time: nutritionData.log_time,
+  }).toString();
+
+  const logFoodResponse = await fetch(
+    `https://api.fitbit.com/1/user/${fitbitUserId}/foods/log.json`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: logFoodParams,
+    },
+  );
+
+  if (!logFoodResponse.ok) {
+    const errorData: any = await logFoodResponse.json();
+    console.error("Fitbit log food error response:", errorData);
+    const errorMessage =
+      errorData.errors && errorData.errors[0]
+        ? errorData.errors[0].message
+        : "Unknown error";
+    throw new FitbitApiError(
+      `Failed to log food "${food.foodName}": ${errorMessage}`,
+    );
+  }
+
+  const logResult = (await logFoodResponse.json()) as LogFoodResponse;
+  console.log(
+    `Successfully logged food: ${food.foodName} for user ${fitbitUserId}`,
+  );
+  return logResult;
 }
 
 /**
@@ -321,9 +301,9 @@ async function logFoods(
  * Fitbit APIの仕様上、食品を「作成」してから「記録」するという2段階のプロセスが必要です。
  * 1. **食品の作成**: 提供された栄養情報（カロリー、タンパク質など）を元に、ユーザーのプライベート食品データベースに新しい食品を作成します。
  *    - この段階で、各食品にユニークな `foodId` がFitbitによって割り当てられます。
- *    - APIはバッチ処理をサポートしていないため、各食品を直列で1つずつ作成します。
  * 2. **食事ログの記録**: 作成した食品の `foodId` を使用し、指定された日時、食事の種類（朝食など）で食事ログを記録します。
- *    - こちらも同様に、各食品を1つずつ記録します。
+ *
+ * 以前は全食品を作成後に全食品を記録していましたが、現在は各食品ごとに並列で（作成→記録）を実行します。
  *
  * @param accessToken 有効なFitbit APIアクセストークン。
  * @param nutritionData 記録する食品の配列と、食事の種類、日時を含むリクエストオブジェクト。
@@ -348,19 +328,44 @@ export async function processAndLogFoods(
     );
   }
 
-  // フェーズ1: 全ての食品をFitbitに「作成」する (直列実行)
-  const createdFoods = await createFoods(
-    accessToken,
-    nutritionData.foods,
-    fitbitUserId,
+  // Promise.allSettledを使用して、各食品の（作成→記録）処理を並列実行し、
+  // 部分的な失敗を許容する。
+  // Note: Fitbit API has a rate limit (150 requests/hour).
+  // For typical meals (a few items), parallel execution is fine,
+  // but for large batches, we might need to throttle or chunk requests.
+  // (通常数品の食事であれば問題ありませんが、大量のデータを一度に送信する場合はスロットリングを検討してください)
+  const results = await Promise.allSettled(
+    nutritionData.foods.map((food) =>
+      createAndLogSingleFood(
+        accessToken,
+        food,
+        nutritionData,
+        fitbitUserId,
+        mealTypeId,
+      ),
+    ),
   );
 
-  // フェーズ2: 作成した全ての食品を「ログ記録」する (直列実行)
-  return logFoods(
-    accessToken,
-    createdFoods,
-    nutritionData,
-    fitbitUserId,
-    mealTypeId,
-  );
+  const successfulLogs: LogFoodResponse[] = [];
+  const errors: any[] = [];
+
+  results.forEach((result) => {
+    if (result.status === "fulfilled") {
+      successfulLogs.push(result.value);
+    } else {
+      console.error("Failed to process food item:", result.reason);
+      errors.push(result.reason);
+    }
+  });
+
+  // 全ての食品の処理が失敗した場合はエラーを投げる
+  if (successfulLogs.length === 0 && nutritionData.foods.length > 0) {
+    // 最初のエラーを投げるか、一般的なエラーメッセージにする
+    throw (
+      errors[0] || new FitbitApiError("All food items failed to be logged.")
+    );
+  }
+
+  // 部分的な成功を含む結果を返す
+  return successfulLogs;
 }
