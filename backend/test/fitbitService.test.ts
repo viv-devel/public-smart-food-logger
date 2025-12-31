@@ -564,7 +564,7 @@ describe("Fitbit API Functions", () => {
       expect(fetch).toHaveBeenCalledTimes(2); // Create food and log food APIs called
     });
 
-    test("should stop processing if a subsequent food creation fails", async () => {
+    test("should allow partial execution (log successful ones) even if another fails, but throw error eventually", async () => {
       // 1件目の作成は成功、2件目の作成は失敗するようにfetchをモック
       (fetch as unknown as Mock)
         .mockResolvedValueOnce({
@@ -579,6 +579,7 @@ describe("Fitbit API Functions", () => {
         });
 
       // 2つの食品を含むデータで関数を実行
+      // Promise.allを使用しているため、どれか一つでも失敗すればrejectされる
       await expect(
         processAndLogFoods(
           mockAccessToken,
@@ -589,10 +590,13 @@ describe("Fitbit API Functions", () => {
         'Failed to create food "Orange Juice": Failed on second item',
       );
 
-      // 1回目の作成(成功)と2回目の作成(失敗)で、APIは2回呼ばれる
-      expect(fetch).toHaveBeenCalledTimes(2);
-      // log food APIは一度も呼ばれないことを確認
-      expect(fetch).not.toHaveBeenCalledWith(
+      // 並列実行のため、以下のAPIコールが発生する:
+      // 1. Create Apple (Success) -> Mock 1
+      // 2. Create Orange Juice (Failure) -> Mock 2
+      // 3. Log Apple (Success, triggered immediately after Create Apple) -> Default Mock
+
+      // Log APIが呼ばれていることを確認 (直列処理時代はここで止まっていたが、並列なので進む)
+      expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining("/foods/log.json"),
         expect.any(Object),
       );
