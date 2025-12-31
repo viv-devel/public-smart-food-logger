@@ -333,6 +333,7 @@ export async function processAndLogFoods(
   // Note: Fitbit API has a rate limit (150 requests/hour).
   // For typical meals (a few items), parallel execution is fine,
   // but for large batches, we might need to throttle or chunk requests.
+  // (通常数品の食事であれば問題ありませんが、大量のデータを一度に送信する場合はスロットリングを検討してください)
   const results = await Promise.allSettled(
     nutritionData.foods.map((food) =>
       createAndLogSingleFood(
