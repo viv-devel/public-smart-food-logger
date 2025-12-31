@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent } from "react";
 
+import { SHARED_GEM_URL } from "@/constants/gemini";
 import { useFitbitLogger } from "@/hooks/useFitbitLogger";
 import { generateTemplate } from "@/utils/fitbitTemplate";
 
@@ -137,7 +138,7 @@ export default function FitbitViaGeminiRegisterPage() {
 
       <div className="mb-6">
         <a
-          href="https://gemini.google.com/gem/1nU-eE5mBUL2lEnrIkhKlMXBp_09vMk1M?usp=sharing"
+          href={SHARED_GEM_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium hover:underline"

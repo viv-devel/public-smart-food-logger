@@ -119,3 +119,9 @@ export const GEM_NAME = "Smart Food Logger AI";
  */
 export const GEM_DESCRIPTION =
   "食事の画像を分析し、Fitbit登録用のJSONを生成します。Analyzes meal images and generates JSON for logging to Fitbit.";
+
+/**
+ * 共有GemのURL
+ */
+export const SHARED_GEM_URL =
+  "https://gemini.google.com/gem/1nU-eE5mBUL2lEnrIkhKlMXBp_09vMk1M?usp=sharing";

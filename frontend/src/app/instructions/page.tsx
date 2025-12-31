@@ -8,6 +8,7 @@ import {
   GEM_DESCRIPTION,
   GEM_NAME,
   GEMINI_INSTRUCTIONS,
+  SHARED_GEM_URL,
 } from "@/constants/gemini";
 
 interface CopyableFieldProps {
@@ -97,7 +98,7 @@ export default function InstructionsPage() {
           AI」を使えば、今すぐ食事記録を開始できます。
         </p>
         <a
-          href="https://gemini.google.com/gem/1nU-eE5mBUL2lEnrIkhKlMXBp_09vMk1M?usp=sharing"
+          href={SHARED_GEM_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white text-lg font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
