@@ -9,6 +9,8 @@ WORKDIR /app
 # .npmrc を作成してフラットな node_modules と workspace-packages の inject を強制する
 # .npmrc をコピーしてフラットな node_modules と workspace-packages の inject を強制する
 COPY .npmrc ./
+# Backend固有設定: フラットな node_modules 構造を強制 (public-hoist-pattern)
+RUN echo "public-hoist-pattern[]=\"*\"" >> .npmrc
 
 # ワークスペース設定とロックファイルをコピー
 COPY pnpm-lock.yaml ./
