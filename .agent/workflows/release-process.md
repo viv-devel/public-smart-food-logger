@@ -13,7 +13,7 @@ description: Create a release PR, wait for merge, and synchronize develop (Reset
 
 2. Create Release PR
    // turbo
-   gh pr create --base main --head develop --title "Release v1.0.0" --body "Release PR from develop to main"
+   gh pr create --base main --head develop --title "Release vX.Y.Z" --body "Release PR from develop to main"
 
 3. Request Review
    // turbo
@@ -29,8 +29,8 @@ description: Create a release PR, wait for merge, and synchronize develop (Reset
 5. Create and Push Git Tag
    **IMPORTANT**: Execute this AFTER the merge is complete. Replace `v1.0.0` with the actual version number.
 
-   git tag v1.0.0
-   git push origin v1.0.0
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
 
 6. Monitor Deployment & Approve Backend
    **Frontend**: Netlify will automatically build and deploy. Monitor the status.
