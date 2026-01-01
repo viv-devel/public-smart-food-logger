@@ -36,7 +36,7 @@ import {
   id       = "locations/${var.cloud_run_config["prod"].region}/namespaces/${var.cloud_run_config["prod"].project_id}/services/${each.value.service_name}"
 }
 
-# Only import the existing domain mapping for PROD
+# Import existing Artifact Registries (Staging & Production)
 
 # Import existing Staging Artifact Registry
 import {
