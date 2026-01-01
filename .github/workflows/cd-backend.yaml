@@ -127,7 +127,6 @@ jobs:
             backend
 
           docker push "${IMAGE_URI}"
-          docker push "${IMAGE_URI}"
 
   deploy_health:
     needs: [build, filter_changes, build_base]
