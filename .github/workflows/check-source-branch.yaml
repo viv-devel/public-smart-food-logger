@@ -1,4 +1,4 @@
-name: Check Source Branch
+name: "11 - PR: Check Source Branch"
 
 on:
   pull_request:
