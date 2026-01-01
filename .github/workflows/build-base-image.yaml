@@ -28,6 +28,7 @@ jobs:
           # ルートのワークスペース設定ファイルをコピー
           cp pnpm-lock.yaml base-context/
           cp package.json base-context/
+          cp .npmrc base-context/
 
           # pnpm-workspace.yaml をコピーし、frontendを除外するように修正
           # (frontendディレクトリが存在しないため、警告やエラーを避ける)

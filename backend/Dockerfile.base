@@ -7,8 +7,8 @@ RUN npm install -g pnpm@10.27.0
 WORKDIR /app
 
 # .npmrc を作成してフラットな node_modules と workspace-packages の inject を強制する
-RUN echo "public-hoist-pattern[]=*" > .npmrc && \
-    echo "inject-workspace-packages=true" >> .npmrc
+# .npmrc をコピーしてフラットな node_modules と workspace-packages の inject を強制する
+COPY .npmrc ./
 
 # ワークスペース設定とロックファイルをコピー
 COPY pnpm-lock.yaml ./
