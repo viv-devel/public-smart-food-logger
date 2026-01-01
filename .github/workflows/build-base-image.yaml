@@ -3,12 +3,6 @@ name: Build Backend Base Image
 on:
   workflow_dispatch:
   workflow_call:
-  push:
-    branches: [main, develop]
-    paths:
-      - "backend/package.json"
-      - "backend/Dockerfile.base"
-      - "shared/**"
 
 jobs:
   build:
