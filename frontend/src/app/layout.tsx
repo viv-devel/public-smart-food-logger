@@ -36,7 +36,7 @@ export default function RootLayout({
                 className={`p-4 border-b border-gray-700 ${headerBgClass}`}
               >
                 <div className="container mx-auto flex justify-between items-center">
-                  <Link href="/">
+                  <Link href="/?show_top=true">
                     <h1 className="text-xl font-bold">Smart Food Logger AI</h1>
                   </Link>
                   <HeaderMenu />
