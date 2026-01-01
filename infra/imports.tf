@@ -37,7 +37,17 @@ import {
 }
 
 # Only import the existing domain mapping for PROD
+
+# Import existing Staging Artifact Registry
 import {
-  to = module.prod.google_cloud_run_domain_mapping.domain_mappings["fitbitwebhookhandler-oauth.vivviv.net"]
-  id = "locations/${var.cloud_run_config["prod"].region}/namespaces/${var.cloud_run_config["prod"].project_id}/domainmappings/oauth.vivviv.net"
+  to = module.stg.google_artifact_registry_repository.gcf_artifacts
+  id = "projects/${var.cloud_run_config["stg"].project_id}/locations/${var.cloud_run_config["stg"].region}/repositories/gcf-artifacts"
+}
+
+
+
+# Import existing Production Artifact Registry
+import {
+  to = module.prod.google_artifact_registry_repository.gcf_artifacts
+  id = "projects/${var.cloud_run_config["prod"].project_id}/locations/${var.cloud_run_config["prod"].region}/repositories/gcf-artifacts"
 }
