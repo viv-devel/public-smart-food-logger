@@ -36,8 +36,6 @@ import {
   id       = "locations/${var.cloud_run_config["prod"].region}/namespaces/${var.cloud_run_config["prod"].project_id}/services/${each.value.service_name}"
 }
 
-# Only import the existing domain mapping for PROD
-import {
-  to = module.prod.google_cloud_run_domain_mapping.domain_mappings["fitbitwebhookhandler-oauth.vivviv.net"]
-  id = "locations/${var.cloud_run_config["prod"].region}/namespaces/${var.cloud_run_config["prod"].project_id}/domainmappings/oauth.vivviv.net"
-}
+# Import existing Artifact Registries (Staging & Production)
+
+

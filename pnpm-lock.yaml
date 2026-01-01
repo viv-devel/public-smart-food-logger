@@ -3,6 +3,7 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
+  injectWorkspacePackages: true
 
 overrides:
   jws@^3.2.2: 3.2.3
@@ -78,19 +79,22 @@ importers:
       '@google-cloud/functions-framework':
         specifier: ^3.0.0
         version: 3.5.1
+      '@smart-food-logger/shared':
+        specifier: workspace:*
+        version: link:../shared
       firebase-admin:
         specifier: ^13.6.0
         version: 13.6.0
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
+      zod:
+        specifier: ^4.1.13
+        version: 4.1.13
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.1
         version: 9.39.1
-      '@smart-food-logger/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@types/express':
         specifier: ^4.17.25
         version: 4.17.25
@@ -6702,7 +6706,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vitest: 4.0.14(@opentelemetry/api@1.9.0)(@types/node@24.10.1)(@vitest/ui@4.0.14)(jiti@2.6.1)(jsdom@27.2.0)(lightningcss@1.30.2)(yaml@2.8.1)
+      vitest: 4.0.14(@opentelemetry/api@1.9.0)(@types/node@20.19.25)(@vitest/ui@4.0.14)(jiti@2.6.1)(jsdom@27.2.0)(lightningcss@1.30.2)(yaml@2.8.1)
 
   '@vitest/utils@3.2.4':
     dependencies:

@@ -14,8 +14,83 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  filter_changes:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      deploy_health: ${{ steps.filter.outputs.deploy_health }}
+      deploy_recaptcha: ${{ steps.filter.outputs.deploy_recaptcha }}
+      deploy_oauth: ${{ steps.filter.outputs.deploy_oauth }}
+      deploy_foodlog: ${{ steps.filter.outputs.deploy_foodlog }}
+      dependencies: ${{ steps.filter_deps.outputs.dependencies }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 全履歴を取得（git diff用）
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check for dependency changes
+        id: filter_deps
+        uses: dorny/paths-filter@v3.0.2
+        with:
+          filters: |
+            dependencies:
+              - 'backend/package.json'
+              - 'backend/Dockerfile.base'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'shared/**'
+
+      - name: Check for logic changes
+        id: filter
+        run: |
+          # github.event.before のフォールバック (workflow_dispatch 対応)
+          BEFORE_REF="${{ github.event.before }}"
+          if [ -z "$BEFORE_REF" ] || [ "$BEFORE_REF" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE_REF="HEAD~1"
+          fi
+
+          # ワークフロー自体の変更チェック
+          WORKFLOW_CHANGED=$(git diff --name-only "$BEFORE_REF" "${{ github.sha }}" | grep -E '^\.github/workflows/cd-backend\.yaml$' || true)
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ -n "$WORKFLOW_CHANGED" ]; then
+            echo "Workflow dispatch or workflow changed. Deploying all functions for safety."
+            echo "deploy_health=true" >> $GITHUB_OUTPUT
+            echo "deploy_recaptcha=true" >> $GITHUB_OUTPUT
+            echo "deploy_oauth=true" >> $GITHUB_OUTPUT
+            echo "deploy_foodlog=true" >> $GITHUB_OUTPUT
+          else
+            # 各関数ごとに個別チェック
+            echo "deploy_health=$(node scripts/backend-filter.js health 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+            echo "deploy_recaptcha=$(node scripts/backend-filter.js recaptcha 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+            echo "deploy_oauth=$(node scripts/backend-filter.js oauth 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+            echo "deploy_foodlog=$(node scripts/backend-filter.js foodlog 2>&1 | tail -n 1)" >> $GITHUB_OUTPUT
+          fi
+
+  build_base:
+    needs: filter_changes
+    if: ${{ needs.filter_changes.outputs.dependencies == 'true' || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/build-base-image.yaml
+    secrets: inherit
+
+  build:
+    needs: [filter_changes, build_base]
+    if: |
+      always() && 
+      !contains(needs.*.result, 'failure') && 
+      !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,68 +103,38 @@ jobs:
       - name: Build Backend
         run: pnpm --filter backend run build
 
-      - name: Remove devDependencies for Deployment
+      - name: Authorize GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev --quiet
+
+      - name: Build and Push App Image
+        id: build-image
         run: |
-          cd backend
-          npm pkg delete devDependencies
+          IMAGE_URI="asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }}"
+          BASE_IMAGE="asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-base:latest"
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
+          docker build \
+            --build-arg BASE_IMAGE="${BASE_IMAGE}" \
+            --tag "${IMAGE_URI}" \
+            --file backend/Dockerfile \
+            backend
 
-  filter_changes:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      deploy_health: ${{ steps.filter.outputs.deploy_health }}
-      deploy_recaptcha: ${{ steps.filter.outputs.deploy_recaptcha }}
-      deploy_oauth: ${{ steps.filter.outputs.deploy_oauth }}
-      deploy_foodlog: ${{ steps.filter.outputs.deploy_foodlog }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            deploy_health:
-              - 'backend/src/health.ts'
-              - 'backend/package.json'
-              - 'backend/src/index.ts'
-              - 'shared/**'
-              - '.github/workflows/cd-backend.yaml'
-            deploy_recaptcha:
-              - 'backend/src/recaptcha.ts'
-              - 'backend/package.json'
-              - 'backend/src/index.ts'
-              - 'shared/**'
-              - '.github/workflows/cd-backend.yaml'
-            deploy_oauth:
-              - 'backend/src/handlers/oauth.ts'
-              - 'backend/src/services/**'
-              - 'backend/src/repositories/**'
-              - 'backend/src/utils/**'
-              - 'backend/package.json'
-              - 'backend/src/index.ts'
-              - 'shared/**'
-              - '.github/workflows/cd-backend.yaml'
-            deploy_foodlog:
-              - 'backend/src/handlers/foodlog.ts'
-              - 'backend/src/services/**'
-              - 'backend/src/repositories/**'
-              - 'backend/src/utils/**'
-              - 'backend/package.json'
-              - 'backend/src/index.ts'
-              - 'shared/**'
-              - '.github/workflows/cd-backend.yaml'
+          docker push "${IMAGE_URI}"
 
   deploy_health:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_health == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_health == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -97,11 +142,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -109,15 +149,14 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy healthchecker \
-            --gen2 \
+          gcloud run deploy healthchecker \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
-            --source=backend \
-            --entry-point=healthChecker \
-            --trigger-http \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
+            --port=8080 \
+            --memory=256Mi \
+            --max-instances=100 \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}" \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},NODE_ENV=production,FUNCTION_TARGET=healthChecker,LOG_EXECUTION_ID=true" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
@@ -144,8 +183,12 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_recaptcha:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_recaptcha == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_recaptcha == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -153,11 +196,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -165,15 +203,14 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy recaptchaverifier \
-            --gen2 \
+          gcloud run deploy recaptchaverifier \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
-            --source=backend \
-            --entry-point=recaptchaVerifier \
-            --trigger-http \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
+            --port=8080 \
+            --memory=256Mi \
+            --max-instances=100 \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }}" \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production,FUNCTION_TARGET=recaptchaVerifier,LOG_EXECUTION_ID=true" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
@@ -200,8 +237,12 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_oauth:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_oauth == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_oauth == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -209,11 +250,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -221,15 +257,14 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy oauthhandler \
-            --gen2 \
+          gcloud run deploy oauthhandler \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
-            --source=backend \
-            --entry-point=oauthHandler \
-            --trigger-http \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
+            --port=8080 \
+            --memory=256Mi \
+            --max-instances=100 \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},ALLOWED_REDIRECT_ORIGINS=${{ vars.ALLOWED_REDIRECT_ORIGINS }},ALLOWED_REDIRECT_PATTERN=${{ vars.ALLOWED_REDIRECT_PATTERN }}" \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},ALLOWED_REDIRECT_ORIGINS=${{ vars.ALLOWED_REDIRECT_ORIGINS }},ALLOWED_REDIRECT_PATTERN=${{ vars.ALLOWED_REDIRECT_PATTERN }},NODE_ENV=production,FUNCTION_TARGET=oauthHandler,LOG_EXECUTION_ID=true" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
@@ -256,8 +291,12 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
 
   deploy_foodlog:
-    needs: [build, filter_changes]
-    if: ${{ needs.filter_changes.outputs.deploy_foodlog == 'true' }}
+    needs: [build, filter_changes, build_base]
+    if: |
+      always() && 
+      !cancelled() && 
+      !contains(needs.*.result, 'failure') && 
+      needs.filter_changes.outputs.deploy_foodlog == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
@@ -265,11 +304,6 @@ jobs:
       id-token: write
       statuses: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: backend-dist
-          path: backend
-
       - name: Authorize GCP
         uses: "google-github-actions/auth@v2"
         with:
@@ -277,15 +311,14 @@ jobs:
 
       - name: Deploy Cloud Function
         run: |
-          gcloud functions deploy foodloghandler \
-            --gen2 \
+          gcloud run deploy foodloghandler \
             --region=${{ secrets.FUNCTION_REGION }} \
-            --runtime=nodejs20 \
-            --source=backend \
-            --entry-point=foodLogHandler \
-            --trigger-http \
+            --image=asia-northeast1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/gcf-artifacts/backend-app:${{ github.sha }} \
+            --port=8080 \
+            --memory=256Mi \
+            --max-instances=100 \
             --allow-unauthenticated \
-            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }}" \
+            --set-env-vars="GCP_PROJECT=${{ secrets.PROJECT_ID }},FITBIT_REDIRECT_URI=${{ vars.FITBIT_REDIRECT_URI }},OAUTH_FITBIT_REDIRECT_URI=${{ vars.OAUTH_FITBIT_REDIRECT_URI }},FUNCTION_REGION=${{ secrets.FUNCTION_REGION }},FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }},FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }},RECAPTCHA_V3_SECRET_KEY=${{ secrets.RECAPTCHA_V3_SECRET_KEY }},NODE_ENV=production,FUNCTION_TARGET=foodLogHandler,LOG_EXECUTION_ID=true" \
             --project=${{ secrets.PROJECT_ID }}
 
       - name: Define Context
