@@ -2,9 +2,15 @@
 FROM node:20-slim AS builder
 
 # pnpm をグローバルにインストール
-RUN npm install -g pnpm@10.24.0
+RUN npm install -g pnpm@10.27.0
 
 WORKDIR /app
+
+# .npmrc を作成してフラットな node_modules と workspace-packages の inject を強制する
+# .npmrc をコピーしてフラットな node_modules と workspace-packages の inject を強制する
+COPY .npmrc ./
+# Backend固有設定: フラットな node_modules 構造を強制 (public-hoist-pattern)
+RUN echo "public-hoist-pattern[]=\"*\"" >> .npmrc
 
 # ワークスペース設定とロックファイルをコピー
 COPY pnpm-lock.yaml ./
@@ -25,7 +31,7 @@ RUN pnpm install --frozen-lockfile --filter backend
 
 # 本番用デプロイディレクトリを作成
 # - sharedなどのワークスペース依存も解決され、フラットなnode_modulesが生成される
-RUN pnpm --filter backend deploy /app/deployed --prod --legacy
+RUN pnpm --filter backend deploy /app/deployed --prod
 
 # --- Final Stage ---
 # 最終イメージには必要なものだけを持たせる

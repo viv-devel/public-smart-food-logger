@@ -1,7 +1,7 @@
 {
   "name": "@smart-food-logger/backend",
   "version": "1.0.0",
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.27.0",
   "license": "MIT",
   "description": "Fitbit food logging logic for Gemini custom Gem.",
   "type": "module",
