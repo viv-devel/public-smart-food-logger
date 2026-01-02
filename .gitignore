@@ -43,6 +43,8 @@ next-env.d.ts
 # AI Assistant
 .aiignore
 GEMINI.md
+**/verification/
+
 
 # Netlify
 .netlify
