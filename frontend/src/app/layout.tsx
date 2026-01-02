@@ -16,7 +16,20 @@ const SITE_DESCRIPTION =
   "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。";
 const OG_IMAGE = "/images/1-photo-analysis.webp";
 
+/**
+ * 環境変数からベースURLを取得する
+ * NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI から /oauth を削除してベースURLを抽出
+ */
+const getBaseUrl = (): string => {
+  const redirectUri = process.env.NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI;
+  if (redirectUri) {
+    return redirectUri.replace(/\/oauth$/, "");
+  }
+  return "http://localhost:3000";
+};
+
 export const metadata = {
+  metadataBase: new URL(getBaseUrl()),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   openGraph: {
