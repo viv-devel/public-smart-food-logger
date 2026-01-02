@@ -9,23 +9,27 @@ import { getHeaderColor } from "@/utils/environment";
 
 import { FirebaseAuthProvider } from "./auth/FirebaseAuthProvider";
 
+// メタデータ定数（SNSシェア用）
+const SITE_TITLE =
+  "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート";
+const SITE_DESCRIPTION =
+  "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。";
+const OG_IMAGE = "/images/1-photo-analysis.webp";
+
 export const metadata = {
-  title: "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート",
-  description:
-    "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。",
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
-    title: "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート",
-    description:
-      "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。",
-    images: ["/images/1-photo-analysis.webp"],
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート",
-    description:
-      "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。",
-    images: ["/images/1-photo-analysis.webp"],
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 
