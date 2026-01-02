@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { isMockAuth } from "../helpers";
 
 test.describe("食事ログ記録フロー", () => {
   test.beforeEach(async ({ page }) => {
@@ -42,7 +43,7 @@ test.describe("食事ログ記録フロー", () => {
     // auth-flow.spec.ts ではリダイレクトチェックをスキップしている。
     // ここでも同様に、もし Mock Auth なら遷移待ちをスキップして強制移動する。
 
-    if (process.env.NEXT_PUBLIC_MOCK_AUTH === "true") {
+    if (isMockAuth) {
       // Mock Auth時はリダイレクトが発生しない(エラーになる)か、挙動が異なるため
       // UI上の反応だけ確認して次へ進む（ここでは検証成功後に即座に次へ行くとする）
       // 少しだけ待つ

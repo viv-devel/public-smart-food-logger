@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { isMockAuth } from "../helpers";
 
 test.describe("認証フロー", () => {
   test("利用開始ボタンをクリックするとreCAPTCHA検証を経てFitbit認証へ遷移すること", async ({
@@ -44,7 +45,7 @@ test.describe("認証フロー", () => {
     // NOTE: 「検証中...」の中間状態チェックはCI環境等でのタイミング問題により不安定になる可能性があるためスキップし、
     // 最終的なリダイレクト結果のみを検証する。
 
-    if (process.env.NEXT_PUBLIC_MOCK_AUTH === "true") {
+    if (isMockAuth) {
       console.log("Mock Auth detected. Skipping external URL redirect check.");
       return;
     }
