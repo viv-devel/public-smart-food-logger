@@ -10,8 +10,23 @@ import { getHeaderColor } from "@/utils/environment";
 import { FirebaseAuthProvider } from "./auth/FirebaseAuthProvider";
 
 export const metadata = {
-  title: "Smart Food Logger AI",
-  description: "AIで食事を分析してFitbitに記録",
+  title: "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート",
+  description:
+    "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。",
+  openGraph: {
+    type: "website",
+    title: "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート",
+    description:
+      "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。",
+    images: ["/images/1-photo-analysis.webp"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート",
+    description:
+      "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。",
+    images: ["/images/1-photo-analysis.webp"],
+  },
 };
 
 export default function RootLayout({
