@@ -1,4 +1,4 @@
-name: Deploy Coverage Report
+name: "40 - Deploy: Coverage Report"
 
 on:
   push:

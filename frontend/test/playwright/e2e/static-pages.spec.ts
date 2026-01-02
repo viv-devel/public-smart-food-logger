@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("静的ページ", () => {
-  test("Smart Food Logger AIのメインページが主要なコンテンツと共に読み込まれること", async ({
+  test("メインページが主要なコンテンツと共に読み込まれること", async ({
     page,
   }) => {
     await page.goto("/");

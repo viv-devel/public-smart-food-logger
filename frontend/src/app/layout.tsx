@@ -9,9 +9,28 @@ import { getHeaderColor } from "@/utils/environment";
 
 import { FirebaseAuthProvider } from "./auth/FirebaseAuthProvider";
 
+// メタデータ定数（SNSシェア用）
+const SITE_TITLE =
+  "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート";
+const SITE_DESCRIPTION =
+  "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。";
+const OG_IMAGE = "/images/1-photo-analysis.webp";
+
 export const metadata = {
-  title: "Smart Food Logger AI",
-  description: "AIで食事を分析してFitbitに記録",
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 export default function RootLayout({
@@ -36,7 +55,7 @@ export default function RootLayout({
                 className={`p-4 border-b border-gray-700 ${headerBgClass}`}
               >
                 <div className="container mx-auto flex justify-between items-center">
-                  <Link href="/">
+                  <Link href="/?show_top=true">
                     <h1 className="text-xl font-bold">Smart Food Logger AI</h1>
                   </Link>
                   <HeaderMenu />
