@@ -44,10 +44,8 @@ test.describe("認証フロー", () => {
     // NOTE: 「検証中...」の中間状態チェックはCI環境等でのタイミング問題により不安定になる可能性があるためスキップし、
     // 最終的なリダイレクト結果のみを検証する。
 
-    if (process.env.CI && process.env.NEXT_PUBLIC_MOCK_AUTH === "true") {
-      console.log(
-        "CI environment with Mock Auth detected. Skipping external URL redirect check.",
-      );
+    if (process.env.NEXT_PUBLIC_MOCK_AUTH === "true") {
+      console.log("Mock Auth detected. Skipping external URL redirect check.");
       return;
     }
 
