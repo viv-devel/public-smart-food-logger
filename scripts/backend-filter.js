@@ -162,22 +162,7 @@ function checkPackageJsonChanges(changedFiles, requiredPackages) {
   }
 
   // Pre-filtering already removed package.json if it was version-only.
-  // If it's still here, it means something important changed OR we skipped pre-filtering for it.
-
-  // Actually, let's rely on the generic check.
-  // But wait, the existing function checks `requiredPackages` specific subsets.
-  // If I update `backend/package.json` adding a dependency that is NOT in `requiredPackages`,
-  // `isPackageJsonVersionOnly` returns FALSE (change detected), so file remains in list.
-  // Then THIS function runs. It sees the file. It checks `requiredPackages`.
-  // If the added dependency is NOT in `requiredPackages`, it returns FALSE.
-  // So we skip deploy. This is CORRECT efficient behavior.
-
-  // What if ONLY version changed?
-  // `isPackageJsonVersionOnly` returns TRUE. File removed from list.
-  // THIS function sees NO file. Returns FALSE.
-  // So we skip deploy. This is CORRECT.
-
-  // So we just need to keep this function as is, but use the filtered list.
+  // We just need to check if required packages are modified in the remaining file.
 
   try {
     const beforeContent = execSync(
