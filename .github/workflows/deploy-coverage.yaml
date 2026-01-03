@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - develop
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - "shared/**"
+      - "scripts/**"
+      - ".github/workflows/deploy-coverage.yaml"
 
 jobs:
   deploy-coverage:
