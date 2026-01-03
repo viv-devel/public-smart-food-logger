@@ -1,4 +1,4 @@
-name: Build Backend Base Image
+name: "21 - Deploy: Backend Base Image"
 
 on:
   workflow_dispatch:

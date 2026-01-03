@@ -5,8 +5,8 @@ test.describe("Home Page", () => {
     // ホームページにアクセス
     await page.goto("/");
 
-    // ページのタイトルに "Smart Food Logger AI" が含まれていることを確認
-    await expect(page).toHaveTitle(/Smart Food Logger AI/);
+    // ページのタイトルに新しいタイトルが含まれていることを確認
+    await expect(page).toHaveTitle(/Smart Food Logger.*Fitbit/);
 
     // h1見出し "Smart Food Logger AI" が表示されていることを確認
     await expect(
