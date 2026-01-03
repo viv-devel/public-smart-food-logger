@@ -21,33 +21,26 @@ const OG_IMAGE = "/images/ogp-image.png";
  * Netlifyの組み込み環境変数 URL を使用し、未定義の場合はローカルホストにフォールバック
  * @see https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables
  */
-const getBaseUrl = (): string => {
+const getBaseUrl = (): URL => {
   // Netlifyの環境変数 URL は、デプロイコンテキストに応じて適切なベースURLを返す
   // Production、Staging、Deploy Preview環境で自動設定される
   // CI/ローカル環境では未定義のためフォールバックを使用
   const siteUrl = process.env.URL;
   if (siteUrl) {
     try {
-      // URLの妥当性を検証
-      new URL(siteUrl);
-      return siteUrl;
+      // URLの妥当性を検証して返す
+      return new URL(siteUrl);
     } catch (error) {
       console.error("Invalid site URL:", siteUrl, error);
     }
   }
 
   // フォールバック: ローカル開発環境およびCI環境
-  return "http://localhost:3000";
+  return new URL("http://localhost:3000");
 };
 
-// metadataBase の構築をエラーハンドリング付きで実行
-let metadataBase: URL;
-try {
-  metadataBase = new URL(getBaseUrl());
-} catch (error) {
-  console.error("Failed to create metadataBase URL:", error);
-  metadataBase = new URL("http://localhost:3000");
-}
+// metadataBase を取得
+const metadataBase = getBaseUrl();
 
 export const metadata = {
   metadataBase,

@@ -59,11 +59,12 @@ function getChangedFilesFromGit() {
   }
 }
 
-function fetchGitHubPage(url) {
+function fetchGitHubPage(url, customOptions = {}) {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
         "User-Agent": "Netlify-Ignore-Script",
+        ...customOptions.headers,
       },
     };
 
@@ -83,8 +84,11 @@ function fetchGitHubPage(url) {
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
           try {
-            const files = JSON.parse(data);
-            resolve(files);
+            if (customOptions.raw) {
+              resolve(data);
+            } else {
+              resolve(JSON.parse(data));
+            }
           } catch (e) {
             reject(e);
           }
@@ -124,7 +128,70 @@ async function getChangedFilesFromGitHub(prNumber) {
   return allFilenames;
 }
 
-function checkChanges(files) {
+// Check if package.json changes are only version bumps
+async function isPackageJsonVersionOnly(filePath, githubContext) {
+  try {
+    let beforePkg, afterPkg;
+
+    if (githubContext) {
+      // GitHub API Mode
+      console.log(`Checking ${filePath} changes via GitHub API...`);
+
+      const { baseSha, headSha } = githubContext;
+
+      const baseUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${baseSha}`;
+      const headUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${headSha}`;
+
+      const fetchOptions = {
+        headers: { Accept: "application/vnd.github.v3.raw" },
+        raw: false, // Parse response as JSON (GitHub returns raw JSON file content with the Accept header)
+      };
+
+      beforePkg = await fetchGitHubPage(baseUrl, fetchOptions);
+      afterPkg = await fetchGitHubPage(headUrl, fetchOptions);
+    } else {
+      // Git Mode
+      console.log(`Checking ${filePath} changes via local Git...`);
+      const beforeContent = execSync(
+        `git show ${CACHED_COMMIT_REF}:${filePath}`,
+        { encoding: "utf8" },
+      );
+      const afterContent = execSync(`git show ${COMMIT_REF}:${filePath}`, {
+        encoding: "utf8",
+      });
+      beforePkg = JSON.parse(beforeContent);
+      afterPkg = JSON.parse(afterContent);
+    }
+
+    // Compare fields
+    const importantFields = [
+      "dependencies",
+      "devDependencies",
+      "peerDependencies",
+      "scripts",
+      "engines",
+      "workspaces",
+    ];
+    for (const field of importantFields) {
+      if (
+        JSON.stringify(beforePkg[field]) !== JSON.stringify(afterPkg[field])
+      ) {
+        console.log(`Confirmed relevant change in '${field}' of ${filePath}`);
+        return false; // Real change detected
+      }
+    }
+
+    console.log(
+      `Only version (or irrelevant fields) changed in ${filePath}. Ignoring.`,
+    );
+    return true; // Safe to ignore
+  } catch (err) {
+    console.error(`Error analyzing ${filePath}:`, err.message);
+    return false; // Assume unsafe on error
+  }
+}
+
+async function checkChanges(files, isGitHub) {
   if (files.length === 0) {
     console.log("No changes detected.");
     process.exit(0); // Skip build
@@ -132,7 +199,59 @@ function checkChanges(files) {
 
   console.log("Changed files:", files);
 
+  // 1. Identify package.json files
+  const packageJsonFiles = files.filter((f) => f.endsWith("package.json"));
+  let filesToIgnore = [];
+
+  // Optimization: Fetch PR info once if in GitHub mode and we have package.json files
+  let githubContext = null;
+  if (isGitHub && packageJsonFiles.length > 0) {
+    try {
+      const prUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${REVIEW_ID}`;
+      const pr = await fetchGitHubPage(prUrl);
+      githubContext = {
+        baseSha: pr.base.sha,
+        headSha: pr.head.sha,
+      };
+    } catch (e) {
+      console.error("Failed to fetch PR info:", e);
+      // Fallback or exit? If we can't get context, we can't verify package.json, so assume unsafe.
+    }
+  }
+
+  // 2. Check each package.json
+  for (const pkgFile of packageJsonFiles) {
+    // Actually previously passed 'isFileChangeListFromGitHub' boolean.
+    // Now I pass 'githubContext' object (truthy) OR null (falsy) for Git mode.
+    // Wait, if isGitHub is true but githubContext failed, we should probably SKIP checking and trigger build for safety.
+
+    if (isGitHub && !githubContext) {
+      console.log(
+        `Skipping optimization for ${pkgFile} due to missing GitHub context. Build will be triggered.`,
+      );
+      continue;
+    }
+
+    // For Git mode, githubContext is null, which is correct.
+    const isVersionOnly = await isPackageJsonVersionOnly(
+      pkgFile,
+      githubContext,
+    );
+    if (isVersionOnly) {
+      filesToIgnore.push(pkgFile);
+      console.log(`Marking ${pkgFile} as safe to ignore (version only).`);
+    } else {
+      console.log(`${pkgFile} has significant changes.`);
+    }
+  }
+
+  // 3. Filter relevant files
   const relevantFiles = files.filter((file) => {
+    // If file is in filesToIgnore, skip it
+    if (filesToIgnore.includes(file)) {
+      return false;
+    }
+
     const isSignificant = SIGNIFICANT_PATHS.some((regex) => regex.test(file));
     const isIgnored = IGNORED_PATHS.some((regex) => regex.test(file));
     return isSignificant && !isIgnored;
@@ -150,8 +269,9 @@ function checkChanges(files) {
 // Main execution
 (async () => {
   try {
+    const isGitHub = CONTEXT === "deploy-preview" && !!REVIEW_ID;
     const files = await getChangedFiles();
-    checkChanges(files);
+    await checkChanges(files, isGitHub);
   } catch (error) {
     console.error("Unexpected error:", error);
     process.exit(1); // Force build on error
