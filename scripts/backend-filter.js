@@ -124,6 +124,7 @@ function isPackageJsonVersionOnly(filePath) {
       "type",
       "exports",
       "workspaces",
+      "files",
     ];
 
     for (const field of importantFields) {
