@@ -143,10 +143,12 @@ function isPackageJsonVersionOnly(filePath) {
 }
 
 /**
- * Detect changes in package.json dependencies
+ * `backend/package.json`内の必須パッケージ依存関係の変更を検出します。
  *
- * Checks if specific required packages have changed versions.
- * Note: This runs on files that were NOT filtered out by isPackageJsonVersionOnly.
+ * この関数は、`isPackageJsonVersionOnly`によってバージョンアップのみの変更が
+ * 事前に除外されたファイルリストを対象とすることを前提としています。
+ * `backend/package.json`がこのリストに含まれている場合、この関数は指定された
+ * `requiredPackages`のバージョンが変更されたかどうかを具体的にチェックします。
  */
 function checkPackageJsonChanges(changedFiles, requiredPackages) {
   const packageJsonPath = "backend/package.json";
