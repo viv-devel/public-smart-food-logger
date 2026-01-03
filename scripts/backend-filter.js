@@ -98,7 +98,64 @@ function matchesPattern(filePath, pattern) {
 }
 
 /**
- * package.json の dependencies の変更を検出
+ * Check if package.json changes are only version bumps
+ */
+function isPackageJsonVersionOnly(filePath) {
+  try {
+    // 変更前後の package.json を取得
+    const beforeContent = execSync(`git show ${BEFORE_COMMIT}:${filePath}`, {
+      encoding: "utf8",
+    });
+    const afterContent = execSync(`git show ${AFTER_COMMIT}:${filePath}`, {
+      encoding: "utf8",
+    });
+
+    const beforePkg = JSON.parse(beforeContent);
+    const afterPkg = JSON.parse(afterContent);
+
+    // 重要なフィールド定義
+    const importantFields = [
+      "dependencies",
+      "devDependencies",
+      "peerDependencies",
+      "scripts",
+      "engines",
+      "main",
+      "type",
+      "exports",
+      "workspaces",
+    ];
+
+    // Check root fields
+    for (const field of importantFields) {
+      if (
+        JSON.stringify(beforePkg[field]) !== JSON.stringify(afterPkg[field])
+      ) {
+        console.error(`  Change detected in '${field}' of ${filePath}`);
+        return false; // Real change detected
+      }
+    }
+
+    // Check specific dependencies passed (if any) - actually here we check ALL dependencies because this function is generic
+    // However, the caller effectively filters out the FILE if this returns true.
+    // So if I add a dependency, this returns false (unsafe). Correct.
+
+    return true; // Safe to ignore (version bump only)
+  } catch (error) {
+    console.error(`Failed to check ${filePath} changes:`, error.message);
+    return false; // Assume unsafe on error
+  }
+}
+
+/**
+ * package.json の dependencies の変更を検出 (Legacy: kept for backend/package.json specific filtering if needed, but new logic supersedes)
+ * But actually, the new logic filters file list itself.
+ * The existing checkPackageJsonChanges function specifically checked backend/package.json for specific package usage.
+ * With the new approach, if backend/package.json changes ONLY version, it is removed from relevantFiles.
+ * So checkPackageJsonChanges won't even see it if it's passed the filtered list.
+ * However, checkPackageJsonChanges relies on internal logic.
+ * Let's update checkPackageJsonChanges to be smarter OR simple rely on the pre-filtering.
+ * Pre-filtering is safer.
  */
 function checkPackageJsonChanges(changedFiles, requiredPackages) {
   const packageJsonPath = "backend/package.json";
@@ -111,37 +168,36 @@ function checkPackageJsonChanges(changedFiles, requiredPackages) {
     return false; // 依存パッケージがない関数は影響なし
   }
 
+  // Pre-filtering already removed package.json if it was version-only.
+  // If it's still here, it means something important changed OR we skipped pre-filtering for it.
+
+  // Actually, let's rely on the generic check.
+  // But wait, the existing function checks `requiredPackages` specific subsets.
+  // If I update `backend/package.json` adding a dependency that is NOT in `requiredPackages`,
+  // `isPackageJsonVersionOnly` returns FALSE (change detected), so file remains in list.
+  // Then THIS function runs. It sees the file. It checks `requiredPackages`.
+  // If the added dependency is NOT in `requiredPackages`, it returns FALSE.
+  // So we skip deploy. This is CORRECT efficient behavior.
+
+  // What if ONLY version changed?
+  // `isPackageJsonVersionOnly` returns TRUE. File removed from list.
+  // THIS function sees NO file. Returns FALSE.
+  // So we skip deploy. This is CORRECT.
+
+  // So we just need to keep this function as is, but use the filtered list.
+
   try {
-    // 変更前後の package.json を取得
     const beforeContent = execSync(
       `git show ${BEFORE_COMMIT}:${packageJsonPath}`,
-      {
-        encoding: "utf8",
-      },
+      { encoding: "utf8" },
     );
     const afterContent = execSync(
       `git show ${AFTER_COMMIT}:${packageJsonPath}`,
-      {
-        encoding: "utf8",
-      },
+      { encoding: "utf8" },
     );
-
     const beforePkg = JSON.parse(beforeContent);
     const afterPkg = JSON.parse(afterContent);
 
-    // 特定のルートフィールドの変更をチェック
-    const checkFields = ["main", "type"];
-
-    for (const field of checkFields) {
-      if (
-        JSON.stringify(beforePkg[field]) !== JSON.stringify(afterPkg[field])
-      ) {
-        console.error(`  ✓ Root field '${field}' changed`);
-        return true;
-      }
-    }
-
-    // 必要なパッケージのいずれかが変更されたかチェック
     const beforeDeps = beforePkg.dependencies || {};
     const afterDeps = afterPkg.dependencies || {};
 
@@ -153,11 +209,9 @@ function checkPackageJsonChanges(changedFiles, requiredPackages) {
         return true;
       }
     }
-
     return false;
   } catch (error) {
     console.error("Failed to check package.json changes:", error.message);
-    // エラー時は安全のためデプロイ
     return true;
   }
 }
@@ -190,8 +244,21 @@ function main() {
     return;
   }
 
+  // 0. Pre-filter package.json files (backend/shared)
+  let filteredFiles = [...changedFiles];
+  const pkgFilesToCheck = filteredFiles.filter((f) =>
+    f.endsWith("package.json"),
+  );
+
+  for (const pkgFile of pkgFilesToCheck) {
+    if (isPackageJsonVersionOnly(pkgFile)) {
+      filteredFiles = filteredFiles.filter((f) => f !== pkgFile);
+      console.error(`  Ignoring version-only change in ${pkgFile}`);
+    }
+  }
+
   // 無視するファイルを除外
-  const relevantFiles = changedFiles.filter((file) => {
+  const relevantFiles = filteredFiles.filter((file) => {
     return !IGNORED_FILES.some((pattern) => matchesPattern(file, pattern));
   });
 
@@ -210,7 +277,8 @@ function main() {
     }
   }
 
-  // 3. package.json の dependencies の変更をチェック
+  // 3. package.json の dependencies の変更をチェック (backend/package.json only)
+  // Note: if backend/package.json was version-only change, it is already removed from relevantFiles.
   if (checkPackageJsonChanges(relevantFiles, deps.packages)) {
     console.error(`  ✓ Required package changed`);
     console.log("true");

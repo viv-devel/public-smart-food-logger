@@ -59,7 +59,7 @@ function getChangedFilesFromGit() {
   }
 }
 
-function fetchGitHubPage(url) {
+function fetchGitHubPage(url, asJson = true) {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
@@ -83,8 +83,12 @@ function fetchGitHubPage(url) {
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
           try {
-            const files = JSON.parse(data);
-            resolve(files);
+            if (asJson) {
+              const result = JSON.parse(data);
+              resolve(result);
+            } else {
+              resolve(data);
+            }
           } catch (e) {
             reject(e);
           }
@@ -124,7 +128,103 @@ async function getChangedFilesFromGitHub(prNumber) {
   return allFilenames;
 }
 
-function checkChanges(files) {
+// Check if package.json changes are only version bumps
+async function isPackageJsonVersionOnly(filePath, isFileChangeListFromGitHub) {
+  try {
+    let beforePkg, afterPkg;
+
+    if (isFileChangeListFromGitHub) {
+      // GitHub API Mode
+      console.log(`Checking ${filePath} changes via GitHub API...`);
+
+      // Fetch Pull Request details to get base/head SHA
+      // Optimization: Fetch these only once if possible, but for simplicity/robustness we fetch per file for now (or assume global CONTEXT provides diff refs?)
+      // Actually, process.env.COMMIT_REF and CACHED_COMMIT_REF might not be reliable for file CONTENT fetching in PR context depending on how Netlify sets them.
+      // Reliable way in PR: get PR head/base SHA from API.
+
+      const prUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${REVIEW_ID}`;
+      const pr = await fetchGitHubPage(prUrl);
+      const baseSha = pr.base.sha;
+      const headSha = pr.head.sha;
+
+      const baseUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${baseSha}`;
+      const headUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${headSha}`;
+
+      const fetchContent = (url) => {
+        return new Promise((resolve, reject) => {
+          const options = {
+            headers: {
+              "User-Agent": "Netlify-Ignore-Script",
+              Accept: "application/vnd.github.v3.raw",
+            },
+          };
+          if (process.env.GITHUB_TOKEN) {
+            options.headers["Authorization"] =
+              `token ${process.env.GITHUB_TOKEN}`;
+          }
+          https
+            .get(url, options, (res) => {
+              if (res.statusCode !== 200) {
+                reject(new Error(`GitHub API failed: ${res.statusCode}`));
+                return;
+              }
+              let data = "";
+              res.on("data", (chunk) => (data += chunk));
+              res.on("end", () => resolve(JSON.parse(data)));
+            })
+            .on("error", reject);
+        });
+      };
+
+      beforePkg = await fetchContent(baseUrl);
+      afterPkg = await fetchContent(headUrl);
+    } else {
+      // Git Mode
+      console.log(`Checking ${filePath} changes via local Git...`);
+      // Use CACHED_COMMIT_REF (base) and COMMIT_REF (head)
+      const beforeContent = execSync(
+        `git show ${CACHED_COMMIT_REF}:${filePath}`,
+        { encoding: "utf8" },
+      );
+      const afterContent = execSync(`git show ${COMMIT_REF}:${filePath}`, {
+        encoding: "utf8",
+      });
+      beforePkg = JSON.parse(beforeContent);
+      afterPkg = JSON.parse(afterContent);
+    }
+
+    // Compare fields
+    // If any of these change, we MUST build.
+    // If only 'version' changes, we can skip.
+    const importantFields = [
+      "dependencies",
+      "devDependencies",
+      "peerDependencies",
+      "scripts",
+      "engines",
+      "workspaces",
+    ];
+    for (const field of importantFields) {
+      if (
+        JSON.stringify(beforePkg[field]) !== JSON.stringify(afterPkg[field])
+      ) {
+        console.log(`Confirmed relevant change in '${field}' of ${filePath}`);
+        return false; // Real change detected
+      }
+    }
+
+    console.log(
+      `Only version (or irrelevant fields) changed in ${filePath}. Ignoring.`,
+    );
+    return true; // Safe to ignore
+  } catch (err) {
+    // If checking fails (e.g. file deleted/moved), assume meaningful change -> Build
+    console.error(`Error analyzing ${filePath}:`, err.message);
+    return false; // Assume unsafe on error
+  }
+}
+
+async function checkChanges(files, isGitHub) {
   if (files.length === 0) {
     console.log("No changes detected.");
     process.exit(0); // Skip build
@@ -132,7 +232,28 @@ function checkChanges(files) {
 
   console.log("Changed files:", files);
 
+  // 1. Identify package.json files
+  const packageJsonFiles = files.filter((f) => f.endsWith("package.json"));
+  let filesToIgnore = [];
+
+  // 2. Check each package.json
+  for (const pkgFile of packageJsonFiles) {
+    const isVersionOnly = await isPackageJsonVersionOnly(pkgFile, isGitHub);
+    if (isVersionOnly) {
+      filesToIgnore.push(pkgFile);
+      console.log(`Marking ${pkgFile} as safe to ignore (version only).`);
+    } else {
+      console.log(`${pkgFile} has significant changes.`);
+    }
+  }
+
+  // 3. Filter relevant files
   const relevantFiles = files.filter((file) => {
+    // If file is in filesToIgnore, skip it
+    if (filesToIgnore.includes(file)) {
+      return false;
+    }
+
     const isSignificant = SIGNIFICANT_PATHS.some((regex) => regex.test(file));
     const isIgnored = IGNORED_PATHS.some((regex) => regex.test(file));
     return isSignificant && !isIgnored;
@@ -150,8 +271,9 @@ function checkChanges(files) {
 // Main execution
 (async () => {
   try {
+    const isGitHub = CONTEXT === "deploy-preview" && !!REVIEW_ID;
     const files = await getChangedFiles();
-    checkChanges(files);
+    await checkChanges(files, isGitHub);
   } catch (error) {
     console.error("Unexpected error:", error);
     process.exit(1); // Force build on error
