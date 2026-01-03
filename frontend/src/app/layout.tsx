@@ -2,7 +2,6 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 
 import { Footer } from "@/components/Footer";
 import HeaderMenu from "@/components/HeaderMenu";
@@ -41,9 +40,6 @@ const getBaseUrl = (): URL => {
   // フォールバック: ローカル開発環境およびCI環境
   return new URL("http://localhost:3000");
 };
-
-// metadataBase を取得
-const metadataBase = getBaseUrl();
 
 export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = getBaseUrl();
