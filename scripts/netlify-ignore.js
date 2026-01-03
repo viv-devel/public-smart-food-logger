@@ -59,11 +59,12 @@ function getChangedFilesFromGit() {
   }
 }
 
-function fetchGitHubPage(url, asJson = true) {
+function fetchGitHubPage(url, customOptions = {}) {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
         "User-Agent": "Netlify-Ignore-Script",
+        ...customOptions.headers,
       },
     };
 
@@ -83,11 +84,10 @@ function fetchGitHubPage(url, asJson = true) {
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {
           try {
-            if (asJson) {
-              const result = JSON.parse(data);
-              resolve(result);
-            } else {
+            if (customOptions.raw) {
               resolve(data);
+            } else {
+              resolve(JSON.parse(data));
             }
           } catch (e) {
             reject(e);
@@ -129,59 +129,29 @@ async function getChangedFilesFromGitHub(prNumber) {
 }
 
 // Check if package.json changes are only version bumps
-async function isPackageJsonVersionOnly(filePath, isFileChangeListFromGitHub) {
+async function isPackageJsonVersionOnly(filePath, githubContext) {
   try {
     let beforePkg, afterPkg;
 
-    if (isFileChangeListFromGitHub) {
+    if (githubContext) {
       // GitHub API Mode
       console.log(`Checking ${filePath} changes via GitHub API...`);
 
-      // Fetch Pull Request details to get base/head SHA
-      // Optimization: Fetch these only once if possible, but for simplicity/robustness we fetch per file for now (or assume global CONTEXT provides diff refs?)
-      // Actually, process.env.COMMIT_REF and CACHED_COMMIT_REF might not be reliable for file CONTENT fetching in PR context depending on how Netlify sets them.
-      // Reliable way in PR: get PR head/base SHA from API.
-
-      const prUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${REVIEW_ID}`;
-      const pr = await fetchGitHubPage(prUrl);
-      const baseSha = pr.base.sha;
-      const headSha = pr.head.sha;
+      const { baseSha, headSha } = githubContext;
 
       const baseUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${baseSha}`;
       const headUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}?ref=${headSha}`;
 
-      const fetchContent = (url) => {
-        return new Promise((resolve, reject) => {
-          const options = {
-            headers: {
-              "User-Agent": "Netlify-Ignore-Script",
-              Accept: "application/vnd.github.v3.raw",
-            },
-          };
-          if (process.env.GITHUB_TOKEN) {
-            options.headers["Authorization"] =
-              `token ${process.env.GITHUB_TOKEN}`;
-          }
-          https
-            .get(url, options, (res) => {
-              if (res.statusCode !== 200) {
-                reject(new Error(`GitHub API failed: ${res.statusCode}`));
-                return;
-              }
-              let data = "";
-              res.on("data", (chunk) => (data += chunk));
-              res.on("end", () => resolve(JSON.parse(data)));
-            })
-            .on("error", reject);
-        });
+      const fetchOptions = {
+        headers: { Accept: "application/vnd.github.v3.raw" },
+        raw: false, // The raw header returns JSON-parsable content directly for package.json (if accept header is set, GitHub returns raw file content. If it's json file, it's json string)
       };
 
-      beforePkg = await fetchContent(baseUrl);
-      afterPkg = await fetchContent(headUrl);
+      beforePkg = await fetchGitHubPage(baseUrl, fetchOptions);
+      afterPkg = await fetchGitHubPage(headUrl, fetchOptions);
     } else {
       // Git Mode
       console.log(`Checking ${filePath} changes via local Git...`);
-      // Use CACHED_COMMIT_REF (base) and COMMIT_REF (head)
       const beforeContent = execSync(
         `git show ${CACHED_COMMIT_REF}:${filePath}`,
         { encoding: "utf8" },
@@ -194,8 +164,6 @@ async function isPackageJsonVersionOnly(filePath, isFileChangeListFromGitHub) {
     }
 
     // Compare fields
-    // If any of these change, we MUST build.
-    // If only 'version' changes, we can skip.
     const importantFields = [
       "dependencies",
       "devDependencies",
@@ -218,7 +186,6 @@ async function isPackageJsonVersionOnly(filePath, isFileChangeListFromGitHub) {
     );
     return true; // Safe to ignore
   } catch (err) {
-    // If checking fails (e.g. file deleted/moved), assume meaningful change -> Build
     console.error(`Error analyzing ${filePath}:`, err.message);
     return false; // Assume unsafe on error
   }
@@ -236,9 +203,40 @@ async function checkChanges(files, isGitHub) {
   const packageJsonFiles = files.filter((f) => f.endsWith("package.json"));
   let filesToIgnore = [];
 
+  // Optimization: Fetch PR info once if in GitHub mode and we have package.json files
+  let githubContext = null;
+  if (isGitHub && packageJsonFiles.length > 0) {
+    try {
+      const prUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${REVIEW_ID}`;
+      const pr = await fetchGitHubPage(prUrl);
+      githubContext = {
+        baseSha: pr.base.sha,
+        headSha: pr.head.sha,
+      };
+    } catch (e) {
+      console.error("Failed to fetch PR info:", e);
+      // Fallback or exit? If we can't get context, we can't verify package.json, so assume unsafe.
+    }
+  }
+
   // 2. Check each package.json
   for (const pkgFile of packageJsonFiles) {
-    const isVersionOnly = await isPackageJsonVersionOnly(pkgFile, isGitHub);
+    // Actually previously passed 'isFileChangeListFromGitHub' boolean.
+    // Now I pass 'githubContext' object (truthy) OR null (falsy) for Git mode.
+    // Wait, if isGitHub is true but githubContext failed, we should probably SKIP checking and trigger build for safety.
+
+    if (isGitHub && !githubContext) {
+      console.log(
+        `Skipping optimization for ${pkgFile} due to missing GitHub context.`,
+      );
+      continue;
+    }
+
+    // For Git mode, githubContext is null, which is correct.
+    const isVersionOnly = await isPackageJsonVersionOnly(
+      pkgFile,
+      githubContext,
+    );
     if (isVersionOnly) {
       filesToIgnore.push(pkgFile);
       console.log(`Marking ${pkgFile} as safe to ignore (version only).`);

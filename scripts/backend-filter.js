@@ -102,7 +102,7 @@ function matchesPattern(filePath, pattern) {
  */
 function isPackageJsonVersionOnly(filePath) {
   try {
-    // 変更前後の package.json を取得
+    // Get package.json content before and after
     const beforeContent = execSync(`git show ${BEFORE_COMMIT}:${filePath}`, {
       encoding: "utf8",
     });
@@ -113,7 +113,7 @@ function isPackageJsonVersionOnly(filePath) {
     const beforePkg = JSON.parse(beforeContent);
     const afterPkg = JSON.parse(afterContent);
 
-    // 重要なフィールド定義
+    // Fields that trigger a deployment if changed
     const importantFields = [
       "dependencies",
       "devDependencies",
@@ -126,7 +126,6 @@ function isPackageJsonVersionOnly(filePath) {
       "workspaces",
     ];
 
-    // Check root fields
     for (const field of importantFields) {
       if (
         JSON.stringify(beforePkg[field]) !== JSON.stringify(afterPkg[field])
@@ -136,10 +135,6 @@ function isPackageJsonVersionOnly(filePath) {
       }
     }
 
-    // Check specific dependencies passed (if any) - actually here we check ALL dependencies because this function is generic
-    // However, the caller effectively filters out the FILE if this returns true.
-    // So if I add a dependency, this returns false (unsafe). Correct.
-
     return true; // Safe to ignore (version bump only)
   } catch (error) {
     console.error(`Failed to check ${filePath} changes:`, error.message);
@@ -148,14 +143,10 @@ function isPackageJsonVersionOnly(filePath) {
 }
 
 /**
- * package.json の dependencies の変更を検出 (Legacy: kept for backend/package.json specific filtering if needed, but new logic supersedes)
- * But actually, the new logic filters file list itself.
- * The existing checkPackageJsonChanges function specifically checked backend/package.json for specific package usage.
- * With the new approach, if backend/package.json changes ONLY version, it is removed from relevantFiles.
- * So checkPackageJsonChanges won't even see it if it's passed the filtered list.
- * However, checkPackageJsonChanges relies on internal logic.
- * Let's update checkPackageJsonChanges to be smarter OR simple rely on the pre-filtering.
- * Pre-filtering is safer.
+ * Detect changes in package.json dependencies
+ *
+ * Checks if specific required packages have changed versions.
+ * Note: This runs on files that were NOT filtered out by isPackageJsonVersionOnly.
  */
 function checkPackageJsonChanges(changedFiles, requiredPackages) {
   const packageJsonPath = "backend/package.json";
