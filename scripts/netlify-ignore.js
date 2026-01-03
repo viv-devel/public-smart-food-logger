@@ -144,7 +144,7 @@ async function isPackageJsonVersionOnly(filePath, githubContext) {
 
       const fetchOptions = {
         headers: { Accept: "application/vnd.github.v3.raw" },
-        raw: false, // The raw header returns JSON-parsable content directly for package.json (if accept header is set, GitHub returns raw file content. If it's json file, it's json string)
+        raw: false, // Parse response as JSON (GitHub returns raw JSON file content with the Accept header)
       };
 
       beforePkg = await fetchGitHubPage(baseUrl, fetchOptions);
@@ -227,7 +227,7 @@ async function checkChanges(files, isGitHub) {
 
     if (isGitHub && !githubContext) {
       console.log(
-        `Skipping optimization for ${pkgFile} due to missing GitHub context.`,
+        `Skipping optimization for ${pkgFile} due to missing GitHub context. Build will be triggered.`,
       );
       continue;
     }
