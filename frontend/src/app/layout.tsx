@@ -14,7 +14,7 @@ const SITE_TITLE =
   "Smart Food Logger | 写真からFitbitへの食事記録をAIがサポート";
 const SITE_DESCRIPTION =
   "食事の写真を撮るだけでAIが内容を推定。記録の手間を最小限にして、Fitbitへ簡単に反映できます。Pixel Watchで消費と摂取をバランスよく管理したい方に。";
-const OG_IMAGE = "/images/1-photo-analysis.webp";
+const OG_IMAGE = "/images/ogp-image.png";
 
 /**
  * 環境変数からベースURLを取得する
