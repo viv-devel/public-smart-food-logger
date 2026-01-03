@@ -1,9 +1,11 @@
 import "./globals.css";
 
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Footer } from "@/components/Footer";
 import HeaderMenu from "@/components/HeaderMenu";
+import { StructuredData } from "@/components/StructuredData";
 import { ToastProvider } from "@/components/Toast";
 import { getHeaderColor } from "@/utils/environment";
 
@@ -39,26 +41,27 @@ const getBaseUrl = (): URL => {
   return new URL("http://localhost:3000");
 };
 
-// metadataBase を取得
-const metadataBase = getBaseUrl();
+export async function generateMetadata(): Promise<Metadata> {
+  const baseUrl = getBaseUrl();
 
-export const metadata = {
-  metadataBase,
-  title: SITE_TITLE,
-  description: SITE_DESCRIPTION,
-  openGraph: {
-    type: "website",
+  return {
+    metadataBase: baseUrl,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-};
+    openGraph: {
+      type: "website",
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      images: [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      images: [OG_IMAGE],
+    },
+  };
+}
 
 export default function RootLayout({
   children,
@@ -67,10 +70,12 @@ export default function RootLayout({
 }) {
   const environment = process.env.APP_ENVIRONMENT;
   const headerBgClass = getHeaderColor(environment);
+  const baseUrl = getBaseUrl().toString();
 
   return (
     <html lang="ja">
       <body>
+        <StructuredData baseUrl={baseUrl} />
         {/* Preconnect hints for critical third-party domains to improve initial load performance */}
         {/* Next.js will hoist these to the <head> */}
         <link rel="preconnect" href="https://apis.google.com" />
