@@ -235,22 +235,17 @@ function main() {
   // package.json, pnpm-lock.yaml, pnpm-workspace.yaml の変更は全関数に影響するため、即デプロイ
   for (const globalFile of GLOBAL_DEPENDENCIES) {
     if (changedFiles.includes(globalFile)) {
-      // package.json の場合は version のみの変更かどうかチェック
-      if (globalFile.endsWith("package.json")) {
-        if (!isPackageJsonVersionOnly(globalFile)) {
-          console.error(`  ✓ Global dependency changed: ${globalFile}`);
-          console.log("true");
-          return;
-        } else {
-          console.error(
-            `  Ignoring version-only change in global ${globalFile}`,
-          );
-        }
-      } else {
-        console.error(`  ✓ Global dependency changed: ${globalFile}`);
-        console.log("true");
-        return;
+      if (
+        globalFile.endsWith("package.json") &&
+        isPackageJsonVersionOnly(globalFile)
+      ) {
+        console.error(`  Ignoring version-only change in global ${globalFile}`);
+        continue;
       }
+
+      console.error(`  ✓ Global dependency changed: ${globalFile}`);
+      console.log("true");
+      return;
     }
   }
 
