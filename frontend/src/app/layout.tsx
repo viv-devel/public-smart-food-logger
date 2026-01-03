@@ -1,10 +1,10 @@
 import "./globals.css";
 
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Footer } from "@/components/Footer";
 import HeaderMenu from "@/components/HeaderMenu";
-import { StructuredData } from "@/components/StructuredData";
 import { ToastProvider } from "@/components/Toast";
 import { getHeaderColor } from "@/utils/environment";
 
@@ -43,23 +43,65 @@ const getBaseUrl = (): URL => {
 // metadataBase を取得
 const metadataBase = getBaseUrl();
 
-export const metadata = {
-  metadataBase,
-  title: SITE_TITLE,
-  description: SITE_DESCRIPTION,
-  openGraph: {
-    type: "website",
+export async function generateMetadata(): Promise<Metadata & { jsonLd?: any }> {
+  const baseUrl = getBaseUrl();
+  const siteUrlString = baseUrl.toString();
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Smart Food Logger",
+    url: siteUrlString,
+  };
+
+  const softwareAppSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Smart Food Logger",
+    applicationCategory: "HealthApplication",
+    operatingSystem: "Browser",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "JPY",
+    },
+    description: SITE_DESCRIPTION,
+    author: {
+      "@type": "Organization",
+      name: "Smart Food Logger Team",
+      url: siteUrlString,
+    },
+    screenshot: `${siteUrlString}images/ogp-image.png`.replace(
+      /([^:]\/)\/+/g,
+      "$1",
+    ),
+    featureList: [
+      "食事検索や面倒な栄養計算・入力が一切不要",
+      "写真やチャットでAIに伝えるだけの圧倒的に楽な記録体験",
+      "生成されたJSONをコピペするだけのシンプル操作",
+      "Fitbitへの自動連携（完全無料）",
+    ],
+  };
+
+  return {
+    metadataBase: baseUrl,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-};
+    openGraph: {
+      type: "website",
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      images: [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      images: [OG_IMAGE],
+    },
+    jsonLd: [websiteSchema, softwareAppSchema],
+  };
+}
 
 export default function RootLayout({
   children,
@@ -72,7 +114,6 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        <StructuredData baseUrl={getBaseUrl().toString()} />
         {/* Preconnect hints for critical third-party domains to improve initial load performance */}
         {/* Next.js will hoist these to the <head> */}
         <link rel="preconnect" href="https://apis.google.com" />
