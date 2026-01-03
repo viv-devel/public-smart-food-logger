@@ -171,6 +171,7 @@ async function isPackageJsonVersionOnly(filePath, githubContext) {
       "scripts",
       "engines",
       "workspaces",
+      "pnpm", // pnpm specific config like overrides
     ];
     for (const field of importantFields) {
       if (
