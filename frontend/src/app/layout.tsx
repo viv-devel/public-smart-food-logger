@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Footer } from "@/components/Footer";
 import HeaderMenu from "@/components/HeaderMenu";
+import { StructuredData } from "@/components/StructuredData";
 import { ToastProvider } from "@/components/Toast";
 import { getHeaderColor } from "@/utils/environment";
 
@@ -71,6 +72,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
+        <StructuredData baseUrl={getBaseUrl().toString()} />
         {/* Preconnect hints for critical third-party domains to improve initial load performance */}
         {/* Next.js will hoist these to the <head> */}
         <link rel="preconnect" href="https://apis.google.com" />
