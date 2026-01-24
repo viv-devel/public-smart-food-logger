@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "endOfLine": "lf",
+  "printWidth": 80,
+  "ignorePatterns": [
+    "dist/",
+    "build/",
+    "coverage/",
+    ".next/",
+    "out/",
+    "node_modules/",
+    "*.log",
+    "npm-debug.log*",
+    ".DS_Store",
+    "Thumbs.db",
+    ".vscode/",
+    ".idea/",
+    "test-results/",
+    "playwright-report/",
+    ".auth/",
+    "pnpm-lock.yaml"
+  ]
+}

@@ -1,15 +1,10 @@
 {
   "name": "@smart-food-logger/backend",
   "version": "1.0.2",
-  "packageManager": "pnpm@10.27.0",
-  "license": "MIT",
   "description": "Fitbit food logging logic for Gemini custom Gem.",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
-  },
   "scripts": {
     "start": "functions-framework --target=healthChecker",
     "gcp-build": "node -e \"console.log('Skipping build on GCP')\"",
@@ -34,15 +29,18 @@
     "@typescript-eslint/parser": "^8.47.0",
     "@vitest/coverage-v8": "^4.0.14",
     "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-vitest": "^0.5.4",
     "globals": "^16.5.0",
-    "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.47.0",
     "vitest": "^4.0.14"
-  }
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@10.27.0"
 }
