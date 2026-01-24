@@ -2,6 +2,11 @@
   "name": "smart-food-logger",
   "version": "1.0.2",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
   "scripts": {
     "prepare": "husky",
     "test": "pnpm -r run test",
@@ -10,22 +15,9 @@
     "clean:all": "rimraf frontend/.next frontend/out frontend/coverage frontend/test/results backend/dist backend/coverage shared/dist shared/coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format:check": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:check": "oxfmt --check",
+    "format:write": "oxfmt"
   },
-  "workspaces": [
-    "frontend",
-    "backend",
-    "shared"
-  ],
-  "pnpm": {
-    "overrides": {
-      "jws@^3.2.2": "3.2.3",
-      "jws@^4.0.0": "4.0.1",
-      "qs": ">=6.14.1"
-    }
-  },
-  "packageManager": "pnpm@10.27.0",
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
@@ -35,7 +27,6 @@
     "@typescript-eslint/parser": "^8.48.0",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.0.7",
-    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-cypress": "^5.2.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
@@ -43,7 +34,7 @@
     "eslint-plugin-vitest": "^0.5.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.2",
+    "oxfmt": "^0.26.0",
     "rimraf": "^6.1.2",
     "storybook": "^10.1.11",
     "typescript": "^5.9.3",
@@ -52,13 +43,21 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
       "eslint --fix",
-      "prettier --write"
+      "oxfmt --no-error-on-unmatched-pattern"
     ],
     "*.{md,json,yaml,yml,toml}": [
-      "prettier --write"
+      "oxfmt --no-error-on-unmatched-pattern"
     ],
     "*.tf": [
       "terraform fmt"
     ]
+  },
+  "packageManager": "pnpm@10.27.0",
+  "pnpm": {
+    "overrides": {
+      "jws@^3.2.2": "3.2.3",
+      "jws@^4.0.0": "4.0.1",
+      "qs": ">=6.14.1"
+    }
   }
 }
