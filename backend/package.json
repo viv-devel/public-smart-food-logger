@@ -18,7 +18,7 @@
   "dependencies": {
     "@google-cloud/functions-framework": "^3.0.0",
     "@smart-food-logger/shared": "workspace:*",
-    "firebase-admin": "^13.6.0",
+    "firebase-admin": "^13.6.1",
     "node-fetch": "^3.3.2",
     "zod": "^4.1.13"
   },
