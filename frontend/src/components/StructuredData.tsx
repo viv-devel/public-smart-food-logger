@@ -1,5 +1,3 @@
-import Script from "next/script";
-
 type StructuredDataProps = {
   baseUrl: string;
 };
@@ -46,14 +44,14 @@ export const StructuredData = ({ baseUrl }: StructuredDataProps) => {
 
   return (
     <>
-      <Script
+      <script
         id="schema-website"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(websiteSchema).replace(/</g, "\\u003c"),
         }}
       />
-      <Script
+      <script
         id="schema-software-app"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
