@@ -1,27 +1,19 @@
 [build]
-  base = "."
-  publish = "frontend/.next"
-  command = "pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
-  ignore = "node scripts/netlify-ignore.js"
+base = "."
+publish = "frontend/.next"
+command = "pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
+ignore = "node scripts/netlify-ignore.js"
 
 [context.production.environment]
-  APP_ENVIRONMENT = "PROD"
+APP_ENVIRONMENT = "PROD"
 
 [context.deploy-preview]
-  command = "export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI=\"https://deploy-preview-$REVIEW_ID--smart-food-logger.netlify.app/oauth\" && pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
+command = "export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI=\"https://deploy-preview-$REVIEW_ID--smart-food-logger.netlify.app/oauth\" && pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
 
 [context.deploy-preview.environment]
-  APP_ENVIRONMENT = "preview"
+APP_ENVIRONMENT = "preview"
 
 [context.branch-deploy.environment]
-  APP_ENVIRONMENT = "staging"
+APP_ENVIRONMENT = "staging"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "SAMEORIGIN"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    X-Content-Type-Options = "nosniff"
-    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://assets.fitbit.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://api.fitbit.com https://*.firebaseapp.com https://www.google.com/recaptcha/; frame-src 'self' https://*.firebaseapp.com https://www.google.com/recaptcha/ https://app.netlify.com;"
+

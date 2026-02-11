@@ -34,7 +34,7 @@
     "eslint-plugin-vitest": "^0.5.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "oxfmt": "^0.26.0",
+    "oxfmt": "0.26.0",
     "rimraf": "^6.1.2",
     "storybook": "^10.1.11",
     "typescript": "^5.9.3",
