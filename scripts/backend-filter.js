@@ -57,6 +57,13 @@ const FUNCTION_DEPENDENCIES = {
   },
 };
 
+// 全ての関数に影響するグローバルな依存ファイル
+const GLOBAL_DEPENDENCIES = [
+  "package.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+];
+
 // 無視するファイル
 const IGNORED_FILES = [/^backend\/test\//, /^shared\/test\//, /\.md$/];
 
@@ -125,6 +132,7 @@ function isPackageJsonVersionOnly(filePath) {
       "exports",
       "workspaces",
       "files",
+      "pnpm", // pnpm specific config like overrides
     ];
 
     for (const field of importantFields) {
@@ -221,6 +229,24 @@ function main() {
   if (changedFiles.length === 0) {
     console.log("false");
     return;
+  }
+
+  // 1. Check Global Dependencies first
+  // package.json, pnpm-lock.yaml, pnpm-workspace.yaml の変更は全関数に影響するため、即デプロイ
+  for (const globalFile of GLOBAL_DEPENDENCIES) {
+    if (changedFiles.includes(globalFile)) {
+      if (
+        globalFile.endsWith("package.json") &&
+        isPackageJsonVersionOnly(globalFile)
+      ) {
+        console.error(`  Ignoring version-only change in global ${globalFile}`);
+        continue;
+      }
+
+      console.error(`  ✓ Global dependency changed: ${globalFile}`);
+      console.log("true");
+      return;
+    }
   }
 
   // 0. Pre-filter package.json files (backend/shared)

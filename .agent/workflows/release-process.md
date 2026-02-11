@@ -1,5 +1,5 @@
 ---
-description: Create a release PR, wait for merge, and synchronize develop (Reset Model)
+description: Create a release PR, wait for merge, and synchronize develop (Hybrid Model)
 ---
 
 1. Check Versions
@@ -61,10 +61,10 @@ description: Create a release PR, wait for merge, and synchronize develop (Reset
 
 > **Check**: This output MUST be empty. If anything is shown, it means new commits were pushed to `develop` during the release. STOP and investigate.
 
-11. Reset develop to match main (Reset Model)
+11. Merge main back into develop (Hybrid Model)
     // turbo
-    git reset --hard origin/main
+    git merge origin/main --no-ff -m "chore: sync develop with main after release"
 
-12. Force push synchronized develop
+12. Push synchronized develop
     // turbo
-    git push origin develop --force
+    git push origin develop

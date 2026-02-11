@@ -3,7 +3,6 @@
 import eslintPluginNext from "@next/eslint-plugin-next";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
-import prettierConfig from "eslint-config-prettier";
 import eslintPluginImport from "eslint-plugin-import";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import vitest from "eslint-plugin-vitest";
@@ -214,7 +213,7 @@ const config = [
   },
 
   // Prettier configuration (must be last)
-  prettierConfig,
+  // prettierConfig,
 ];
 
 // Commented out for future use with import/order

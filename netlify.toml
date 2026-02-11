@@ -1,17 +1,19 @@
 [build]
-  base = "."
-  publish = "frontend/.next"
-  command = "pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
-  ignore = "node scripts/netlify-ignore.js"
+base = "."
+publish = "frontend/.next"
+command = "pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
+ignore = "node scripts/netlify-ignore.js"
 
 [context.production.environment]
-  APP_ENVIRONMENT = "PROD"
+APP_ENVIRONMENT = "PROD"
 
 [context.deploy-preview]
-  command = "export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI=\"https://deploy-preview-$REVIEW_ID--smart-food-logger.netlify.app/oauth\" && pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
+command = "export NEXT_PUBLIC_FITBIT_FRONTEND_REDIRECT_URI=\"https://deploy-preview-$REVIEW_ID--smart-food-logger.netlify.app/oauth\" && pnpm --filter @smart-food-logger/shared build && pnpm --filter @smart-food-logger/frontend build"
 
 [context.deploy-preview.environment]
-  APP_ENVIRONMENT = "preview"
+APP_ENVIRONMENT = "preview"
 
 [context.branch-deploy.environment]
-  APP_ENVIRONMENT = "staging"
+APP_ENVIRONMENT = "staging"
+
+
