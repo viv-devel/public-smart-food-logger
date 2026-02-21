@@ -104,6 +104,7 @@ export const handleError = (res: Response, error: unknown): void => {
   }
 
   // 特定のエラーメッセージパターンに対する互換性維持
+  // errorがErrorオブジェクトの場合はmessageを取得、それ以外（文字列など）はString変換
   const errorMessage = error instanceof Error ? error.message : String(error);
 
   if (
