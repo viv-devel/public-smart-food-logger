@@ -12,6 +12,7 @@ import {
 import {
   AuthenticationError,
   FitbitApiError,
+  handleError,
   MethodNotAllowedError,
   ValidationError,
 } from "../utils/errors.js";
@@ -134,20 +135,7 @@ export const foodLogHandler: HttpFunction = async (req, res) => {
 
     throw new MethodNotAllowedError("Method Not Allowed");
   } catch (error: any) {
-    console.error("Unhandled error in foodLogHandler:", error);
-    if (error.statusCode) {
-      res.status(error.statusCode).json({ error: error.message });
-      return;
-    } else if (
-      error.message.includes("ID token") ||
-      error.message.includes("Unauthorized")
-    ) {
-      res.status(401).json({ error: error.message });
-      return;
-    }
-    res
-      .status(500)
-      .json({ error: error.message || "An internal server error occurred." });
+    handleError(res, error);
     return;
   }
 };

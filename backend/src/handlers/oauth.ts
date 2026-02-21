@@ -2,7 +2,11 @@ import { HttpFunction } from "@google-cloud/functions-framework";
 import { Buffer } from "buffer";
 
 import { exchangeCodeForTokens } from "../services/fitbitService.js";
-import { MethodNotAllowedError, ValidationError } from "../utils/errors.js";
+import {
+  handleError,
+  MethodNotAllowedError,
+  ValidationError,
+} from "../utils/errors.js";
 
 /**
  * リダイレクトURIが許可リストに含まれているか検証する
@@ -170,20 +174,7 @@ export const oauthHandler: HttpFunction = async (req, res) => {
 
     throw new MethodNotAllowedError("Method Not Allowed");
   } catch (error: any) {
-    console.error("Unhandled error in oauthHandler:", error);
-    if (error.statusCode) {
-      res.status(error.statusCode).json({ error: error.message });
-      return;
-    } else if (
-      error.message.includes("ID token") ||
-      error.message.includes("Unauthorized")
-    ) {
-      res.status(401).json({ error: error.message });
-      return;
-    }
-    res
-      .status(500)
-      .json({ error: error.message || "An internal server error occurred." });
+    handleError(res, error);
     return;
   }
 };

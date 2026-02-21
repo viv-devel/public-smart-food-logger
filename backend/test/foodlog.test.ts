@@ -108,11 +108,7 @@ describe("foodLogHandler", () => {
 
     await foodLogHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: expect.stringContaining("Invalid ID token"),
-      }),
-    );
+    expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized" });
   });
 
   it("should return 400 for invalid body (missing foods)", async () => {
@@ -253,7 +249,7 @@ describe("foodLogHandler", () => {
     expect(res.status).toHaveBeenCalledWith(500); // FitbitApiError defaults to 500
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: expect.stringContaining("Fitbit user ID not found"),
+        error: "An internal server error occurred.",
       }),
     );
   });
@@ -306,7 +302,7 @@ describe("foodLogHandler", () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Fitbit API Down" }),
+      expect.objectContaining({ error: "An internal server error occurred." }),
     );
   });
 });
