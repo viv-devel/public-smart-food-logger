@@ -1,3 +1,5 @@
+import type { Response } from "express";
+
 /**
  * アプリケーション内で使用するカスタムエラーの基底クラス。
  * HTTPステータスコードを保持する `statusCode` プロパティを追加し、
@@ -73,3 +75,46 @@ export class MethodNotAllowedError extends CustomError {
     super(message, statusCode);
   }
 }
+
+/**
+ * 統一的なエラーハンドリングを行うユーティリティ関数。
+ * 発生したエラーをログに出力し、クライアントに適切なHTTPステータスコードとメッセージを返します。
+ * セキュリティ上の理由から、500以上のエラーや予期せぬエラーの詳細はクライアントに開示せず、
+ * 汎用的なメッセージを返します。
+ *
+ * @param res Expressのレスポンスオブジェクト
+ * @param error 発生したエラーオブジェクト
+ */
+export const handleError = (res: Response, error: unknown): void => {
+  // エラーの詳細をサーバーログに出力 (重要)
+  console.error("Error caught in handler:", error);
+
+  // カスタムエラーの場合
+  if (error instanceof CustomError) {
+    // 400番台のエラー（クライアントエラー）はメッセージを返しても安全
+    if (error.statusCode < 500) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+    // 500番台のエラーは詳細を隠蔽
+    res
+      .status(error.statusCode)
+      .json({ error: "An internal server error occurred." });
+    return;
+  }
+
+  // 特定のエラーメッセージパターンに対する互換性維持
+  // errorがErrorオブジェクトの場合はmessageを取得、それ以外（文字列など）はString変換
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
+  if (
+    errorMessage.includes("ID token") ||
+    errorMessage.includes("Unauthorized")
+  ) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  // その他の予期せぬエラー
+  res.status(500).json({ error: "An internal server error occurred." });
+};

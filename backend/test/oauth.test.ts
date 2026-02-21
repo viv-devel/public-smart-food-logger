@@ -68,23 +68,18 @@ describe("oauthHandler", () => {
     delete process.env.OAUTH_FITBIT_REDIRECT_URI;
     await oauthHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: "OAUTH_FITBIT_REDIRECT_URI 環境変数が設定されていません。",
-      }),
-    );
+    expect(res.json).toHaveBeenCalledWith({
+      error: "An internal server error occurred.",
+    });
   });
 
   it("should throw error if FITBIT_CLIENT_ID or SECRET is missing", async () => {
     delete process.env.FITBIT_CLIENT_ID;
     await oauthHandler(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error:
-          "FITBIT_CLIENT_ID and FITBIT_CLIENT_SECRET environment variables must be set",
-      }),
-    );
+    expect(res.json).toHaveBeenCalledWith({
+      error: "An internal server error occurred.",
+    });
   });
 
   it("should return 400 if state parameter is missing", async () => {
@@ -236,7 +231,7 @@ describe("oauthHandler", () => {
     await oauthHandler(req, res);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized access" });
+    expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized" });
   });
 
   it("should handle arbitrary errors as 500", async () => {
@@ -252,6 +247,8 @@ describe("oauthHandler", () => {
     await oauthHandler(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: "Unknown error" });
+    expect(res.json).toHaveBeenCalledWith({
+      error: "An internal server error occurred.",
+    });
   });
 });
