@@ -1,3 +1,5 @@
+import type { Response } from "express";
+
 /**
  * アプリケーション内で使用するカスタムエラーの基底クラス。
  * HTTPステータスコードを保持する `statusCode` プロパティを追加し、
@@ -83,7 +85,7 @@ export class MethodNotAllowedError extends CustomError {
  * @param res Expressのレスポンスオブジェクト
  * @param error 発生したエラーオブジェクト
  */
-export const handleError = (res: any, error: any): void => {
+export const handleError = (res: Response, error: unknown): void => {
   // エラーの詳細をサーバーログに出力 (重要)
   console.error("Error caught in handler:", error);
 
@@ -102,7 +104,8 @@ export const handleError = (res: any, error: any): void => {
   }
 
   // 特定のエラーメッセージパターンに対する互換性維持
-  const errorMessage = error.message || "";
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
   if (
     errorMessage.includes("ID token") ||
     errorMessage.includes("Unauthorized")
