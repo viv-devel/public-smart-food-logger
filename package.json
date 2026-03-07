@@ -36,7 +36,7 @@
     "lint-staged": "^16.2.7",
     "oxfmt": "0.26.0",
     "rimraf": "^6.1.2",
-    "storybook": "^10.1.11",
+    "storybook": "^10.2.16",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0"
   },
